@@ -23,7 +23,7 @@ npm run build   # tsc --noEmit + vite build
 ## 구조
 - `src/core` — 순수 TS(규칙·데이터·저장). Phaser·DOM을 모른다. **테스트는 여기에.**
   `rules.ts`(상한·쉬기·제안·주머니·씨앗함), `economy.ts`(성장·수확·열매·상점·방문 선물함·도장판), `stats.ts`(사실 피드백), `store.ts`(단일 상태+localStorage), `demo.ts`(샘플 데이터),
-  `story.ts`+`data/story.json`(이야기 장면), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
+  `story.ts`+`data/story.json`(이야기 장면: 프롤로그·주민 본편·서브·복귀. 열리는 순서와 하루 한 장면 규칙은 `story.ts`, 대본에서 바꾸거나 뺀 부분은 `docs/story-scenes.md`), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
 - `src/scene` — Phaser 정원(`GardenScene`, `Player`, `map`, `assets`, `sprites`). 그래픽은 `assets.ts` 한 곳이 출입구.
   배경은 그림 한 장(1266×712), 걸을 수 있는 곳은 `map.ts`의 다각형, 소품은 32px 칸에 스냅하고, 키우는 식물은 밭 그림(`public/assets/garden/field.png`, 원본 `art/source/field-bed2.webp`)의 두둑 16곳에만 심긴다(수확한 꽃은 창고로 가고, 꺼내면 소품처럼 마당 칸에 놓는다. 열매나무는 마당 칸에 심고 남아서 다시 맺는다. `economy.placeZone`. 나무 그림은 임시이고 `tools/make_tree_placeholders.py`가 만든다). 식물 칸 번호는 (100+열, 100+행)이고 위치는 `map.ts`의 `MOUNDS`가 정한다. 밭 그림을 바꾸면 `MOUNDS`(그림 속 두둑 좌표)와 `DEFAULT_BED`(처음 자리·크기)를 다시 맞춰야 한다. 텃밭은 꾸미기에서 끌어 옮길 수 있고(`bedFits`가 놓을 수 있는 곳을 판단, 자리는 `garden.bed`에 저장) 식물은 두둑 번호로 저장되어 텃밭을 따라 움직인다. 코드에서 텃밭 위치는 상수가 아니라 `BED`(바뀌는 값)를 쓸 것.
 - `src/ui` — **React** 오버레이. `App.tsx`가 뿌리, `Hud.tsx`(정원 위 화면), `modal.tsx`(`openModal(<패널/>)`·`closeModal()`), `toast.tsx`, `panels/`(활동·기록·설정·상점·선물·대화·주머니·꾸미기 등 패널 하나가 파일 하나, `Bag.tsx`는 가진 것(씨앗·소품·식물), `Records.tsx`는 쌓아 온 것(기록·도감·출석). 분류 기준은 `docs/ux-research.md`). 화면 사이의 흐름은 `flow.ts`. 상태는 `useAppState()`로 읽고 `store.update()`로 바꾼다.

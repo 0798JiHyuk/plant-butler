@@ -90,7 +90,14 @@ export interface AppState {
   /** 이야기가 건넨 주머니(날짜에 묶이지 않고, 그날 활동 주머니를 막지 않음) */
   freePackets: number;
   /** 본 장면과 고른 답 */
-  story: { seen: string[]; choices: Record<string, number> };
+  story: {
+    seen: string[];
+    choices: Record<string, number>;
+    /** 주민 이야기를 마지막으로 본 날(하루 한 장면) */
+    lastDay?: string;
+    /** 복귀 장면을 마지막으로 본 날 */
+    lastReturn?: string;
+  };
   /** 방문 선물로 받은 특별 씨앗 주머니(날짜에 묶이지 않음) */
   bonusPackets: number;
   /** 방문 선물함: 누적 방문 횟수와 마지막으로 받은 날. 연속 기록은 없다. */
