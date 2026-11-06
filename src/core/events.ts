@@ -7,6 +7,9 @@ export type NpcId = 'nuri' | 'moru' | 'pio';
 import type { DecorItem, PlantedItem, StoredThing } from './types';
 
 export interface AppEvents {
+  /** 계정/서버 저장본 복원. 게임 규칙 재실행 없이 장면만 다시 그린다. */
+  'state-restored': Record<string, never>;
+  'garden-ready': Record<string, never>;
   'move-input': { x: number; y: number };
   'player-screen': { x: number; y: number; zoom: number };
   'hud-action': { id: HudAction };

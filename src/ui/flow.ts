@@ -1,5 +1,5 @@
 // 화면 사이의 흐름: 하루 첫 여력 체크 → 활동 고르기 → 했어요 → 회고 → 정원 변화.
-import { todayKey } from '../core/clock';
+import { setDayOffset, todayKey } from '../core/clock';
 import { copy } from '../core/copy';
 import { events } from '../core/events';
 import { harvest } from '../core/economy';
@@ -9,11 +9,12 @@ import { needsIntro } from '../core/story';
 import { store } from '../core/store';
 import type { ReflectChip } from '../core/types';
 import { openActivityPanel } from './panels/ActivityPanel';
-import { enterDecorate } from './panels/Decorate';
+import { enterDecorate, exitDecorate } from './panels/Decorate';
 import { openBag } from './panels/Bag';
 import { openPacketModal } from './panels/Packet';
 import { openRecords } from './panels/Records';
 import { openSettings } from './panels/Settings';
+import { openAccount } from './panels/Account';
 import { showCheckin } from './panels/Checkin';
 import { openReflect } from './panels/Reflect';
 import { openShop } from './panels/Shop';
@@ -21,6 +22,7 @@ import { openStory } from './panels/Story';
 import { openTalk, talkActions } from './panels/Talk';
 import { startSound } from './sound';
 import { showToast } from './toast';
+import { closeModal, isModalOpen } from './modal';
 
 let justCompleted = false;
 
@@ -54,7 +56,7 @@ export function startFlow(): void {
     else if (id === 'plan-check') openActivityPanel({ detail: true });
     else if (id === 'records') openRecords();
     else if (id === 'decorate') enterDecorate();
-    else if (id === 'settings') openSettings();
+    else if (id === 'settings') openSettings(openAccount);
     else if (id === 'packet') openPacketModal();
     else if (id === 'bag') openBag('seeds');
     else if (id === 'book') openRecords('book');
@@ -81,21 +83,33 @@ export function startFlow(): void {
   let wasResting = isResting(store.state, todayKey());
   store.subscribe(() => {
     const resting = isResting(store.state, todayKey());
-    if (resting !== wasResting) events.emit('sprout-pose', { pose: resting ? 'rest' : 'idle' });
+    if (!store.restoring && resting !== wasResting) events.emit('sprout-pose', { pose: resting ? 'rest' : 'idle' });
     wasResting = resting;
   });
   // 봉투가 새로 도착하면(완료·쉬기 직후) 잠시 뒤에 알려준다. 못 열어도 우상단 버튼에 남는다.
   let pending = pendingPacketDates(store.state).length;
+  let packetTimer: number | undefined;
   store.subscribe(() => {
     const n = pendingPacketDates(store.state).length;
-    if (n > pending) {
-      window.setTimeout(openPacketModal, justCompleted ? 3400 : 800);
+    if (!store.restoring && n > pending) {
+      packetTimer = window.setTimeout(openPacketModal, justCompleted ? 3400 : 800);
       justCompleted = false;
     }
     pending = n;
   });
   startSound();
-  const begin = () => afterDayChange();
-  if (needsIntro(store.state)) openStory('intro', (after) => (after === 'packet' ? openPacketModal() : begin()));
-  else begin();
+  const begin = () => {
+    if (needsIntro(store.state)) openStory('intro', after => after === 'packet' ? openPacketModal() : afterDayChange());
+    else afterDayChange();
+  };
+  events.on('state-restored', () => {
+    justCompleted = false;
+    window.clearTimeout(packetTimer);
+    closeModal(false);
+    exitDecorate();
+    setDayOffset(store.state.settings.demo ? store.state.settings.dayOffset : 0);
+    begin();
+  });
+  events.on('garden-ready', () => events.emit('ui-lock', { locked: isModalOpen() }));
+  begin();
 }

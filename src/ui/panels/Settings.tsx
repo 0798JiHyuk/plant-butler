@@ -23,7 +23,7 @@ function Switch({ label, checked, onChange }: { label: string; checked: boolean;
 /** 저장은 끝났으니 장면을 처음부터 다시 그리도록 새로고침한다. */
 const reload = () => window.location.reload();
 
-function Settings() {
+function Settings({ onAccount }: { onAccount?: () => void }) {
   const { settings, logs } = useAppState();
   const [confirmReset, setConfirmReset] = useState(false);
   const designCount = logs.filter((l) => l.source === 'design').length;
@@ -32,6 +32,7 @@ function Settings() {
     <section className="panel settings" role="dialog" aria-label={copy.settings.title}>
       <PanelHead title={copy.settings.title} />
       <div className="settings-body">
+        {onAccount && <button type="button" className="btn btn-secondary" onClick={onAccount}>{copy.account.title}</button>}
         <Switch label={copy.settings.sound} checked={!settings.sound} onChange={(off) => store.update((d) => { d.settings.sound = !off; })} />
         <Switch
           label={copy.settings.demo}
@@ -112,4 +113,4 @@ function Settings() {
   );
 }
 
-export const openSettings = () => openModal(<Settings />);
+export const openSettings = (onAccount?: () => void) => openModal(<Settings onAccount={onAccount} />);

@@ -9,7 +9,7 @@ import { canHarvest, growthStage, placeZone } from '../core/economy';
 import { isTree } from '../core/plants';
 import { preloadAssets } from './assets';
 import { Npc } from './Npc';
-import { BED, bedFits, COLS, coverZoom, defaultViewZoom, inBed, isDecorTile, isFieldTile, isWalkable, MAP_H, MAP_W, NPC_HOMES, nearestSlot, plantSlots, ROWS, setBedPos, slotWorld, SPAWN, TILE, treeRoomAt } from './map';
+import { DEFAULT_BED, BED, bedFits, COLS, coverZoom, defaultViewZoom, inBed, isDecorTile, isFieldTile, isWalkable, MAP_H, MAP_W, NPC_HOMES, nearestSlot, plantSlots, ROWS, setBedPos, slotWorld, SPAWN, TILE, treeRoomAt } from './map';
 import { Player } from './Player';
 
 /** 도감 식물 그림(96px)을 정원에서 보이는 크기로 */
@@ -64,6 +64,11 @@ export class GardenScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.decorSprites.clear(); this.plantSprites.clear(); this.fruitMarks.clear();
+    this.npcs = []; this.stick = { x: 0, y: 0 }; this.locked = false;
+    this.decorating = false; this.dragId = null; this.dragKind = null;
+    this.placing = null; this.placingSprite = undefined; this.seedPick = null;
+    this.grid = undefined; this.hint = undefined; this.moundHint = undefined;
     this.add.image(0, 0, 'garden_background').setOrigin(0, 0).setDepth(0);
     this.drawField();
 
@@ -73,7 +78,8 @@ export class GardenScene extends Phaser.Scene {
 
     this.cameras.main.setBounds(0, 0, MAP_W, MAP_H).startFollow(this.player.sprite, true, 0.12, 0.12).setRoundPixels(true);
     this.applyZoom(store.state.settings.viewZoom ?? defaultViewZoom(this.cameras.main.height));
-    this.scale.on('resize', () => this.applyZoom(this.viewZoom));
+    const resize = () => this.applyZoom(this.viewZoom);
+    this.scale.on('resize', resize);
 
     const kb = this.input.keyboard!;
     this.keys = {
@@ -102,7 +108,9 @@ export class GardenScene extends Phaser.Scene {
       events.on('decor-place-start', (item) => this.startPlacing(item)),
       events.on('seed-pick-start', ({ seedId, tree }) => this.startSeedPick(seedId, tree)),
       events.on('harvested', ({ id }) => this.liftPlant(id)),
-      store.subscribe(() => this.refreshPlants()),
+      events.on('state-restored', () => this.scene.restart()),
+      () => this.scale.off('resize', resize),
+      store.subscribe(() => { if (!store.restoring) this.refreshPlants(); }),
     ];
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => offs.forEach((off) => off()));
 
@@ -123,6 +131,7 @@ export class GardenScene extends Phaser.Scene {
           if (!this.locked && !this.decorating) events.emit('npc-talk', { id: d.id });
         }),
     );
+    events.emit('garden-ready', {});
   }
 
   update(_time: number, delta: number): void {
@@ -187,7 +196,7 @@ export class GardenScene extends Phaser.Scene {
   /** 밭: 나무 틀 텃밭 그림. 식물은 이 그림의 두둑 위에 심긴다. */
   private drawField(): void {
     const saved = store.state.garden.bed;
-    if (saved) setBedPos(saved.x, saved.y);
+    setBedPos(saved?.x ?? DEFAULT_BED.x, saved?.y ?? DEFAULT_BED.y);
     this.bedImg = this.add.image(BED.x, BED.y, 'garden_field').setOrigin(0, 0).setDisplaySize(BED.w, BED.h).setDepth(BED.y);
   }
 
