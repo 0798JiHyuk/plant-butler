@@ -1,6 +1,21 @@
 // 화면에 보이는 모든 문구는 여기 모은다. 말투는 존댓말, 부드럽고 짧게.
 
 export const copy = {
+  account: {
+    title: '계정 연결',
+    status: { checking: '계정을 확인하고 있어요.', local: '계정 연결 설정을 확인해 주세요. 정원은 계속 이용할 수 있어요.', 'signed-out': '계정 없이 이용 중이에요.', guest: '게스트로 이용 중이에요.', connected: 'Google 계정으로 연결되어 있어요.' },
+    localNotice: '정원·씨앗·가방·활동 기록을 계정에 저장해요. 저장 상태를 확인한 뒤 다른 기기에서 이어할 수 있어요.',
+    guestNotice: '이 브라우저에서 이어할 수 있어요. 사이트 데이터를 지우거나 다른 기기에서도 이어하려면 Google 계정을 연결해 주세요.',
+    guest: '게스트로 다시 연결', login: 'Google로 로그인', link: '현재 진행을 Google에 연결', existing: '기존 계정으로 이어하기',
+    logout: '로그아웃', cancel: '돌아가기',
+    logoutNotice: '서버에 저장된 진행은 같은 Google 계정으로 이어할 수 있어요. 아직 저장되지 않은 진행은 이 브라우저에 남아요.',
+    sync: { local: '이 브라우저에 저장 중', loading: '계정 진행 확인 중', pending: '이 브라우저에 저장됨 · 서버 저장 대기', saving: '계정에 저장 중', saved: '계정에 저장됨', conflict: '이어할 진행을 선택해 주세요', error: '이 브라우저에 저장됨 · 서버 저장 확인 필요' },
+    syncErrors: { setup: '서버 저장 테이블 설정을 확인해 주세요.', connection: '연결을 확인하고 다시 시도해 주세요.', invalid: '저장 데이터 형식이 달라 자동으로 덮어쓰지 않았어요.' },
+    conflictNotice: '두 진행이 달라요. 선택한 진행으로 이어하며, 다른 진행은 이 브라우저에 백업해요. 열매나 보상은 합치지 않아요.',
+    useLocal: '현재 진행으로 이어하기', useServer: '계정 진행으로 이어하기', retry: '다시 확인', save: '지금 저장',
+    summary: (v: { plants: number; seeds: number; stored: number; logs: number; fruit: number }) => `식물 ${v.plants} · 씨앗 ${v.seeds} · 창고 ${v.stored} · 기록 ${v.logs} · 열매 ${v.fruit}`,
+    errors: { request: '계정 연결이 완료되지 않았어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요. 정원은 계속 이용할 수 있어요.', google: 'Google 연결이 완료되지 않았어요. 다시 시도하거나, 이미 연결한 계정이면 ‘기존 계정으로 이어하기’를 선택해 주세요.' },
+  },
   garden: { name: '나의 작은 정원', tagline: '오늘도 내 속도로' },
   bubble: {
     ask: '오늘은 어떤 일을 해볼까요?',

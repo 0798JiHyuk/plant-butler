@@ -14,13 +14,13 @@ let seq = 0;
 const subs = new Set<() => void>();
 const notify = () => subs.forEach((fn) => fn());
 
-export function closeModal(): void {
+export function closeModal(runHook = true): void {
   if (!current) return;
   const hook = current.onClose;
   current = null;
   events.emit('ui-lock', { locked: false });
   notify();
-  hook?.();
+  if (runHook) hook?.();
 }
 
 /** dismissable=false면 바깥을 눌러도 Esc로도 닫히지 않는다(여력 체크·회고처럼 답을 받아야 하는 창). */
