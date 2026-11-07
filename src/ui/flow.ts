@@ -23,6 +23,9 @@ import { openTalk, talkActions } from './panels/Talk';
 import { startSound } from './sound';
 import { showToast } from './toast';
 import { closeModal, isModalOpen } from './modal';
+import { photoPolicy } from '../core/photoCheck';
+import { stateKey } from '../core/state';
+import { openPhotoCheck } from './panels/PhotoCheck';
 
 let justCompleted = false;
 
@@ -60,7 +63,19 @@ export function startFlow(): void {
     else if (id === 'packet') openPacketModal();
     else if (id === 'bag') openBag('seeds');
     else if (id === 'book') openRecords('book');
-    else if (id === 'done') openReflect(complete);
+    else if (id === 'done') {
+      const date = todayKey();
+      const plan = store.state.days[date]?.plan;
+      if (!plan || limitReached(store.state, date)) return;
+      const owner = store.owner;
+      const key = stateKey(plan);
+      const proceed = () => {
+        if (owner !== store.owner || date !== todayKey() || key !== stateKey(store.state.days[date]?.plan)) { closeModal(); return; }
+        openReflect(complete);
+      };
+      if (photoPolicy(plan.activityId)) openPhotoCheck(plan.activityId!, proceed);
+      else proceed();
+    }
   });
   // 주민을 누르면 그 주민과 대화하고, 대화 끝에 그 주민의 일로 이어진다.
   talkActions.nuri = () => openBag('seeds');
