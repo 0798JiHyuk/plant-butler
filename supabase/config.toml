@@ -1,0 +1,3 @@
+# JWT is validated via Auth /user in the handler before any OpenAI request.
+[functions.verify-activity]
+verify_jwt = false
