@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage as ndi
+from slice_tree_art import main as export_trees
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / 'art' / 'source'
@@ -333,3 +334,6 @@ for i, name in enumerate(['fruit', 'seed', 'seedling', 'bud', 'gift', 'shop']):
     out.alpha_composite(small, ((96 - small.width) // 2, (96 - small.height) // 2))
     out.save(OUT / 'icons-ui' / f'{name}.png')
 print('garden icons done')
+
+# Orchard sprites use their preserved transparent sources and shared ground baseline.
+export_trees()

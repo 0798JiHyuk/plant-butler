@@ -1,0 +1,106 @@
+{
+  "tree_young": {
+    "source": "art/source/trees/tree_young.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source_sha256": "5aeebf6837e1761915088f0cc224c9563048c7b9f9f6bc4a29d28534f892b2cf",
+    "source_crop_bbox": [
+      246,
+      203,
+      1003,
+      1128
+    ],
+    "crop_alpha_threshold": 8,
+    "output_size": [
+      192,
+      192
+    ],
+    "output_alpha_bbox": [
+      24,
+      12,
+      168,
+      188
+    ],
+    "ground_baseline": 188
+  },
+  "tree_grown": {
+    "source": "art/source/trees/tree_grown.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source_sha256": "2f85bacf07595b669e685190db15ca2264a81a1c1d03968f37ca378537ec75e9",
+    "source_crop_bbox": [
+      93,
+      82,
+      1160,
+      1152
+    ],
+    "crop_alpha_threshold": 8,
+    "output_size": [
+      192,
+      192
+    ],
+    "output_alpha_bbox": [
+      8,
+      12,
+      184,
+      188
+    ],
+    "ground_baseline": 188
+  },
+  "apple_tree": {
+    "source": "art/source/trees/apple_tree.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source_sha256": "a04d88a0b504d616b715ad7530a446c5b82bdab1ecb5a58cfa36c5e08acc4ca3",
+    "source_crop_bbox": [
+      92,
+      81,
+      1163,
+      1156
+    ],
+    "crop_alpha_threshold": 8,
+    "output_size": [
+      192,
+      192
+    ],
+    "output_alpha_bbox": [
+      8,
+      12,
+      183,
+      188
+    ],
+    "ground_baseline": 188
+  },
+  "peach_tree": {
+    "source": "art/source/trees/peach_tree.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source_sha256": "a8b3fda35d315fe87e59e0370772d80cda7e239edec3ce8d597c5af9d8063702",
+    "source_crop_bbox": [
+      92,
+      81,
+      1160,
+      1156
+    ],
+    "crop_alpha_threshold": 8,
+    "output_size": [
+      192,
+      192
+    ],
+    "output_alpha_bbox": [
+      8,
+      12,
+      183,
+      188
+    ],
+    "ground_baseline": 188
+  }
+}
