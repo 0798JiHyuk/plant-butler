@@ -25,7 +25,7 @@ export const REGROW_DAYS = 3;
 
 /** 그 날짜 뒤로 주머니를 받은 날 수. 쉬기를 고른 날도 들어가고 연속 여부는 보지 않는다. */
 function packetDaysSince(days: AppState['days'], since: string): number {
-  return Object.entries(days).filter(([date, d]) => date > since && d.packet).length;
+  return Object.entries(days).filter(([date, d]) => date > since && (d.packet || d.sessionRewarded)).length;
 }
 
 export function canHarvest(plant: PlantedItem, today: string, days: AppState['days']): boolean {

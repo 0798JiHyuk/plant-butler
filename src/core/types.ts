@@ -1,3 +1,4 @@
+import type { MissionProgress, MissionVariant } from './missionTypes';
 export type Energy = 'heavy' | 'normal' | 'good';
 export type ActivityKind = 'selfcare' | 'outing' | 'joy' | 'connect' | 'plant';
 export type LogSource = 'mission' | 'daily' | 'design';
@@ -27,6 +28,7 @@ export interface Plan {
 }
 
 export interface LogEntry {
+  mission?: { sessionId: string; actionId: string; variant: MissionVariant; record: string; parentMissionId?: string };
   id: string;
   date: string;
   activityId?: string;
@@ -70,6 +72,7 @@ export type StoredThing =
   | { id: string; type: 'plant'; plantId: string; date: string; harvested?: boolean; harvestedOn?: string };
 
 export interface DayInfo {
+  sessionRewarded?: boolean;
   energy?: Energy;
   rested?: boolean;
   plan?: Plan;
@@ -80,6 +83,7 @@ export interface DayInfo {
 }
 
 export interface AppState {
+  missions?: MissionProgress;
   version: 1;
   logs: LogEntry[];
   garden: { items: DecorItem[]; plants: PlantedItem[]; storage: StoredThing[]; /** 옮긴 텃밭 자리. 없으면 처음 자리. */ bed?: { x: number; y: number } };

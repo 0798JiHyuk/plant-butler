@@ -51,7 +51,13 @@ export function pendingPacketDates(state: AppState): string[] {
 
 /** 열지 않은 씨앗 주머니 수(날마다 받는 것 + 방문 선물로 받은 특별 주머니) */
 export function pendingPacketCount(state: AppState): number {
-  return pendingPacketDates(state).length + state.freePackets + state.bonusPackets;
+  return pendingPacketDates(state).length + state.freePackets + state.bonusPackets + (state.missions?.packets ?? 0);
+}
+
+export function openMissionPacket(draft: AppState, rand: () => number = Math.random): SeedItem | null {
+  if (!draft.missions || draft.missions.packets <= 0) return null;
+  draft.missions.packets--;
+  return addSeed(draft, drawPlant(rand).id);
 }
 
 function plantNew(draft: AppState, plantId: string, date: string, slot: { col: number; row: number }): PlantedItem {

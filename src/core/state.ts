@@ -1,5 +1,6 @@
 import type { AppState } from './types';
 import { plantById } from './plants';
+import { decodeMissionProgress } from './missionState';
 
 export function createState(): AppState {
   return { version: 1, logs: [], garden: { items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
@@ -25,9 +26,11 @@ const position = (v: Record<string, unknown>) => Number.isInteger(v.col) && Numb
 export function decodeState(raw: unknown): AppState {
   if (!object(raw) || raw.version !== 1 || !object(raw.garden) || !object(raw.settings)) throw new Error('Invalid progress');
   const base = createState();
+  const missions = raw.missions === undefined ? undefined : decodeMissionProgress(raw.missions);
   const v = { ...base, ...raw, garden: { ...base.garden, ...raw.garden }, settings: { ...base.settings, ...raw.settings } };
   const valid = list(v.logs, x => object(x) && text(x.id) && date(x.date) && optional(x.activityId, text) && optional(x.text, text)
-      && info(x.plan) && source(x.source) && list(x.chips, c => one(c, ['achieved', 'easier', 'again'])))
+      && info(x.plan) && source(x.source) && list(x.chips, c => one(c, ['achieved', 'easier', 'again']))
+      && optional(x.mission, m => object(m) && text(m.sessionId) && text(m.actionId) && one(m.variant, ['basic', 'small']) && text(m.record) && optional(m.parentMissionId, text)))
     && list(v.garden.items, x => object(x) && text(x.id) && one(x.kind, kinds) && count(x.variant) && position(x))
     && list(v.garden.plants, x => object(x) && plant(x) && position(x))
     && list(v.garden.storage, x => object(x) && (x.type === 'plant' ? plant(x) : x.type === 'decor' && text(x.id) && one(x.decorKind, kinds) && count(x.variant)))
@@ -39,13 +42,14 @@ export function decodeState(raw: unknown): AppState {
     && object(v.days) && Object.entries(v.days).every(([key, day]) => date(key) && object(day) && count(day.refresh)
       && optional(day.energy, x => one(x, ['heavy', 'normal', 'good'])) && optional(day.rested, x => typeof x === 'boolean')
       && optional(day.packet, x => one(x, ['ready', 'opened']))
+      && optional(day.sessionRewarded, x => typeof x === 'boolean')
       && optional(day.plan, x => object(x) && source(x.source) && optional(x.activityId, text) && optional(x.text, text) && info(x.info)))
     && typeof v.settings.sound === 'boolean' && typeof v.settings.demo === 'boolean'
     && Number.isInteger(v.settings.dayOffset) && optional(v.settings.viewZoom, x => finite(x) && (x as number) > 0);
   if (!valid) throw new Error('Invalid progress');
   return structuredClone({ version: 1, logs: v.logs, garden: v.garden, seeds: v.seeds, fruit: v.fruit,
     freePackets: v.freePackets, bonusPackets: v.bonusPackets, story: v.story, visits: v.visits,
-    purchases: v.purchases, days: v.days, settings: v.settings }) as AppState;
+    purchases: v.purchases, days: v.days, settings: v.settings, ...(missions ? { missions } : {}) }) as AppState;
 }
 
 export function stateKey(value: unknown): string {

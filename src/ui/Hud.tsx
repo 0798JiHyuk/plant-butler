@@ -9,6 +9,7 @@ import { events, type HudAction } from '../core/events';
 import { isResting, limitReached, pendingPacketCount } from '../core/rules';
 import { ActivityImg, UiIconImg, type UiIcon } from './icons';
 import { useAppState } from './useAppState';
+import { activeMissionSession, missionPlan, missionProgress } from '../core/missions';
 
 const emit = (id: HudAction) => () => events.emit('hud-action', { id });
 
@@ -41,7 +42,8 @@ function Bubble({ text }: { text: string }) {
 function ActivityCard() {
   const s = useAppState();
   const date = todayKey();
-  const plan = s.days[date]?.plan;
+  const plan = missionPlan(s) ?? s.days[date]?.plan;
+  const sessionPending = !!activeMissionSession(s)?.reportedActions.length && !missionProgress(s).execution;
   let body;
   if (isResting(s, date)) {
     body = (
@@ -51,11 +53,14 @@ function ActivityCard() {
         <button type="button" className="btn btn-secondary" onClick={emit('other-activity')}>{copy.card.unrest}</button>
       </>
     );
+  } else if (sessionPending) {
+    body = <><p className="card-message">{copy.missions.report}</p><button className="btn btn-primary" onClick={emit('other-activity')}>{copy.missions.resumeSession}</button></>;
   } else if (limitReached(s, date)) {
     body = (
       <>
         <p className="card-message">{copy.card.enough}</p>
         <p className="card-sub">{copy.card.enoughSub}</p>
+        <button type="button" className="btn btn-secondary" onClick={emit('other-activity')}>{copy.card.pick}</button>
       </>
     );
   } else if (!plan) {
@@ -73,7 +78,7 @@ function ActivityCard() {
         <div className="card-activity">
           <ActivityImg id={plan.activityId} className="card-icon" />
           <div>
-            <strong>{a?.name ?? plan.text ?? ''}</strong>
+            <strong>{s.missions?.execution?.customId ? s.missions.custom.find(c => c.id === s.missions!.execution!.customId)?.name ?? a?.name : a?.name ?? plan.text ?? ''}</strong>
             <small>{[plan.info.when, plan.info.where || plan.info.criterion].filter(Boolean).join(' · ')}</small>
           </div>
         </div>
@@ -100,7 +105,7 @@ export function Hud() {
   const s = useAppState();
   const date = todayKey();
   const packets = pendingPacketCount(s);
-  const bubble = isResting(s, date) ? copy.bubble.rest : limitReached(s, date) ? copy.bubble.enough : s.days[date]?.plan ? copy.bubble.planned : copy.bubble.ask;
+  const bubble = isResting(s, date) ? copy.bubble.rest : limitReached(s, date) ? copy.bubble.enough : missionPlan(s) || s.days[date]?.plan ? copy.bubble.planned : copy.bubble.ask;
   return (
     <>
       <div className="garden-name">

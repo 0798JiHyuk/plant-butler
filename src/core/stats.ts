@@ -41,7 +41,7 @@ export function directPlanRatio(logs: LogEntry[]): number {
 /** 활동이든 직접 적은 일이든, 같은 것을 이번 주에 몇 번 했는지로 말한다. */
 export function factLineFor(logs: LogEntry[], log: LogEntry, date: string): string {
   const same = (l: LogEntry) => (log.activityId ? l.activityId === log.activityId : l.text === log.text);
-  const label = activityName(log) ?? log.text ?? '';
+  const label = log.mission?.record ?? activityName(log) ?? log.text ?? '';
   return copy.fact.weekNth(label, thisWeek(logs, date).filter(same).length);
 }
 
