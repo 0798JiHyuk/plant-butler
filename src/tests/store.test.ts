@@ -18,4 +18,11 @@ describe('store', () => {
     expect(store.state.logs).toEqual([]);
     expect(store.state.settings.sound).toBe(true);
   });
+
+  it('예전 저장본에 대화 기록이 없으면 빈 목록으로 채운다', () => {
+    store.update((d) => {
+      delete (d as { chats?: unknown }).chats;
+    });
+    expect(loadState().chats).toEqual([]);
+  });
 });

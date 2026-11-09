@@ -19,7 +19,7 @@ import { showCheckin } from './panels/Checkin';
 import { openReflect } from './panels/Reflect';
 import { openShop } from './panels/Shop';
 import { openStory } from './panels/Story';
-import { openTalk, talkActions } from './panels/Talk';
+import { chatActions, openChat } from './panels/Chat';
 import { startSound } from './sound';
 import { showToast } from './toast';
 
@@ -79,7 +79,7 @@ function runAfter(after: StoryAfter): void {
 function meetNpc(id: NpcSpeaker): void {
   const scene = nextSceneFor(store.state, id, todayKey());
   if (scene) openStory(scene, (after) => after && runAfter(after));
-  else openTalk(id);
+  else openChat(id);
 }
 
 /** 새 하루의 첫 진입(데모 모드의 [다음 날로] 뒤에도). 오랜만이면 복귀 장면을 먼저, 그다음 여력 체크. */
@@ -106,10 +106,10 @@ export function startFlow(): void {
     else if (id === 'book') openRecords('book');
     else if (id === 'done') openReflect(complete);
   });
-  // 주민을 누르면 그 주민과 대화하고, 대화 끝에 그 주민의 일로 이어진다.
-  talkActions.nuri = () => openBag('seeds');
-  talkActions.moru = openShop;
-  talkActions.pio = () => openRecords('book');
+  // 주민을 누르면 그 주민과 이야기하고, 대화창의 버튼으로 그 주민의 일로 이어진다.
+  chatActions.nuri = () => openBag('seeds');
+  chatActions.moru = openShop;
+  chatActions.pio = () => openRecords('book');
   events.on('npc-talk', ({ id }) => meetNpc(id));
   // 꽃이 핀 식물을 누르면 열매를 한 번 딴다.
   events.on('plant-tap', ({ id }) => harvestPlant(id));

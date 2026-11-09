@@ -195,6 +195,16 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 .book-card strong { font-size: 13px; }
 .book-card small { font-size: 11px; color: var(--ink-soft); }
 .book-card .btn-chip { margin-top: 4px; padding: 0 8px; }
+.chat-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.chat-card { padding: 8px 10px; background: #fff; border: 2px solid var(--sand); border-radius: 10px; display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.chat-card-head { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.chat-card-head .npc-face { width: 28px; height: 28px; }
+.chat-mind-tag { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+.chat-kept { margin: 0; font-size: 14px; font-weight: 800; }
+.chat-note { margin: 0; font-size: 13px; }
+.chat-full { list-style: none; margin: 0; padding: 6px 0 0; border-top: 1px dashed var(--sand); display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.chat-full small { margin-right: 6px; color: var(--ink-soft); }
+.chat-card-actions { display: flex; gap: 6px; justify-content: flex-end; }
 .storage { width: 420px; }
 
 /* ---- 대화(목업) ---- */
@@ -202,6 +212,28 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 .talk-bubble { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 8px 10px; }
 .talk-avatar { font-size: 48px; line-height: 1; }
 .talk-bubble p { margin: 0; font-size: 15px; line-height: 1.5; }
+
+/* ---- 주민과의 대화 ---- */
+.chat-log { list-style: none; margin: 0; padding: 0 4px 0 0; height: 176px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.chat-log li { display: flex; align-items: flex-end; gap: 6px; }
+.chat-log li.me { justify-content: flex-end; }
+.chat-log .npc-face, .chat-ask .npc-face { width: 32px; height: 32px; flex: none; }
+/* 새싹이 말풍선(.bubble)과 이름이 겹치지 않게 따로 */
+.chat-bubble { max-width: 75%; margin: 0; padding: 6px 10px; border-radius: 12px; border: 2px solid var(--sand); background: #fff; font-size: 14px; line-height: 1.45; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-log li.me .chat-bubble { background: #e9f5dc; border-color: #9cc97a; }
+.chat-input, .chat-actions, .chat-save { display: flex; gap: 6px; }
+.chat-actions { justify-content: flex-end; }
+.chat-input .text-input, .chat-save .text-input { flex: 1; min-width: 0; }
+.chat-input .btn, .chat-actions .btn, .chat-save .btn { width: auto; flex: none; margin-top: 0; padding: 0 16px; white-space: nowrap; }
+.chat-ask { display: flex; align-items: center; gap: 8px; }
+.chat-ask p { margin: 0; font-size: 14px; }
+.chat-ask small { display: block; font-size: 12px; color: var(--ink-soft); }
+.chat-keep { list-style: none; margin: 0; padding: 0 4px 0 0; height: 92px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.chat-pick { width: 100%; min-height: var(--tap); padding: 4px 10px; border-radius: 8px; border: 2px solid var(--sand); background: #fff; color: var(--ink); font: inherit; font-size: 13px; text-align: left; }
+.chat-pick.on { font-weight: 800; border-color: var(--green); background: #e9f5dc; }
+.chat-mind { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.chat-mind small { width: 100%; font-size: 12px; color: var(--ink-soft); }
+.chat-mind .chip { flex: 1 1 0; min-width: 0; padding: 0 2px; font-size: 11px; white-space: nowrap; }
 .decorate-bar {
   position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 15; display: flex; align-items: center; gap: 14px;
   padding: 6px 10px 6px 16px; background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 12px; box-shadow: 0 3px 0 rgba(0,0,0,.2);

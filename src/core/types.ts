@@ -1,3 +1,5 @@
+import type { NpcId } from './events';
+
 export type Energy = 'heavy' | 'normal' | 'good';
 export type ActivityKind = 'selfcare' | 'outing' | 'joy' | 'connect' | 'plant';
 export type LogSource = 'mission' | 'daily' | 'design';
@@ -71,6 +73,27 @@ export type StoredThing =
   | { id: string; type: 'decor'; decorKind: DecorItem['kind']; variant: number; flip?: boolean }
   | { id: string; type: 'plant'; plantId: string; date: string; harvested?: boolean; harvestedOn?: string };
 
+/** 마음 식물: 대화를 끝낼 때 사용자가 고르는 "오늘 내 마음과 닮은 식물". 앱이 판정하지 않는다. */
+export type MindPlant = 'sprouting' | 'dry' | 'prune' | 'sideways' | 'steady';
+
+/** 대화 한 줄. keep은 사용자가 굵게 남긴 문장(자기 말에만). */
+export interface ChatLine {
+  from: 'me' | NpcId;
+  text: string;
+  keep?: boolean;
+}
+
+/** 주민과 나눈 대화 하나. 기기 안에만 있고 집계에 쓰지 않는다. */
+export interface ChatLog {
+  id: string;
+  date: string;
+  npc: NpcId;
+  lines: ChatLine[];
+  /** 한 줄 더 적은 것 */
+  note?: string;
+  mind?: MindPlant;
+}
+
 export interface DayInfo {
   energy?: Energy;
   rested?: boolean;
@@ -106,6 +129,8 @@ export interface AppState {
   visits: { count: number; last?: string };
   /** 구매 번호(소품 id 만들기용) */
   purchases: number;
+  /** 주민과 나눈 대화(사용자가 남기기로 한 것만). 기기 안에만 저장한다. */
+  chats: ChatLog[];
   days: Record<string, DayInfo>;
   /** viewZoom: 정원을 보는 배율(없으면 화면 크기에 맞는 기본값) */
   settings: { sound: boolean; demo: boolean; dayOffset: number; viewZoom?: number };

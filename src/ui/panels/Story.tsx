@@ -6,7 +6,7 @@ import { applyChoice, enterNode, finishScene, rememberChoice, resolveNext, scene
 import { store } from '../../core/store';
 import { SproutImg } from '../icons';
 import { closeModal, openModal } from '../modal';
-import { NpcBadge } from './Talk';
+import { NpcBadge } from './Chat';
 import { PanelHead } from './PanelHead';
 
 function Story({ sceneId, onAfter }: { sceneId: string; onAfter: (after?: StoryAfter) => void }) {

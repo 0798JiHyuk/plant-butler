@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
+import { npcGreeting } from '../core/chat';
 import { daysBetween, todayKey } from '../core/clock';
 import { copy } from '../core/copy';
 import { events } from '../core/events';
 import { flipDecor, isResting, plantSeed, storeDecor, storePlant, takeFromStorage } from '../core/rules';
 import { store } from '../core/store';
+import { nextSceneFor } from '../core/story';
 import type { DecorItem, PlantedItem, StoredThing } from '../core/types';
 import { canHarvest, growthStage, placeZone } from '../core/economy';
 import { isTree } from '../core/plants';
@@ -69,6 +71,8 @@ export class GardenScene extends Phaser.Scene {
   private hint?: Phaser.GameObjects.Graphics;
   /** ?hitbox: 발자국(못 지나가는 곳)을 정원 위에 그려 본다. 소품 그림을 바꿀 때 맞춰 보는 용도. */
   private hitbox?: Phaser.GameObjects.Graphics;
+  /** 다가갔을 때 인사 차례(주민마다 돌아가며 다른 말) */
+  private greetTurn = 0;
   /** 꾸미기에서 짚은 것. 아래쪽에 [옮기기]·[방향 바꾸기]·[창고에 넣기] 메뉴가 뜬다. */
   private selected: { id: string; kind: 'decor' | 'plant' } | null = null;
   /** [옮기기]로 들고 있는 중: 포인터를 따라 칸에 맞춰 보이다가, 손을 뗀 칸에 놓인다. */
@@ -116,7 +120,10 @@ export class GardenScene extends Phaser.Scene {
     const offs = [
       events.on('move-input', (v) => (this.stick = v)),
       events.on('ui-lock', ({ locked }) => this.setLocked(locked)),
-      events.on('sprout-pose', ({ pose }) => this.player.setPose(pose)),
+      events.on('sprout-pose', ({ pose }) => {
+        this.player.setPose(pose);
+        this.npcs.forEach((n) => n.setResting(pose === 'rest')); // 쉬는 날엔 주민도 같이 쉰다
+      }),
       events.on('celebrate', ({ item }) => this.celebrate(item)),
       events.on('plant-grown', ({ planted }) => this.showSpot(this.plantXY(planted).x, this.plantXY(planted).y, () => this.placePlant(planted, true))),
       events.on('view-zoom', ({ zoom }) => this.applyZoom(zoom)),
@@ -126,11 +133,19 @@ export class GardenScene extends Phaser.Scene {
       events.on('seed-pick-start', ({ seedId, tree }) => this.startSeedPick(seedId, tree)),
       events.on('harvested', ({ id }) => this.liftPlant(id)),
       store.subscribe(() => this.refreshPlants()),
+      store.subscribe(() => this.refreshMarks()),
     ];
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => offs.forEach((off) => off()));
 
     // 날짜가 바뀌면(자정을 넘기거나 데모에서 날짜를 넘기면) 식물의 모습이 바뀐다. 열어 둔 채로 자정을 넘긴 경우도 반영한다.
-    this.time.addEvent({ delay: 30000, loop: true, callback: () => this.refreshPlants() });
+    this.time.addEvent({
+      delay: 30000,
+      loop: true,
+      callback: () => {
+        this.refreshPlants();
+        this.refreshMarks();
+      },
+    });
     this.refreshPlants();
 
     // 주민들: 자기 자리 근처를 서성이고, 누르면 대화한다. 그림이 오기 전에는 임시 그림과 이름표로 보인다.
@@ -146,6 +161,8 @@ export class GardenScene extends Phaser.Scene {
           if (!this.locked && !this.decorating) events.emit('npc-talk', { id: d.id });
         }),
     );
+    this.refreshMarks();
+    if (isResting(store.state, todayKey())) this.npcs.forEach((n) => n.setResting(true));
   }
 
   update(_time: number, delta: number): void {
@@ -165,6 +182,10 @@ export class GardenScene extends Phaser.Scene {
     for (const npc of this.npcs) {
       npc.update(delta, this.player, this.locked || this.decorating);
       npc.sprite.setDepth(this.standDepth(npc.x, npc.y));
+      // 막 다가왔으면 짧게 말을 건다(창이 열려 있거나 꾸미는 중에는 하지 않는다).
+      if (npc.takeMet() && !this.locked && !this.decorating) {
+        if (npc.say(npcGreeting(npc.id, isResting(store.state, todayKey()), this.greetTurn), this.time.now)) this.greetTurn++;
+      }
     }
     if (this.hitbox) this.drawHitbox();
 
@@ -190,6 +211,13 @@ export class GardenScene extends Phaser.Scene {
     kb.enabled = !locked;
     if (locked) kb.disableGlobalCapture();
     else kb.enableGlobalCapture();
+    if (locked) this.npcs.forEach((n) => n.hush());
+  }
+
+  /** 그날 열린 이야기가 있는 주민 머리 위에 표시. 꾸미는 중에는 숨긴다. */
+  private refreshMarks(): void {
+    const today = todayKey();
+    for (const npc of this.npcs) npc.setMark(!this.decorating && nextSceneFor(store.state, npc.id, today) !== null);
   }
 
   // ---------- 정원에 놓이는 것들 ----------
@@ -466,6 +494,8 @@ export class GardenScene extends Phaser.Scene {
     for (let r = 0; r <= ROWS; r++) this.grid.lineBetween(0, r * TILE, MAP_W, r * TILE);
     this.hint = this.add.graphics().setDepth(DRAG_DEPTH + 1); // 들고 있는 그림(DRAG_DEPTH)에 가려지지 않게 그 위에
     this.selectMark = this.add.graphics().setDepth(DRAG_DEPTH - 1);
+    this.npcs.forEach((n) => n.hush());
+    this.refreshMarks();
   }
 
   private exitDecorate(): void {
@@ -482,6 +512,7 @@ export class GardenScene extends Phaser.Scene {
     this.applyZoom(this.viewZoom);
     cam.startFollow(this.player.sprite, true, 0.12, 0.12);
     this.player.hopOutIfStuck();
+    this.refreshMarks();
   }
 
   /** 소품·나무를 새싹이 위에 놓았으면, 놓는 연출이 끝난 뒤 새싹이가 옆으로 비켜선다. */

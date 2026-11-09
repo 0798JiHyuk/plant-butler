@@ -4,7 +4,7 @@ import type { AppState } from './types';
 const KEY = 'plantkeeper:v1';
 
 export function createState(): AppState {
-  return { version: 1, logs: [], garden: { items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
+  return { version: 1, logs: [], garden: { items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, chats: [], days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
 }
 
 export function loadState(): AppState {
