@@ -8,7 +8,8 @@ import { factLineFor } from '../core/stats';
 import { needsIntro } from '../core/story';
 import { store } from '../core/store';
 import type { ReflectChip } from '../core/types';
-import { openActivityPanel } from './panels/ActivityPanel';
+import { openMissionPanel } from './panels/MissionPanel';
+import { activeMissionSession, missionProgress, reportMission } from '../core/missions';
 import { enterDecorate, exitDecorate } from './panels/Decorate';
 import { openBag } from './panels/Bag';
 import { openPacketModal } from './panels/Packet';
@@ -55,8 +56,8 @@ export function startFlow(): void {
     if (id === 'talk') openTalk('nuri');
     else if (id === 'shop') openShop();
     else if (id === 'gift') openRecords('stamps');
-    else if (id === 'other-activity') openActivityPanel();
-    else if (id === 'plan-check') openActivityPanel({ detail: true });
+    else if (id === 'other-activity') openMissionPanel(!!activeMissionSession(store.state)?.reportedActions.length && !missionProgress(store.state).execution);
+    else if (id === 'plan-check') openMissionPanel(false, true);
     else if (id === 'records') openRecords();
     else if (id === 'decorate') enterDecorate();
     else if (id === 'settings') openSettings(openAccount);
@@ -64,6 +65,11 @@ export function startFlow(): void {
     else if (id === 'bag') openBag('seeds');
     else if (id === 'book') openRecords('book');
     else if (id === 'done') {
+      if (missionProgress(store.state).execution) {
+        let reported = false; store.update(s => { reported = reportMission(s, todayKey()); });
+        if (reported) openMissionPanel(true);
+        return;
+      }
       const date = todayKey();
       const plan = store.state.days[date]?.plan;
       if (!plan || limitReached(store.state, date)) return;
@@ -102,10 +108,10 @@ export function startFlow(): void {
     wasResting = resting;
   });
   // 봉투가 새로 도착하면(완료·쉬기 직후) 잠시 뒤에 알려준다. 못 열어도 우상단 버튼에 남는다.
-  let pending = pendingPacketDates(store.state).length;
+  let pending = pendingPacketDates(store.state).length + (store.state.missions?.packets ?? 0);
   let packetTimer: number | undefined;
   store.subscribe(() => {
-    const n = pendingPacketDates(store.state).length;
+    const n = pendingPacketDates(store.state).length + (store.state.missions?.packets ?? 0);
     if (!store.restoring && n > pending) {
       packetTimer = window.setTimeout(openPacketModal, justCompleted ? 3400 : 800);
       justCompleted = false;
@@ -114,8 +120,9 @@ export function startFlow(): void {
   });
   startSound();
   const begin = () => {
-    if (needsIntro(store.state)) openStory('intro', after => after === 'packet' ? openPacketModal() : afterDayChange());
-    else afterDayChange();
+    const next = () => { const p = missionProgress(store.state); if (!p.selectedCategory && !p.onboardingSeen) openMissionPanel(); else afterDayChange(); };
+    if (needsIntro(store.state)) openStory('intro', after => after === 'packet' ? openPacketModal() : next());
+    else next();
   };
   events.on('state-restored', () => {
     justCompleted = false;

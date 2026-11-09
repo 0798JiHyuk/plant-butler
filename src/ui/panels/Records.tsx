@@ -26,7 +26,7 @@ function LogRow({ l }: { l: LogEntry }) {
     <li className="rec-item">
       <span className="mission-icon"><ActivityImg id={l.activityId} /></span>
       <div className="mission-info">
-        <strong>{a?.name ?? l.text ?? ''}</strong>
+        <strong>{l.mission?.record ?? a?.name ?? l.text ?? ''}</strong>
         <small>{place}</small>
         {l.chips.length > 0 && <small className="rec-chips">{l.chips.map((c) => copy.records.chip[c]).join(' · ')}</small>}
       </div>
