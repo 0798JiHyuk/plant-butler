@@ -156,6 +156,9 @@ export class GardenScene extends Phaser.Scene {
   private setLocked(locked: boolean): void {
     this.locked = locked;
     const kb = this.input.keyboard!;
+    // 꺼져 있는 동안 뗀 키는 Phaser가 받지 못해 눌린 채로 남는다(창을 닫으면 혼자 계속 걷던 버그).
+    // 창이 다른 데로 넘어갈 때 Phaser가 하는 것처럼, 켜고 끌 때마다 눌림 상태를 지운다.
+    kb.resetKeys();
     kb.enabled = !locked;
     if (locked) kb.disableGlobalCapture();
     else kb.enableGlobalCapture();
