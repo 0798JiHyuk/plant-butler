@@ -214,7 +214,16 @@ export function storeDecor(draft: AppState, id: string): void {
   const idx = draft.garden.items.findIndex((i) => i.id === id);
   if (idx === -1) return;
   const [item] = draft.garden.items.splice(idx, 1);
-  draft.garden.storage.push({ id: item.id, type: 'decor', decorKind: item.kind, variant: item.variant });
+  draft.garden.storage.push({ id: item.id, type: 'decor', decorKind: item.kind, variant: item.variant, ...(item.flip ? { flip: true } : {}) });
+}
+
+/** 놓인 소품의 좌우를 바꾼다. 없는 소품이면 false. 놓을 수 있는지(겹침)는 화면이 먼저 확인한다. */
+export function flipDecor(draft: AppState, id: string): boolean {
+  const item = draft.garden.items.find((i) => i.id === id);
+  if (!item) return false;
+  if (item.flip) delete item.flip;
+  else item.flip = true;
+  return true;
 }
 
 /** 창고를 오가도 수확 기록은 그대로 들고 간다. */
@@ -236,7 +245,7 @@ export function takeFromStorage(draft: AppState, id: string, slot: { col: number
   if (idx === -1) return null;
   const [stored] = draft.garden.storage.splice(idx, 1);
   if (stored.type === 'decor') {
-    const item: DecorItem = { id: stored.id, kind: stored.decorKind, variant: stored.variant, ...slot };
+    const item: DecorItem = { id: stored.id, kind: stored.decorKind, variant: stored.variant, ...slot, ...(stored.flip ? { flip: true } : {}) };
     draft.garden.items.push(item);
     return item;
   }

@@ -11,7 +11,7 @@ describe('copy', () => {
   it('문구를 만드는 함수의 결과에도 금지 표현이 없다', () => {
     const texts = [
       copy.fact.weekNth('집 앞 5분 걷기', 3), copy.panel.minutesFrom(5), copy.panel.minutes(2), copy.panel.smaller(2),
-      copy.decorate.count(3), copy.decorate.storage(2),
+      copy.decorate.count(3), copy.decorate.storage(2), copy.decorate.moving('벤치'),
     ];
     for (const text of texts) for (const word of FORBIDDEN_WORDS) expect(text).not.toContain(word);
   });

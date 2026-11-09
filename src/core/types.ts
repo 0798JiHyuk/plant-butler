@@ -43,6 +43,8 @@ export interface DecorItem {
   variant: number;
   col: number;
   row: number;
+  /** 좌우를 바꿔 놓았는지(꾸미기의 [방향 바꾸기]). 없으면 그림 그대로. */
+  flip?: boolean;
 }
 
 export interface PlantedItem {
@@ -66,7 +68,7 @@ export interface SeedItem {
 
 /** 창고에 넣어둔 것: 소품이거나 심은 식물이거나. 칸을 벗어나므로 위치가 없다. */
 export type StoredThing =
-  | { id: string; type: 'decor'; decorKind: DecorItem['kind']; variant: number }
+  | { id: string; type: 'decor'; decorKind: DecorItem['kind']; variant: number; flip?: boolean }
   | { id: string; type: 'plant'; plantId: string; date: string; harvested?: boolean; harvestedOn?: string };
 
 export interface DayInfo {

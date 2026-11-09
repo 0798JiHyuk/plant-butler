@@ -25,6 +25,12 @@ export interface AppEvents {
   'seed-planted': { planted: PlantedItem };
   /** 소품이 창고↔정원 사이에서 옮겨졌을 때 UI(꾸미기 바)가 반응하도록. */
   'decor-changed': { action: 'stored' | 'placed' };
+  /** 꾸미기에서 짚은 것(아래쪽 메뉴를 띄운다). null이면 고른 게 없다. carrying이면 [옮기기]로 들고 있는 중. */
+  'decor-select': { id: string; type: 'decor' | 'plant'; carrying: boolean } | null;
+  /** 꾸미기 메뉴에서 누른 것 */
+  'decor-action': { action: 'move' | 'flip' | 'store' | 'cancel' };
+  /** 다른 것과 겹치거나 마당 밖이라 놓을(방향을 바꿀) 수 없을 때 */
+  'decor-blocked': { why: 'place' | 'flip' };
   /** 정원에서 주민을 눌렀을 때(대화를 연다) */
   'npc-talk': { id: NpcId };
   /** 정원에서 식물을 눌렀을 때(꽃이 폈으면 열매를 딴다) */

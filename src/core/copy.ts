@@ -211,7 +211,7 @@ export const copy = {
   },
   decorate: {
     title: '꾸미기',
-    hint: '끌어서 원하는 칸에 놓아요. 누르면 창고에 넣어요. 텃밭도 끌어서 옮길 수 있어요.',
+    hint: '끌어서 옮기거나, 눌러서 메뉴를 열어요. 텃밭도 끌어서 옮길 수 있어요.',
     none: '상점에서 소품을 사면 여기서 놓을 수 있어요.',
     done: '끝내기',
     count: (n: number) => `소품 ${n}개`,
@@ -223,6 +223,19 @@ export const copy = {
     placed: '정원에 놓았어요.',
     placeHint: '놓을 칸을 눌러주세요.',
     flowerHint: '수확한 꽃은 마당에 장식으로 놓을 수 있어요.',
+    // 짚었을 때 아래쪽에 뜨는 메뉴
+    selectHint: '어떻게 할까요?',
+    move: '옮기기',
+    flip: '방향 바꾸기',
+    store: '창고에 넣기',
+    close: '닫기',
+    moving: (name: string) => `${name} 옮기는 중`,
+    moveHint: '놓을 칸을 눌러주세요.',
+    cancel: '그대로 두기',
+    blocked: '여기에는 놓을 수 없어요.',
+    blockedHint: '초록색으로 보이는 곳에 놓아주세요.',
+    flipBlocked: '방향을 바꾸면 옆의 것과 겹쳐요.',
+    flipBlockedHint: '자리를 옮긴 뒤 바꿔 보세요.',
     kind: {
       flowerpot: '꽃 화분', table: '찻상', shelf: '화분 선반', bench: '벤치', birdbath: '새 물그릇', hammock: '해먹',
       flower: '꽃', pot: '화분', lamp: '가로등',

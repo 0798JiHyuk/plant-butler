@@ -1,11 +1,11 @@
 // 꾸미기 모드: 정원 전체가 보이고, 소품·식물을 끌어 칸에 맞춰 놓거나 짚어서 창고에 넣는다. 창고에서 다시 꺼내 놓을 수도 있다.
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { copy } from '../../core/copy';
-import { events } from '../../core/events';
+import { events, type AppEvents } from '../../core/events';
 import { isTree, plantById } from '../../core/plants';
 import { bagCounts } from '../../core/rules';
 import type { DecorItem, SeedItem, StoredThing } from '../../core/types';
-import { PlantImg, PropImg } from '../icons';
+import { IconBtn, PlantImg, PropImg } from '../icons';
 import { closeModal, isModalOpen, openModal } from '../modal';
 import { showToast } from '../toast';
 import { useAppState } from '../useAppState';
@@ -112,6 +112,39 @@ function Storage() {
   );
 }
 
+// ---------- 아래쪽 메뉴: 정원에서 짚은 것 ----------
+/** 짚은 소품·식물에 할 수 있는 것: [옮기기]·[방향 바꾸기](소품만)·[창고에 넣기]. 바로 창고에 들어가던 실수를 막는다. */
+function SelectBar() {
+  const { garden } = useAppState();
+  const [sel, setSel] = useState<AppEvents['decor-select']>(null);
+  useEffect(() => events.on('decor-select', setSel), []);
+  if (!sel) return null;
+  const item = sel.type === 'decor' ? garden.items.find((i) => i.id === sel.id) : undefined;
+  const plant = sel.type === 'plant' ? garden.plants.find((p) => p.id === sel.id) : undefined;
+  if (!item && !plant) return null;
+  const name = item ? (copy.decorate.kind[item.kind] ?? item.kind) : (plantById(plant!.plantId)?.name ?? '');
+  const act = (action: AppEvents['decor-action']['action']) => events.emit('decor-action', { action });
+  return (
+    <div className="decorate-bar decorate-select interactive" role="toolbar" aria-label={name}>
+      <span className="book-icon">{item ? <PropImg kind={item.kind} /> : <PlantImg id={plant!.plantId} />}</span>
+      <div className="decorate-text">
+        <strong>{sel.carrying ? copy.decorate.moving(name) : name}</strong>
+        <span>{sel.carrying ? copy.decorate.moveHint : copy.decorate.selectHint}</span>
+      </div>
+      {sel.carrying ? (
+        <button type="button" className="btn btn-secondary" onClick={() => act('cancel')}>{copy.decorate.cancel}</button>
+      ) : (
+        <>
+          <button type="button" className="btn btn-secondary" onClick={() => act('move')}>{copy.decorate.move}</button>
+          {item && <button type="button" className="btn btn-secondary" onClick={() => act('flip')}>{copy.decorate.flip}</button>}
+          <button type="button" className="btn btn-secondary" onClick={() => act('store')}>{copy.decorate.store}</button>
+          <IconBtn name="close" label={copy.decorate.close} onClick={() => act('cancel')} />
+        </>
+      )}
+    </div>
+  );
+}
+
 // ---------- 위쪽 바 ----------
 export function DecorateBar() {
   const mode = useSyncExternalStore(
@@ -134,13 +167,26 @@ export function DecorateBar() {
       exitDecorate();
       events.emit('plant-grown', { planted }); // 카메라가 돌아와 심기는 모습을 보여준다
     });
+    const offBlocked = events.on('decor-blocked', ({ why }) => {
+      const d = copy.decorate;
+      showToast(why === 'flip' ? [d.flipBlocked, d.flipBlockedHint] : [d.blocked, d.blockedHint]);
+    });
+    // Esc: 짚은 게 있으면 그것부터 내려놓고, 없으면 꾸미기를 끝낸다.
+    let selected = false;
+    const offSelect = events.on('decor-select', (s) => {
+      selected = !!s;
+    });
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isModalOpen()) exitDecorate();
+      if (e.key !== 'Escape' || isModalOpen()) return;
+      if (selected) events.emit('decor-action', { action: 'cancel' });
+      else exitDecorate();
     };
     window.addEventListener('keydown', onKey);
     return () => {
       offChanged();
       offPlanted();
+      offBlocked();
+      offSelect();
       window.removeEventListener('keydown', onKey);
     };
   }, [active]);
@@ -159,16 +205,19 @@ export function DecorateBar() {
   }
   const count = garden.items.length;
   return (
-    <div className="decorate-bar interactive">
-      <div className="decorate-text">
-        <strong>{copy.decorate.title}</strong>
-        <span>{count + garden.plants.length > 0 ? copy.decorate.hint : copy.decorate.none}</span>
-        {count > 0 && <small>{copy.decorate.count(count)}</small>}
+    <>
+      <div className="decorate-bar interactive">
+        <div className="decorate-text">
+          <strong>{copy.decorate.title}</strong>
+          <span>{count + garden.plants.length > 0 ? copy.decorate.hint : copy.decorate.none}</span>
+          {count > 0 && <small>{copy.decorate.count(count)}</small>}
+        </div>
+        <button type="button" className="btn btn-secondary" onClick={() => openModal(<Storage />)}>
+          {copy.decorate.storage(garden.storage.length)}
+        </button>
+        <button type="button" className="btn btn-primary" onClick={exitDecorate}>{copy.decorate.done}</button>
       </div>
-      <button type="button" className="btn btn-secondary" onClick={() => openModal(<Storage />)}>
-        {copy.decorate.storage(garden.storage.length)}
-      </button>
-      <button type="button" className="btn btn-primary" onClick={exitDecorate}>{copy.decorate.done}</button>
-    </div>
+      <SelectBar />
+    </>
   );
 }

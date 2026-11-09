@@ -9,7 +9,7 @@ npm run dev     # http://localhost:5173
 npm test        # Vitest, src/core 규칙·문구·통계·저장·샘플 데이터
 npm run build   # tsc --noEmit + vite build
 ```
-테스트용 주소: `/?decor`(소품 6개), `/?packet=3`(지난 3일치 씨앗 주머니), `/?fruit=20`(열매 20개), `/?seeds=5`(씨앗함에 씨앗 5개), `/?nostory`(프롤로그 건너뛰기). 데모 모드의 [씨앗 5개]도 같다. 데모 모드의 [샘플 채우기]가 시연용 정원을 만든다. 발표 전 `src/main.ts`에서 제거해도 된다.
+테스트용 주소: `/?decor`(소품 6개), `/?packet=3`(지난 3일치 씨앗 주머니), `/?fruit=20`(열매 20개), `/?seeds=5`(씨앗함에 씨앗 5개), `/?nostory`(프롤로그 건너뛰기), `/?hitbox`(소품·텃밭의 발자국과 새싹이 발을 빨강·파랑 선으로 보기). 데모 모드의 [씨앗 5개]도 같다. 데모 모드의 [샘플 채우기]가 시연용 정원을 만든다. 발표 전 `src/main.ts`에서 제거해도 된다.
 
 ## 절대 어기지 말 것 (이 앱의 설계 원칙)
 - 스트릭·벌점·미완료 표시·정원 시들기/초기화 **없음**. 안 한 일은 기록하지 않는다. 해낸 것만 쌓인다.
@@ -26,6 +26,8 @@ npm run build   # tsc --noEmit + vite build
   `story.ts`+`data/story.json`(이야기 장면: 프롤로그·주민 본편·서브·복귀. 열리는 순서와 하루 한 장면 규칙은 `story.ts`, 대본에서 바꾸거나 뺀 부분은 `docs/story-scenes.md`), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
 - `src/scene` — Phaser 정원(`GardenScene`, `Player`, `map`, `assets`, `sprites`). 그래픽은 `assets.ts` 한 곳이 출입구.
   배경은 그림 한 장(1266×712), 걸을 수 있는 곳은 `map.ts`의 다각형, 소품은 32px 칸에 스냅하고, 키우는 식물은 밭 그림(`public/assets/garden/field.png`, 원본 `art/source/field-bed2.webp`)의 두둑 16곳에만 심긴다(수확한 꽃은 창고로 가고, 꺼내면 소품처럼 마당 칸에 놓는다. 열매나무는 마당 칸에 심고 남아서 다시 맺는다. `economy.placeZone`. 나무 그림은 임시이고 `tools/make_tree_placeholders.py`가 만든다). 식물 칸 번호는 (100+열, 100+행)이고 위치는 `map.ts`의 `MOUNDS`가 정한다. 밭 그림을 바꾸면 `MOUNDS`(그림 속 두둑 좌표)와 `DEFAULT_BED`(처음 자리·크기)를 다시 맞춰야 한다. 텃밭은 꾸미기에서 끌어 옮길 수 있고(`bedFits`가 놓을 수 있는 곳을 판단, 자리는 `garden.bed`에 저장) 식물은 두둑 번호로 저장되어 텃밭을 따라 움직인다. 코드에서 텃밭 위치는 상수가 아니라 `BED`(바뀌는 값)를 쓸 것.
+  못 지나가는 곳과 앞뒤(그리는 순서)는 `footprints.ts`의 **발자국**(소품·텃밭이 땅에 닿은 자리)이 정한다. 소품 그림을 바꾸면 `FOOTPRINTS`를 그림에 맞춰 다시 재고 `?hitbox`로 겹쳐 확인한다. 새싹이·주민의 앞뒤는 `GardenScene.standDepth`가 발자국 기준으로 매 프레임 정하고, 소품이 새싹이 위에 놓이면 앞쪽 빈자리로 폴짝 비켜선다(`Player.hopOutIfStuck`).
+  꾸미기: 소품·식물을 짚으면 아래쪽 메뉴([옮기기]·[방향 바꾸기]·[창고에 넣기], `Decorate.tsx`의 `SelectBar` ↔ 씬은 `decor-select`·`decor-action` 이벤트)가 뜨고, 끌어서 바로 옮길 수도 있다. 마당에서는 놓일 발자국이 텃밭·다른 소품·나무 줄기·장식 꽃과 겹치면 놓지 않는다(`canPlace`, 끄는 동안 초록·빨강 발자국으로 미리 보여 줌). 좌우 방향은 `DecorItem.flip`(창고에 넣었다 꺼내도 유지).
 - `src/ui` — **React** 오버레이. `App.tsx`가 뿌리, `Hud.tsx`(정원 위 화면), `modal.tsx`(`openModal(<패널/>)`·`closeModal()`), `toast.tsx`, `panels/`(활동·기록·설정·상점·선물·대화·주머니·꾸미기 등 패널 하나가 파일 하나, `Bag.tsx`는 가진 것(씨앗·소품·식물), `Records.tsx`는 쌓아 온 것(기록·도감·출석). 분류 기준은 `docs/ux-research.md`). 화면 사이의 흐름은 `flow.ts`. 상태는 `useAppState()`로 읽고 `store.update()`로 바꾼다.
 - core·scene·ui는 서로 직접 부르지 않고 `core/events.ts` 이벤트로 대화한다.
 

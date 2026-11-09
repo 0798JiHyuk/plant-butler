@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { activities, activityById } from '../core/activities';
 import {
-  chooseRest, completePlan, DAILY_LIMIT, defaultPlanInfo, designPlan, limitReached, makeSmaller, pastItems, setEnergy,
+  chooseRest, completePlan, DAILY_LIMIT, defaultPlanInfo, designPlan, flipDecor, limitReached, makeSmaller, pastItems, setEnergy,
   setPlan, storeDecor, storePlant, suggest, swapCandidate, tabHints, takeFromStorage, openPacket, pendingPacketDates, plantSeed, undoRest,
 } from '../core/rules';
 import { plants } from '../core/plants';
@@ -234,6 +234,24 @@ describe('rules', () => {
 
   it('창고에 없는 걸 꺼내려 하면 null', () => {
     expect(takeFromStorage(createState(), 'nope', { col: 1, row: 1 })).toBeNull();
+  });
+
+  it('소품의 방향(좌우)을 바꾸고, 다시 누르면 처음 방향으로 돌아온다', () => {
+    const s = createState();
+    s.garden.items.push({ id: 'decor-1', kind: 'bench', variant: 0, col: 4, row: 4 });
+    expect(flipDecor(s, 'decor-1')).toBe(true);
+    expect(s.garden.items[0].flip).toBe(true);
+    flipDecor(s, 'decor-1');
+    expect(s.garden.items[0].flip).toBeFalsy();
+    expect(flipDecor(s, 'nope')).toBe(false);
+  });
+
+  it('바꾼 방향은 창고에 넣었다 꺼내도 그대로다', () => {
+    const s = createState();
+    s.garden.items.push({ id: 'decor-1', kind: 'bench', variant: 0, col: 4, row: 4, flip: true });
+    storeDecor(s, 'decor-1');
+    expect(s.garden.storage[0]).toMatchObject({ id: 'decor-1', flip: true });
+    expect(takeFromStorage(s, 'decor-1', { col: 9, row: 9 })).toMatchObject({ flip: true, col: 9, row: 9 });
   });
 
   it('심은 식물도 창고로 치우고 꺼낼 수 있다(처음 만난 날짜는 그대로)', () => {

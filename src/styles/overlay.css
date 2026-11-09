@@ -208,8 +208,15 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 }
 .decorate-text { display: flex; flex-direction: column; gap: 1px; font-size: 12px; color: var(--ink-soft); }
 .decorate-text strong { font-size: 15px; color: var(--ink); }
-.decorate-bar .btn { width: 96px; margin-top: 0; }
-#ui.decorating > :not(.decorate-bar):not(.modal-layer) { display: none; }
+.decorate-bar .btn { width: 96px; margin-top: 0; flex: none; white-space: nowrap; }
+.decorate-bar > .decorate-text { min-width: 0; }
+/* 짚은 것의 메뉴는 아래쪽에(위쪽 바와 정원 가운데를 가리지 않게) */
+.decorate-select { top: auto; bottom: 8px; gap: 10px; padding-left: 10px; }
+.decorate-select .btn { width: auto; padding: 0 14px; }
+.decorate-select .decorate-text { white-space: nowrap; }
+#ui.decorating > :not(.decorate-bar):not(.modal-layer):not(.toast) { display: none; }
+/* 꾸미는 중의 알림(놓았어요·놓을 수 없어요)은 위쪽 바 아래에 */
+#ui.decorating > .toast { top: 84px; }
 
 /* ---- 설정 ---- */
 .settings { width: 400px; }
