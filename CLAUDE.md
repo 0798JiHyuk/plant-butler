@@ -7,6 +7,8 @@
 ```bash
 npm run dev     # http://localhost:5173
 npm test        # Vitest, src/core 규칙·문구·통계·저장·샘플 데이터
+npm run typecheck  # tsc --noEmit
+npm run lint       # oxlint(any 금지, 경고도 실패)
 npm run build   # tsc --noEmit + vite build
 ```
 테스트용 주소: `/?decor`(소품 6개), `/?packet=3`(지난 3일치 씨앗 주머니), `/?fruit=20`(열매 20개), `/?seeds=5`(씨앗함에 씨앗 5개), `/?nostory`(프롤로그 건너뛰기), `/?hitbox`(소품·텃밭의 발자국과 새싹이 발을 빨강·파랑 선으로 보기). 데모 모드의 [씨앗 5개]도 같다. 데모 모드의 [샘플 채우기]가 시연용 정원을 만든다. 발표 전 `src/main.ts`에서 제거해도 된다.
@@ -23,7 +25,7 @@ npm run build   # tsc --noEmit + vite build
 ## 구조
 - `src/core` — 순수 TS(규칙·데이터·저장). Phaser·DOM을 모른다. **테스트는 여기에.**
   `rules.ts`(상한·쉬기·회차와 씨앗·주머니·씨앗함), `economy.ts`(성장·수확·열매·상점·방문 선물함·도장판), `stats.ts`(사실 피드백), `store.ts`(단일 상태+localStorage), `demo.ts`(샘플 데이터),
-  `story.ts`+`data/story.json`(이야기 장면: 프롤로그·주민 본편·서브·복귀. 열리는 순서와 하루 한 장면 규칙은 `story.ts`, 대본에서 바꾸거나 뺀 부분은 `docs/story-scenes.md`), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
+  `story.ts`+`data/story.json`(이야기 장면: 프롤로그·주민 본편·서브·복귀. 열리는 순서와 하루 한 장면 규칙은 `story.ts`, 대본에서 바꾸거나 뺀 부분은 `docs/story-scenes.md`), `state.ts`(저장 상태 정의·엄격 검증 `decodeState`, 서버로 보내는 `toSnapshot`은 대화 기록을 뺌)·`store.ts`(계정별 저장 키), `lib/`(Supabase 로그인·클라우드 저장. 키가 없으면 기기 안에만 저장. 대화 기록은 서버로 보내지 않음. 설정은 `supabase/*.md`), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
   `missions.ts`+`data/missions.json`(팀 미션 90개. 거르기·첫 카드·더 해 볼래·다른 걸 할래·표지판. 1~4단계만 추천하고 추천 단계는 "다음 길을 볼래"로만 오른다. "해당 없어요"는 그날만. 원본은 `docs/missions/`, 데이터는 `python3 -I tools/import_missions.py <원본.json>`으로 다시 만든다. 설계는 `docs/superpowers/specs/2026-11-09-missions-card-loop-design.md`).
 - `src/scene` — Phaser 정원(`GardenScene`, `Player`, `map`, `assets`, `sprites`). 그래픽은 `assets.ts` 한 곳이 출입구.
   배경은 그림 한 장(1266×712), 걸을 수 있는 곳은 `map.ts`의 다각형, 소품은 32px 칸에 스냅하고, 키우는 식물은 밭 그림(`public/assets/garden/field.png`, 원본 `art/source/field-bed2.webp`)의 두둑 16곳에만 심긴다(수확한 꽃은 창고로 가고, 꺼내면 소품처럼 마당 칸에 놓는다. 열매나무는 마당 칸에 심고 남아서 다시 맺는다. `economy.placeZone`. 나무 그림은 임시이고 `tools/make_tree_placeholders.py`가 만든다). 식물 칸 번호는 (100+열, 100+행)이고 위치는 `map.ts`의 `MOUNDS`가 정한다. 밭 그림을 바꾸면 `MOUNDS`(그림 속 두둑 좌표)와 `DEFAULT_BED`(처음 자리·크기)를 다시 맞춰야 한다. 텃밭은 꾸미기에서 끌어 옮길 수 있고(`bedFits`가 놓을 수 있는 곳을 판단, 자리는 `garden.bed`에 저장) 식물은 두둑 번호로 저장되어 텃밭을 따라 움직인다. 코드에서 텃밭 위치는 상수가 아니라 `BED`(바뀌는 값)를 쓸 것.

@@ -4,7 +4,7 @@ export const copy = {
   account: {
     title: '계정 연결',
     status: { checking: '계정을 확인하고 있어요.', local: '계정 연결 설정을 확인해 주세요. 정원은 계속 이용할 수 있어요.', 'signed-out': '계정 없이 이용 중이에요.', guest: '게스트로 이용 중이에요.', connected: 'Google 계정으로 연결되어 있어요.' },
-    localNotice: '정원·씨앗·가방·활동 기록을 계정에 저장해요. 저장 상태를 확인한 뒤 다른 기기에서 이어할 수 있어요.',
+    localNotice: '정원·씨앗·가방·활동 기록을 계정에 저장해요. 저장 상태를 확인한 뒤 다른 기기에서 이어할 수 있어요. 주민과 나눈 대화는 이 기기에만 남아요.',
     guestNotice: '이 브라우저에서 이어할 수 있어요. 사이트 데이터를 지우거나 다른 기기에서도 이어하려면 Google 계정을 연결해 주세요.',
     guest: '게스트로 다시 연결', login: 'Google로 로그인', link: '현재 진행을 Google에 연결', existing: '기존 계정으로 이어하기',
     logout: '로그아웃', cancel: '돌아가기',

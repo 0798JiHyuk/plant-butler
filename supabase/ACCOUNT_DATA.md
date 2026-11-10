@@ -29,7 +29,7 @@ anon 키로는 DDL을 실행할 수 없다. 이 변경은 원격 SQL을 자동 �
 
 새 garden_saves: user_id(auth.users FK/PK), state(jsonb), revision(integer),
 request_id(uuid), updated_at(timestamptz). 계정당 한 행이다.
-state는 현재 AppState v1 전체: 정원 위치·식물·창고·씨앗·열매·활동 완료·계획·회고·
+state는 현재 AppState v1에서 **주민과 나눈 대화 기록(chats)을 뺀** 전체(대화는 기기에만 두고 서버로 보내지 않으며, 서버 복원이 지우지도 않는다): 정원 위치·식물·창고·씨앗·열매·활동 완료·계획·회고·
 봉투·방문 보상·이야기·설정이다. 분석 이벤트로 원문을 보내거나 로그로 출력하지 않는다.
 이 snapshot은 PRD activities/plans/events의 분석·연구 데이터 매핑을 대신하지 않는다.
 그 테이블의 연동은 해당 슬라이스와 담당자의 규격에 맞춰 별도로 진행한다.
