@@ -1,5 +1,5 @@
 import type { AppState } from '@/core/types';
-import { createState, decodeState, hasProgress, stateKey } from '@/core/state';
+import { createState, decodeState, hasProgress, stateKey, toSnapshot } from '@/core/state';
 import { store } from '@/core/store';
 import { loadJson, saveJson } from '@/core/storage';
 import { auth } from '@/lib/auth';
@@ -33,6 +33,7 @@ export function createGardenSync(repository: GardenRepository, local: StorePort,
   let revision = 0;
   let remote: GardenRecord | null = null;
   let importing = false;
+  let acknowledged = ''; // 서버가 마지막으로 받아들인 상태의 키(대화 기록 제외)
   let fallback = createState();
   let applying = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -45,15 +46,16 @@ export function createGardenSync(repository: GardenRepository, local: StorePort,
   const conflict = (value: GardenRecord) => { remote = value; publish({ phase: 'conflict', updatedAt: value.updatedAt, remote: summarize(value.state) }); };
   function acknowledge(value: GardenRecord) {
     revision = value.revision; importing = false;
+    acknowledged = stateKey(toSnapshot(value.state));
     options.writeMeta(owner!, { revision, baseline: stateKey(value.state) });
     options.writeImport?.(owner!, null);
   }
   function restore(value: GardenRecord) {
-    if (stateKey(local.state) !== stateKey(value.state)) local.backup(local.state);
+    if (stateKey(toSnapshot(local.state)) !== stateKey(value.state)) local.backup(local.state);
     applying = true;
-    try { local.restore(value.state); } finally { applying = false; }
+    try { local.restore({ ...value.state, chats: local.state.chats }); } finally { applying = false; } // 대화 기록은 기기에만 있다
     acknowledge(value);
-    if (stateKey(local.state) === stateKey(value.state)) publish({ phase: 'saved', updatedAt: value.updatedAt });
+    if (stateKey(toSnapshot(local.state)) === stateKey(value.state)) publish({ phase: 'saved', updatedAt: value.updatedAt });
     else { publish({ phase: 'pending', updatedAt: value.updatedAt }); schedule(); }
   }
   function exclusive(task: (ticket: number) => Promise<void>): Promise<void> {
@@ -68,7 +70,7 @@ export function createGardenSync(repository: GardenRepository, local: StorePort,
   async function save(expected: number, ticket: number) {
     const userId = owner;
     if (!userId || !active(ticket)) return;
-    const snapshot = decodeState(local.state);
+    const snapshot = toSnapshot(local.state);
     publish({ phase: 'saving', updatedAt: state.updatedAt });
     const result = await repository.save(userId, snapshot, expected, crypto.randomUUID());
     if (!active(ticket)) return;
@@ -79,11 +81,12 @@ export function createGardenSync(repository: GardenRepository, local: StorePort,
       conflict(latest); return;
     }
     acknowledge(result);
-    if (stateKey(local.state) === stateKey(snapshot)) publish({ phase: 'saved', updatedAt: result.updatedAt });
+    if (stateKey(toSnapshot(local.state)) === stateKey(snapshot)) publish({ phase: 'saved', updatedAt: result.updatedAt });
     else { publish({ phase: 'pending', updatedAt: result.updatedAt }); schedule(); }
   }
   const unsubscribe = local.subscribe(() => {
     if (!owner || applying || local.restoring || state.phase === 'loading' || state.phase === 'error' || state.phase === 'conflict' || state.phase === 'saving') return;
+    if (state.phase === 'saved' && stateKey(toSnapshot(local.state)) === acknowledged) return; // 대화 기록만 바뀐 경우
     publish({ phase: 'pending', updatedAt: state.updatedAt }); schedule();
   });
   const service = {
@@ -113,7 +116,7 @@ export function createGardenSync(repository: GardenRepository, local: StorePort,
         if (!active(ticket)) return;
         const value = await repository.load(userId);
         if (!active(ticket)) return;
-        const current = stateKey(local.state);
+        const current = stateKey(toSnapshot(local.state));
         if (importing) { conflict(value ?? { state: fallback, revision: 0 }); return; }
         if (!value) { await save(0, ticket); return; }
         const server = stateKey(value.state);
