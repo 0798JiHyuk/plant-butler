@@ -1,5 +1,5 @@
 // 화면 사이의 흐름: 하루 첫 여력 체크 → 미션 카드 고르기 → 했어 → 회고 → 정원 변화.
-import { todayKey } from '../core/clock';
+import { setDayOffset, todayKey } from '../core/clock';
 import { copy } from '../core/copy';
 import { events } from '../core/events';
 import { canHarvest, harvest } from '../core/economy';
@@ -12,8 +12,9 @@ import type { ReflectChip } from '../core/types';
 import { openBag } from './panels/Bag';
 import { chatActions, openChat } from './panels/Chat';
 import { showCheckin } from './panels/Checkin';
-import { isModalOpen } from './modal';
-import { enterDecorate, isDecorating } from './panels/Decorate';
+import { closeModal, isModalOpen } from './modal';
+import { openAccount } from './panels/Account';
+import { enterDecorate, exitDecorate, isDecorating } from './panels/Decorate';
 import { directLinks, openDirect } from './panels/Direct';
 import { missionLinks, openBookmark, openMission, openMore } from './panels/Mission';
 import { openPacketModal } from './panels/Packet';
@@ -105,7 +106,10 @@ function otherMission(): void {
 function runAfter(after: StoryAfter): void {
   const today = todayKey();
   if (after === 'packet') openPacketModal();
-  else if (after === 'seeds') pendingPacketCount(store.state) > 0 ? openPacketModal() : openBag('seeds');
+  else if (after === 'seeds') {
+    if (pendingPacketCount(store.state) > 0) openPacketModal();
+    else openBag('seeds');
+  }
   else if (after === 'activity' || after === 'daily') openMission(); // 지난 활동 다시 = 표지판 또는 그 영역의 마지막 카드
   else if (after === 'design') openDirect();
   else if (after === 'plan') openPlan();
@@ -143,7 +147,7 @@ export function startFlow(): void {
     else if (id === 'mission-other') otherMission();
     else if (id === 'records') openRecords();
     else if (id === 'decorate') enterDecorate();
-    else if (id === 'settings') openSettings();
+    else if (id === 'settings') openSettings(openAccount);
     else if (id === 'packet') openPacketModal();
     else if (id === 'bag') openBag('seeds');
     else if (id === 'book') openRecords('book');
@@ -166,16 +170,17 @@ export function startFlow(): void {
   let wasResting = isResting(store.state, todayKey());
   store.subscribe(() => {
     const resting = isResting(store.state, todayKey());
-    if (resting !== wasResting) events.emit('sprout-pose', { pose: resting ? 'rest' : 'idle' });
+    if (!store.restoring && resting !== wasResting) events.emit('sprout-pose', { pose: resting ? 'rest' : 'idle' });
     wasResting = resting;
   });
   // 주머니가 새로 도착하면(회차를 마친 직후) 잠시 뒤에 알려준다. 못 열어도 왼쪽 위 버튼에 남는다.
   const arrived = () => pendingPacketDates(store.state).length + store.state.sessionPackets;
   let pending = arrived();
+  let packetTimer: number | undefined;
   store.subscribe(() => {
     const n = arrived();
-    if (n > pending) {
-      window.setTimeout(openPacketModal, justCompleted ? 3400 : 800);
+    if (!store.restoring && n > pending) {
+      packetTimer = window.setTimeout(openPacketModal, justCompleted ? 3400 : 800);
       justCompleted = false;
     }
     pending = n;
@@ -184,6 +189,16 @@ export function startFlow(): void {
   events.on('ui-lock', ({ locked }) => {
     if (!locked) askAreaWhenIdle();
   });
+  // 서버 저장본을 복원하면(다른 기기·계정) 규칙을 다시 돌리지 않고 장면과 첫 화면 흐름만 다시 시작한다.
+  events.on('state-restored', () => {
+    justCompleted = false;
+    window.clearTimeout(packetTimer);
+    closeModal(false);
+    exitDecorate();
+    setDayOffset(store.state.settings.demo ? store.state.settings.dayOffset : 0);
+    afterDayChange();
+  });
+  events.on('garden-ready', () => events.emit('ui-lock', { locked: isModalOpen() }));
   startSound();
   const begin = () => afterDayChange();
   if (needsIntro(store.state)) {
