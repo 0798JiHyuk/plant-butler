@@ -1,0 +1,2451 @@
+{
+ "version": "2026-11-08-90-v2-final",
+ "first": {
+  "daily": {
+   "scenes": [
+    {
+     "label": "마실 것",
+     "missionId": "D01"
+    },
+    {
+     "label": "먹을 준비",
+     "missionId": "D02"
+    },
+    {
+     "label": "씻을 준비",
+     "missionId": "D03"
+    },
+    {
+     "label": "옷 갈아입기",
+     "missionId": "D04"
+    },
+    {
+     "label": "공간 만들기",
+     "missionId": "D05"
+    },
+    {
+     "label": "잠깐 전환",
+     "missionId": "D13"
+    },
+    {
+     "label": "외출",
+     "missionId": "D14"
+    },
+    {
+     "label": "휴식",
+     "missionId": "D15"
+    },
+    {
+     "label": "연락 초안",
+     "missionId": "D20"
+    }
+   ],
+   "previews": [
+    "D01",
+    "D03",
+    "D05"
+   ]
+  },
+  "academic": {
+   "missionId": "A01",
+   "targets": [
+    {
+     "label": "수업 자료",
+     "intent": "course"
+    },
+    {
+     "label": "과제 자료",
+     "intent": "assignment"
+    },
+    {
+     "label": "시험 자료",
+     "intent": "exam"
+    }
+   ]
+  },
+  "work": {
+   "pre_return": [
+    {
+     "label": "일정 안내 있음",
+     "missionId": "W01"
+    },
+    {
+     "label": "안내 없음·개인 준비",
+     "missionId": "W03"
+    }
+   ],
+   "returned": [
+    {
+     "label": "아직 자료 안 열음",
+     "missionId": "W06"
+    },
+    {
+     "label": "현재 요청 있음",
+     "missionId": "W07"
+    }
+   ]
+  }
+ },
+ "missions": [
+  {
+   "id": "D01",
+   "categoryId": "daily",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "drink"
+   ],
+   "npc": "nuri",
+   "dialogue": "지금 쓸 컵 하나부터 준비해 볼까?",
+   "name": "쓸 컵 준비하기",
+   "basic": "컵 하나를 꺼내 헹군 뒤 손이 닿는 곳에 두기.",
+   "small": "컵 하나를 꺼내 손이 닿는 곳에 두기.",
+   "buttonLabel": "했어",
+   "record": "쓸 컵을 헹궈 준비했다.",
+   "smallRecord": "쓸 컵을 꺼냈다.",
+   "conditionSummary": "지금 컵이 필요할 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasCup"
+   ],
+   "smallFacts": [
+    "hasCup"
+   ],
+   "mode": "activity",
+   "nextId": "D02"
+  },
+  {
+   "id": "D02",
+   "categoryId": "daily",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "meal"
+   ],
+   "npc": "nuri",
+   "dialogue": "지금 먹을 생각이면, 준비된 것 하나부터 꺼내 볼까?",
+   "name": "먹을 것 꺼내기",
+   "basic": "먹고 싶은 준비된 음식을 꺼내 먹을 자리에 놓기.",
+   "small": "먹고 싶은 준비된 음식 하나를 꺼내기.",
+   "buttonLabel": "했어",
+   "record": "먹을 음식을 꺼내 자리에 놓았다.",
+   "smallRecord": "먹을 음식 하나를 꺼냈다.",
+   "conditionSummary": "먹을 생각이 있고 준비된 음식이 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasReadyFood"
+   ],
+   "smallFacts": [
+    "hasReadyFood"
+   ],
+   "mode": "activity",
+   "nextId": "D03"
+  },
+  {
+   "id": "D03",
+   "categoryId": "daily",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "wash"
+   ],
+   "npc": "moru",
+   "dialogue": "씻고 싶다면, 사용할 수건부터 놓아 보자.",
+   "name": "수건 펼쳐 두기",
+   "basic": "수건을 꺼내 세면대 옆 사용할 곳에 펼쳐 두기.",
+   "small": "사용할 수건 한 장 꺼내기.",
+   "buttonLabel": "했어",
+   "record": "사용할 수건을 펼쳐 두었다.",
+   "smallRecord": "수건 한 장을 꺼냈다.",
+   "conditionSummary": "세면을 원하고 수건을 사용할 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasTowel"
+   ],
+   "smallFacts": [
+    "hasTowel"
+   ],
+   "mode": "activity",
+   "nextId": "D04"
+  },
+  {
+   "id": "D04",
+   "categoryId": "daily",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "clothes"
+   ],
+   "npc": "moru",
+   "dialogue": "편하게 입을 옷부터 골라 볼까?",
+   "name": "갈아입을 옷 꺼내기",
+   "basic": "갈아입을 옷 한 벌을 골라 손이 닿는 곳에 놓기.",
+   "small": "갈아입을 옷 한 개를 골라 꺼내기.",
+   "buttonLabel": "했어",
+   "record": "갈아입을 옷 한 벌을 준비했다.",
+   "smallRecord": "갈아입을 옷 한 개를 꺼냈다.",
+   "conditionSummary": "갈아입고 싶을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasChangeClothes"
+   ],
+   "smallFacts": [
+    "hasChangeClothes"
+   ],
+   "mode": "activity",
+   "nextId": "D05"
+  },
+  {
+   "id": "D05",
+   "categoryId": "daily",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "space"
+   ],
+   "npc": "moru",
+   "dialogue": "방 전체 말고, 앉을 곳 하나만 비워 보자.",
+   "name": "앉을 곳 비우기",
+   "basic": "의자나 방석 위 물건을 제자리로 옮겨 앉을 면적 만들기.",
+   "small": "앉을 곳의 물건 하나를 제자리로 옮기기.",
+   "buttonLabel": "했어",
+   "record": "앉을 자리를 비웠다.",
+   "smallRecord": "앉을 곳의 물건 하나를 옮겼다.",
+   "conditionSummary": "앉을 자리에 물건이 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasClutteredSeat"
+   ],
+   "smallFacts": [
+    "hasClutteredSeat"
+   ],
+   "mode": "activity",
+   "nextId": "D06"
+  },
+  {
+   "id": "D06",
+   "categoryId": "daily",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "drink"
+   ],
+   "npc": "nuri",
+   "dialogue": "마시고 싶다면, 준비한 컵으로 편한 만큼 마셔 볼까?",
+   "name": "내 컵으로 한 모금",
+   "basic": "마시고 싶은 음료를 준비한 컵에 담아 본인이 편한 만큼 마신다.",
+   "small": "마시고 싶은 음료를 컵에 담아 손이 닿는 곳에 둔다.",
+   "buttonLabel": "했어",
+   "record": "원하는 음료를 컵에 담아 마셨다.",
+   "smallRecord": "마실 음료를 컵에 담아 뒀다.",
+   "conditionSummary": "사용자가 지금 음료를 마시고 싶다고 선택할 때만. 양과 횟수를 정하지 않음.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasCup",
+    "hasDrink"
+   ],
+   "smallFacts": [
+    "hasCup",
+    "hasDrink"
+   ],
+   "mode": "activity",
+   "nextId": "D07"
+  },
+  {
+   "id": "D07",
+   "categoryId": "daily",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "meal"
+   ],
+   "npc": "nuri",
+   "dialogue": "지금 먹고 싶다면, 준비한 음식으로 한 끼를 시작해 볼까?",
+   "name": "내 식사 시작하기",
+   "basic": "먹을 음식과 필요한 수저를 자리에 놓고 본인이 원하는 만큼 먹기 시작한다.",
+   "small": "먹을 음식과 필요한 수저를 먹을 자리에 놓는다.",
+   "buttonLabel": "했어",
+   "record": "준비한 음식으로 식사를 시작했다.",
+   "smallRecord": "먹을 음식과 수저를 자리에 놓았다.",
+   "conditionSummary": "사용자가 지금 식사를 원할 때만. 음식 종류나 섭취량을 정하지 않음.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasReadyFood"
+   ],
+   "smallFacts": [
+    "hasReadyFood"
+   ],
+   "mode": "activity",
+   "nextId": "D08"
+  },
+  {
+   "id": "D08",
+   "categoryId": "daily",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "wash"
+   ],
+   "npc": "nuri",
+   "dialogue": "지금 씻고 싶다면, 네 방식으로 얼굴을 씻어 볼까?",
+   "name": "얼굴 씻기",
+   "basic": "평소 방식으로 얼굴을 씻고 닦기.",
+   "small": "얼굴에서 씻고 싶은 한 부분을 물로 씻고 닦기.",
+   "buttonLabel": "했어",
+   "record": "얼굴을 씻고 닦았다.",
+   "smallRecord": "얼굴의 한 부분을 씻고 닦았다.",
+   "conditionSummary": "본인이 세면을 원하고 편하게 할 수 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasWashSpace"
+   ],
+   "smallFacts": [
+    "hasWashSpace"
+   ],
+   "mode": "activity",
+   "nextId": "D09"
+  },
+  {
+   "id": "D09",
+   "categoryId": "daily",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "clothes"
+   ],
+   "npc": "moru",
+   "dialogue": "준비한 옷으로 편하게 갈아입어 볼까?",
+   "name": "옷 갈아입기",
+   "basic": "본인이 고른 옷 한 벌로 갈아입기.",
+   "small": "고른 상의나 하의 중 하나만 갈아입기.",
+   "buttonLabel": "했어",
+   "record": "고른 옷 한 벌로 갈아입었다.",
+   "smallRecord": "고른 옷 한 개를 갈아입었다.",
+   "conditionSummary": "갈아입고 싶을 때. 장소와 사생활은 본인이 확보.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasChangeClothes"
+   ],
+   "smallFacts": [
+    "hasChangeClothes"
+   ],
+   "mode": "activity",
+   "nextId": "D10"
+  },
+  {
+   "id": "D10",
+   "categoryId": "daily",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "space"
+   ],
+   "npc": "nuri",
+   "dialogue": "눈에 보이는 쓰레기부터 정리해 볼까?",
+   "name": "쓰레기 버리기",
+   "basic": "지금 있는 자리 주변의 쓰레기 두세 개를 평소 분리 방식대로 버리기.",
+   "small": "눈에 보이는 쓰레기 하나를 쓰레기통에 넣기.",
+   "buttonLabel": "했어",
+   "record": "자리 주변 쓰레기를 버렸다.",
+   "smallRecord": "쓰레기 하나를 버렸다.",
+   "conditionSummary": "버릴 물건이 분명하고 무리 없이 처리할 수 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasVisibleTrash"
+   ],
+   "smallFacts": [
+    "hasVisibleTrash"
+   ],
+   "mode": "activity",
+   "nextId": "D11"
+  },
+  {
+   "id": "D11",
+   "categoryId": "daily",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "drink",
+    "meal"
+   ],
+   "npc": "moru",
+   "dialogue": "사용한 컵이나 그릇을 옮기고, 그 자리 한 곳만 닦아 볼까?",
+   "name": "사용한 자리 정리하기",
+   "basic": "사용한 컵·그릇을 싱크대로 옮기고 놓여 있던 자리 한 곳을 닦는다.",
+   "small": "사용한 컵이나 그릇 하나만 싱크대로 옮긴다.",
+   "buttonLabel": "했어",
+   "record": "사용한 식기를 옮기고 자리를 닦았다.",
+   "smallRecord": "사용한 식기 하나를 옮겼다.",
+   "conditionSummary": "컵이나 식기를 사용한 뒤만.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasUsedDish"
+   ],
+   "smallFacts": [
+    "hasUsedDish"
+   ],
+   "mode": "activity",
+   "nextId": "D12"
+  },
+  {
+   "id": "D12",
+   "categoryId": "daily",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "clothes"
+   ],
+   "npc": "moru",
+   "dialogue": "갈아입은 뒤 남은 옷도 한곳에 정리해 볼까?",
+   "name": "벗은 옷 정리하기",
+   "basic": "벗은 옷을 세탁할 것·다시 입을 것으로 나눠 각 위치에 두기.",
+   "small": "벗은 옷 한 개가 세탁할 것인지 정한 뒤 해당 위치에 두기.",
+   "buttonLabel": "했어",
+   "record": "벗은 옷을 나눠 제자리에 두었다.",
+   "smallRecord": "벗은 옷 한 개를 정해 제자리에 두었다.",
+   "conditionSummary": "정리할 옷이 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasClothesToPutAway"
+   ],
+   "smallFacts": [
+    "hasClothesToPutAway"
+   ],
+   "mode": "activity",
+   "nextId": "D13"
+  },
+  {
+   "id": "D13",
+   "categoryId": "daily",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "observe"
+   ],
+   "npc": "pio",
+   "dialogue": "자리에서 잠깐 벗어나, 바깥에서 눈에 들어오는 걸 찾아볼까?",
+   "name": "창밖에서 한 가지 찾기",
+   "basic": "편한 위치로 이동해 창밖에서 사물 두 가지를 살펴보기.",
+   "small": "지금 자리에서 보이는 바깥 사물 하나를 살펴보기.",
+   "buttonLabel": "했어",
+   "record": "바깥의 사물 두 가지를 살펴봤다.",
+   "smallRecord": "바깥의 사물 하나를 살펴봤다.",
+   "conditionSummary": "바깥이 보이고 관찰을 원할 때. 보이지 않으면 다른 카드 선택.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "canSeeOutside"
+   ],
+   "smallFacts": [
+    "canSeeOutside"
+   ],
+   "mode": "activity",
+   "nextId": "D14"
+  },
+  {
+   "id": "D14",
+   "categoryId": "daily",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "outing"
+   ],
+   "npc": "nuri",
+   "dialogue": "나가고 싶으면, 네가 편한 가까운 곳까지만 다녀올까?",
+   "name": "가까운 곳 다녀오기",
+   "basic": "본인이 정한 편하고 안전한 가까운 지점까지 갔다 돌아오기.",
+   "small": "실내에서 현관이나 창가처럼 본인이 편하게 접근할 수 있는 가까운 지점까지 이동했다 돌아온다.",
+   "buttonLabel": "했어",
+   "record": "고른 가까운 지점에 다녀왔다.",
+   "smallRecord": "실내의 가까운 지점에 다녀왔다.",
+   "conditionSummary": "사용자가 외출·이동을 선택했을 때. 실내 이동으로 축소 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "canMakeChosenTrip"
+   ],
+   "smallFacts": [
+    "canMoveIndoors"
+   ],
+   "mode": "activity",
+   "nextId": "D15"
+  },
+  {
+   "id": "D15",
+   "categoryId": "daily",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "rest"
+   ],
+   "npc": "nuri",
+   "dialogue": "쉬고 싶은 자리를 만들고, 거기서 잠깐 쉬어 볼까?",
+   "name": "쉬는 자리에서 쉬기",
+   "basic": "쉴 자리를 정돈하고 필요한 쿠션 등을 놓은 뒤 본인이 원하는 동안 쉬기.",
+   "small": "쉴 자리의 물건 하나를 옮긴 뒤 그곳에서 편한 자세로 잠깐 있기.",
+   "buttonLabel": "했어",
+   "record": "쉴 자리를 마련하고 쉬었다.",
+   "smallRecord": "쉴 자리의 물건 하나를 옮기고 잠깐 쉬었다.",
+   "conditionSummary": "본인이 휴식을 행동으로 선택할 때. 시간과 자세는 자율.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasRestPlace"
+   ],
+   "smallFacts": [
+    "hasRestPlace"
+   ],
+   "mode": "activity",
+   "nextId": "D16"
+  },
+  {
+   "id": "D16",
+   "categoryId": "daily",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "먹기, 씻기, 정리 중 지금 필요한 한 가지를 네가 골라 볼래?",
+   "name": "지금 필요한 일 고르기",
+   "basic": "먹기 준비·세면·정리 중 필요한 행동 하나를 골라 평소 크기로 수행하기.",
+   "small": "같은 영역에서 가장 작은 행동 하나를 골라 수행하기. 예: 옷 한 개 정리.",
+   "buttonLabel": "했어",
+   "record": "지금 필요한 일상 행동을 골라 수행했다.",
+   "smallRecord": "지금 필요한 일상 행동을 작게 골라 수행했다.",
+   "conditionSummary": "지금 원하는 생활 영역이 있을 때. 선택만 하면 계획 상태.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "D17"
+  },
+  {
+   "id": "D17",
+   "categoryId": "daily",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "오늘 하기엔 크면, 같은 일을 어디까지 줄일지 정해 보자.",
+   "name": "오늘 크기로 줄여 하기",
+   "basic": "원래 하려던 생활 행동의 범위를 줄여 정한 만큼 수행하기.",
+   "small": "같은 생활 행동을 한 개·한 곳 범위로 더 줄여 수행하기.",
+   "buttonLabel": "했어",
+   "record": "생활 행동의 범위를 줄여 수행했다.",
+   "smallRecord": "생활 행동을 한 개 또는 한 곳 범위로 줄여 수행했다.",
+   "conditionSummary": "하던 계획이 부담스럽거나 크다고 느낄 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "D18"
+  },
+  {
+   "id": "D18",
+   "categoryId": "daily",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "같은 일을 더 편한 방법으로 할 수 있을까? 네 방법을 골라 보자.",
+   "name": "다른 방법으로 해 보기",
+   "basic": "정리·준비 등 선택한 행동을 자신이 편한 도구·장소·자세로 바꿔 수행하기.",
+   "small": "바꾼 방법으로 같은 행동의 한 부분 수행하기.",
+   "buttonLabel": "했어",
+   "record": "편한 방법으로 바꿔 생활 행동을 수행했다.",
+   "smallRecord": "편한 방법으로 바꿔 생활 행동의 한 부분을 수행했다.",
+   "conditionSummary": "기존 방식이 불편하고 바꿔 할 방법이 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "D19"
+  },
+  {
+   "id": "D19",
+   "categoryId": "daily",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "이미 가는 길에 필요한 일을 하나 붙여 볼까?",
+   "name": "내 동선에 붙여 하기",
+   "basic": "평소 생활 동선에서 옮길 물건 두 개를 골라 목적한 자리에 가져다 둔다.",
+   "small": "같은 동선에서 물건 하나만 골라 가져다 둔다.",
+   "buttonLabel": "했어",
+   "record": "생활 동선에서 물건 두 개를 옮겼다.",
+   "smallRecord": "생활 동선에서 물건 하나를 옮겼다.",
+   "conditionSummary": "현재 이동할 일이 있고 무리 없이 연결할 행동이 있을 때.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasItemToMove"
+   ],
+   "smallFacts": [
+    "hasItemToMove"
+   ],
+   "mode": "activity",
+   "nextId": "D20"
+  },
+  {
+   "id": "D20",
+   "categoryId": "daily",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "contact"
+   ],
+   "npc": "pio",
+   "dialogue": "전하고 싶은 말이 있으면, 네 말로 초안을 써 볼래?",
+   "name": "연락할 말 직접 고르기",
+   "basic": "연락하고 싶은 사람에게 안부 또는 요청 한 문장을 개인 초안에 작성하기.",
+   "small": "같은 사람에게 전할 짧은 표현 하나를 개인 초안에 작성하기.",
+   "buttonLabel": "했어",
+   "record": "전하고 싶은 말 한 문장을 개인 초안에 썼다.",
+   "smallRecord": "전하고 싶은 짧은 말을 개인 초안에 썼다.",
+   "conditionSummary": "본인이 연락을 원할 때만. 작성은 실제 행동, 전송은 별도 선택. 연락처·본문 수집 없음.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "D21"
+  },
+  {
+   "id": "D21",
+   "categoryId": "daily",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "이제 필요한 일상 행동에 네가 이름을 붙이고 해 볼래?",
+   "name": "내 첫 미션 만들고 하기",
+   "basic": "직접 생활 미션 하나를 만들고 구체적인 기본 행동을 정해 실제 수행하기.",
+   "small": "같은 미션에 더 작은 행동을 정해 실제 수행하기.",
+   "buttonLabel": "했어",
+   "record": "직접 만든 생활 미션의 기본 행동을 수행했다.",
+   "smallRecord": "직접 만든 생활 미션의 축소 행동을 수행했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "D22"
+  },
+  {
+   "id": "D22",
+   "categoryId": "daily",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "언제 시작할지 네 생활 속 한 순간을 골라 볼까?",
+   "name": "시작할 때를 정하고 하기",
+   "basic": "자기 미션에 시작 계기와 장소를 정하고 그 계기에 선택 행동 수행하기.",
+   "small": "같은 계기와 장소에서 미션의 축소 행동 수행하기.",
+   "buttonLabel": "했어",
+   "record": "정한 생활 계기에 자기 미션을 수행했다.",
+   "smallRecord": "정한 생활 계기에 자기 미션을 작게 수행했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "D23"
+  },
+  {
+   "id": "D23",
+   "categoryId": "daily",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "오늘은 어디까지 하면 마칠지, 시작 전에 정해 보자.",
+   "name": "멈출 지점 정하고 하기",
+   "basic": "자기 미션의 끝 지점 하나를 정하고 그 범위까지 수행하기.",
+   "small": "같은 행동의 끝 지점을 한 개·한 곳으로 줄여 수행하기.",
+   "buttonLabel": "했어",
+   "record": "스스로 정한 끝 지점까지 생활 행동을 수행했다.",
+   "smallRecord": "더 작은 끝 지점까지 생활 행동을 수행했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "D24"
+  },
+  {
+   "id": "D24",
+   "categoryId": "daily",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "지난번 크기는 어땠어? 이번에는 네게 맞게 바꿔 해 보자.",
+   "name": "해 본 뒤 크기 바꿔 하기",
+   "basic": "이전에 수행한 자기 미션을 유지·축소·확장 중 하나로 조절해 실제 수행하기.",
+   "small": "조절한 미션의 더 작은 범위만 실제 수행하기.",
+   "buttonLabel": "했어",
+   "record": "이전에 해 본 미션의 크기를 조절해 수행했다.",
+   "smallRecord": "이전에 해 본 미션을 더 작게 조절해 수행했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "D25"
+  },
+  {
+   "id": "D25",
+   "categoryId": "daily",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "네가 남긴 다음 자리가 있어. 지금 할 만큼 골라 이어 볼까?",
+   "name": "내 표지판에서 다시 하기",
+   "basic": "자기 미션에 남긴 다음 행동을 확인하고 실제 이어 수행하기.",
+   "small": "같은 다음 행동의 축소 범위를 수행하기.",
+   "buttonLabel": "했어",
+   "record": "자기 미션의 표지판에서 다음 행동을 이어 수행했다.",
+   "smallRecord": "자기 미션의 다음 행동을 작게 이어 수행했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "D26"
+  },
+  {
+   "id": "D26",
+   "categoryId": "daily",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "오늘 필요한 일 두 가지 중, 먼저 할 하나를 골라 볼까?",
+   "name": "오늘 먼저 할 한 가지",
+   "basic": "오늘 필요한 생활 행동 두 개 중 먼저 할 하나를 고르고 실제 수행한다.",
+   "small": "같은 두 행동 중 하나를 골라 그 행동의 축소 버전을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "오늘 먼저 할 생활 행동을 골라 했다.",
+   "smallRecord": "오늘 먼저 할 행동의 축소 버전을 했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "D27"
+  },
+  {
+   "id": "D27",
+   "categoryId": "daily",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "기존 미션 두 개를 오늘의 다른 자리에 놓아 볼까? 지금은 하나만 해도 돼.",
+   "name": "내 하루 두 자리",
+   "basic": "기존 생활 미션 두 개를 서로 다른 생활 계기에 배치하고 선택한 하나를 수행한다.",
+   "small": "미션 하나만 오늘의 계기에 배치하고 축소 행동을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "하루 두 자리에 미션을 놓고 하나를 했다.",
+   "smallRecord": "하루 한 자리에 축소 미션을 놓고 했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "D28"
+  },
+  {
+   "id": "D28",
+   "categoryId": "daily",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "할 일 옆에 쉴 자리도 남겨 둘까? 쉬는 건 언제든 골라도 돼.",
+   "name": "쉴 자리도 있는 지도",
+   "basic": "자기 미션 하나와 원하는 휴식 자리를 하루에 놓고 선택한 미션을 수행한다. 휴식은 수행 여부와 별개로 언제든 선택한다.",
+   "small": "자기 미션 하나의 축소 행동을 하고, 하루 지도에 원할 때 쉴 자리를 표시한다.",
+   "buttonLabel": "했어",
+   "record": "쉴 자리가 있는 하루를 정하고 선택 행동을 했다.",
+   "smallRecord": "축소 행동을 하고 쉴 자리를 남겼다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "D29"
+  },
+  {
+   "id": "D29",
+   "categoryId": "daily",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "계획과 다른 하루가 됐다면, 지금 가능한 곳에 다시 놓아 보자.",
+   "name": "바뀐 하루에 다시 놓기",
+   "basic": "못 한 자기 미션을 지금 가능한 생활 구간으로 옮기고 선택 행동 수행하기.",
+   "small": "같은 미션을 현재 가능한 가장 작은 범위로 바꿔 수행하기.",
+   "buttonLabel": "했어",
+   "record": "바뀐 하루에 미션을 다시 배치해 수행했다.",
+   "smallRecord": "바뀐 하루에 미션을 작게 바꿔 수행했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "D30"
+  },
+  {
+   "id": "D30",
+   "categoryId": "daily",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "이제 네 하루에 놓을 미션을 직접 골라 보자. 전부 끝낼 필요는 없어.",
+   "name": "내 하루 직접 만들기",
+   "basic": "오늘 생활 구간에 직접 만든 미션 2~3개를 배치한 뒤 본인이 고른 미션 1개 실제 수행하기.",
+   "small": "자기 미션 하나만 하루에 배치하고 그 행동의 최소 버전을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "미션 2~3개로 하루를 설계하고 고른 미션 하나를 수행했다.",
+   "smallRecord": "자기 미션 하나를 하루에 놓고 최소 행동을 했다.",
+   "conditionSummary": "사용자가 자기 미션 또는 하루 설계를 선택했을 때. 선택한 실제 행동의 사용 조건도 적용.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "day_and_execute",
+   "nextId": "D26"
+  },
+  {
+   "id": "A01",
+   "categoryId": "academic",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "오늘 볼 자료가 어디 있는지부터 찾아볼까?",
+   "name": "자료 위치 찾기",
+   "basic": "수업·과제·시험 자료 하나의 위치를 찾아 파일명이나 책 제목을 확인한다.",
+   "small": "관련 폴더나 책장 한 곳을 열어 자료가 있는지 살펴본다.",
+   "buttonLabel": "했어",
+   "record": "자료 위치와 이름을 확인했다.",
+   "smallRecord": "자료를 찾을 곳 한 군데를 살펴봤다.",
+   "conditionSummary": "자료를 찾는 것부터 부담스러운 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "A02"
+  },
+  {
+   "id": "A02",
+   "categoryId": "academic",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "찾은 자료 하나를 열어 볼까? 읽기는 다음에 골라도 돼.",
+   "name": "첫 장 열어 두기",
+   "basic": "오늘 볼 파일이나 책을 해당 쪽에 펼친다.",
+   "small": "파일의 미리보기나 책의 목차를 연다.",
+   "buttonLabel": "했어",
+   "record": "오늘 볼 자료의 해당 쪽을 열었다.",
+   "smallRecord": "자료 미리보기나 목차를 열었다.",
+   "conditionSummary": "자료를 찾았지만 열지 못한 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyMaterial"
+   ],
+   "smallFacts": [
+    "hasStudyMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A03"
+  },
+  {
+   "id": "A03",
+   "categoryId": "academic",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "해야 할 일이 흐릿하면 안내에서 한 항목만 보자.",
+   "name": "안내 한 항목 보기",
+   "basic": "수업 공지·과제 안내·시험 범위에서 필요한 항목 하나를 읽는다.",
+   "small": "관련 안내의 제목 하나를 읽는다.",
+   "buttonLabel": "했어",
+   "record": "안내에서 필요한 항목 하나를 읽었다.",
+   "smallRecord": "관련 안내 제목 하나를 읽었다.",
+   "conditionSummary": "무엇을 해야 하는지 모호한 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyNotice"
+   ],
+   "smallFacts": [
+    "hasStudyNotice"
+   ],
+   "mode": "activity",
+   "nextId": "A04"
+  },
+  {
+   "id": "A04",
+   "categoryId": "academic",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "자료 전부 말고 네가 고른 문단 하나만 만나 보자.",
+   "name": "한 문단 만나기",
+   "basic": "자료에서 문단 하나를 골라 읽는다.",
+   "small": "그 문단의 첫 문장만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "자료 한 문단을 읽었다.",
+   "smallRecord": "자료 첫 문장 하나를 읽었다.",
+   "conditionSummary": "읽을 양 때문에 시작을 미루는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyMaterial"
+   ],
+   "smallFacts": [
+    "hasStudyMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A05"
+  },
+  {
+   "id": "A05",
+   "categoryId": "academic",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "외웠는지는 묻지 않을게. 필요한 개념 한 줄만 읽어 볼까?",
+   "name": "개념 한 줄 보기",
+   "basic": "오늘 자료의 개념 하나를 찾아 설명 한 문장을 읽는다.",
+   "small": "개념의 제목이나 정의 첫 구절만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "필요한 개념 설명 한 문장을 읽었다.",
+   "smallRecord": "개념 제목이나 정의 첫 구절을 읽었다.",
+   "conditionSummary": "개념 전체를 익혀야 한다는 부담이 있는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyMaterial"
+   ],
+   "smallFacts": [
+    "hasStudyMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A06"
+  },
+  {
+   "id": "A06",
+   "categoryId": "academic",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "다시 찾고 싶은 곳 하나만 표시해 둘까?",
+   "name": "다시 볼 곳 표시",
+   "basic": "읽은 부분에서 다시 볼 구절 하나를 표시하고 옆에 단어 하나를 적는다.",
+   "small": "다시 볼 문장 한 곳만 표시한다.",
+   "buttonLabel": "했어",
+   "record": "다시 볼 구절과 메모 한 단어를 남겼다.",
+   "smallRecord": "다시 볼 문장 한 곳을 표시했다.",
+   "conditionSummary": "읽었지만 다음에 어디를 볼지 찾기 어려운 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyMaterial"
+   ],
+   "smallFacts": [
+    "hasStudyMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A07"
+  },
+  {
+   "id": "A07",
+   "categoryId": "academic",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "exam"
+   ],
+   "npc": "moru",
+   "dialogue": "답 말고 문제에서 알려 준 것 하나를 찾아보자.",
+   "name": "문제 조건 하나",
+   "basic": "문제 하나를 읽고 주어진 조건 한 곳을 표시한다.",
+   "small": "문제에서 묻는 문장 한 줄만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "문제 조건 한 곳을 표시했다.",
+   "smallRecord": "문제에서 묻는 문장을 읽었다.",
+   "conditionSummary": "문제의 시작점을 못 찾는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasQuestion"
+   ],
+   "smallFacts": [
+    "hasQuestion"
+   ],
+   "mode": "activity",
+   "nextId": "A08"
+  },
+  {
+   "id": "A08",
+   "categoryId": "academic",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "exam"
+   ],
+   "npc": "nuri",
+   "dialogue": "답까지 가지 않아도 돼. 떠오르는 첫 단계만 적어 보자.",
+   "name": "풀이 첫 줄",
+   "basic": "문제 하나에 첫 풀이 단계나 식 하나를 적는다.",
+   "small": "써 볼 개념이나 식의 이름 하나만 적는다.",
+   "buttonLabel": "했어",
+   "record": "문제 풀이 첫 단계나 식을 적었다.",
+   "smallRecord": "써 볼 개념이나 식 이름을 적었다.",
+   "conditionSummary": "풀이 전체가 떠오르지 않아 손이 멈춘 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasQuestion"
+   ],
+   "smallFacts": [
+    "hasQuestion"
+   ],
+   "mode": "activity",
+   "nextId": "A09"
+  },
+  {
+   "id": "A09",
+   "categoryId": "academic",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "assignment",
+    "exam"
+   ],
+   "npc": "nuri",
+   "dialogue": "고쳐도 되는 초안이니까 지금 쓸 수 있는 말부터 적어 보자.",
+   "name": "초안 첫 문장",
+   "basic": "과제·요약·서술형 답안 초안에 문장 하나를 적는다.",
+   "small": "초안에 주제와 관련된 단어 하나만 적는다.",
+   "buttonLabel": "했어",
+   "record": "학업 초안에 문장 하나를 적었다.",
+   "smallRecord": "학업 초안에 관련 단어 하나를 적었다.",
+   "conditionSummary": "빈 문서나 답안 앞에서 멈춘 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasWritingTask"
+   ],
+   "smallFacts": [
+    "hasWritingTask"
+   ],
+   "mode": "activity",
+   "nextId": "A10"
+  },
+  {
+   "id": "A10",
+   "categoryId": "academic",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "course",
+    "assignment",
+    "exam"
+   ],
+   "npc": "pio",
+   "dialogue": "이 표나 그림에서 이름 붙은 곳 하나만 찾아볼까?",
+   "name": "표와 그림 한 곳",
+   "basic": "표나 그림 하나의 제목과 항목 한 곳을 읽는다.",
+   "small": "표나 그림의 제목만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "표·그림의 제목과 항목 하나를 읽었다.",
+   "smallRecord": "표·그림 제목 하나를 읽었다.",
+   "conditionSummary": "시각 자료 앞에서 읽기를 중단하는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasChart"
+   ],
+   "smallFacts": [
+    "hasChart"
+   ],
+   "mode": "activity",
+   "nextId": "A11"
+  },
+  {
+   "id": "A11",
+   "categoryId": "academic",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "assignment"
+   ],
+   "npc": "moru",
+   "dialogue": "이 자료에서 네 주제와 닿는 곳 하나를 붙여 보자.",
+   "name": "자료와 내 주제 연결",
+   "basic": "참고자료의 관련 문장 한 곳을 읽고 자료 제목과 함께 초안에 위치를 기록한다.",
+   "small": "관련 문장 한 곳만 표시한다.",
+   "buttonLabel": "했어",
+   "record": "관련 문장 위치와 자료 제목을 초안에 남겼다.",
+   "smallRecord": "참고자료에서 관련 문장 한 곳을 표시했다.",
+   "conditionSummary": "자료는 있지만 자기 과제에 연결하기 어려운 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasReferenceMaterial"
+   ],
+   "smallFacts": [
+    "hasReferenceMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A12"
+  },
+  {
+   "id": "A12",
+   "categoryId": "academic",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "모르는 곳을 딱 집어 두면 다음에 묻기 쉬울 거야.",
+   "name": "궁금한 곳을 질문으로",
+   "basic": "자료에서 궁금한 부분을 표시하고 질문 한 문장을 적는다.",
+   "small": "질문할 부분 한 곳에 물음표만 남긴다.",
+   "buttonLabel": "했어",
+   "record": "궁금한 부분과 질문 한 문장을 남겼다.",
+   "smallRecord": "질문할 부분에 물음표를 남겼다.",
+   "conditionSummary": "모르는 부분이 막연해 질문을 못 만드는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasQuestionAboutMaterial"
+   ],
+   "smallFacts": [
+    "hasQuestionAboutMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A13"
+  },
+  {
+   "id": "A13",
+   "categoryId": "academic",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "exam"
+   ],
+   "npc": "moru",
+   "dialogue": "해설 한 줄과 네 첫 줄을 나란히 놓아 볼까?",
+   "name": "해설과 내 첫 줄",
+   "basic": "해설 첫 단계와 자기 풀이를 읽고 다른 부분 한 곳을 표시한다.",
+   "small": "해설 첫 단계 한 줄만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "해설과 내 풀이가 다른 곳을 표시했다.",
+   "smallRecord": "해설 첫 단계 한 줄을 읽었다.",
+   "conditionSummary": "틀린 문제를 전부 고쳐야 한다는 부담이 있는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasSolution",
+    "hasOwnAttempt"
+   ],
+   "smallFacts": [
+    "hasSolution"
+   ],
+   "mode": "activity",
+   "nextId": "A14"
+  },
+  {
+   "id": "A14",
+   "categoryId": "academic",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "assignment"
+   ],
+   "npc": "moru",
+   "dialogue": "과제의 한 부분에 이름을 붙이고 메모 하나를 놓아 보자.",
+   "name": "소제목 아래 한 줄",
+   "basic": "초안에 소제목 하나와 그 아래 설명 또는 메모 한 문장을 적는다.",
+   "small": "소제목 하나만 적는다.",
+   "buttonLabel": "했어",
+   "record": "초안 소제목과 그 아래 메모를 적었다.",
+   "smallRecord": "초안 소제목 하나를 적었다.",
+   "conditionSummary": "생각은 있지만 글의 부분을 구성하기 어려운 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasWritingTask"
+   ],
+   "smallFacts": [
+    "hasWritingTask"
+   ],
+   "mode": "activity",
+   "nextId": "A15"
+  },
+  {
+   "id": "A15",
+   "categoryId": "academic",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "course"
+   ],
+   "npc": "nuri",
+   "dialogue": "강의 전체 말고 고른 설명 한 부분을 듣고 남겨 보자.",
+   "name": "설명 듣고 한 조각",
+   "basic": "강의 설명 한 부분을 듣고 기억에 남는 단어 하나를 적는다.",
+   "small": "선택한 설명의 첫 문장만 듣는다.",
+   "buttonLabel": "했어",
+   "record": "강의 한 부분을 듣고 단어 하나를 남겼다.",
+   "smallRecord": "강의 설명 첫 문장을 들었다.",
+   "conditionSummary": "녹화강의를 재생해도 다음 행동으로 이어지지 않는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasLecture"
+   ],
+   "smallFacts": [
+    "hasLecture"
+   ],
+   "mode": "activity",
+   "nextId": "A16"
+  },
+  {
+   "id": "A16",
+   "categoryId": "academic",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "계획이 크면 줄여서 실제로 한 조각만 해 보자.",
+   "name": "오늘 크기로 접기",
+   "basic": "오늘 학업 계획 하나를 작은 행동으로 바꾸고 바꾼 행동을 수행한다.",
+   "small": "준비된 최소 행동 하나를 골라 수행한다.",
+   "buttonLabel": "했어",
+   "record": "학업 계획을 줄이고 바꾼 행동을 했다.",
+   "smallRecord": "준비된 최소 학업 행동 하나를 했다.",
+   "conditionSummary": "계획을 못 지킬 것 같아 시작을 포기하는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "A17"
+  },
+  {
+   "id": "A17",
+   "categoryId": "academic",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "같은 내용을 읽어도 적어도 돼. 오늘 편한 방식으로 하나 해 보자.",
+   "name": "내 방식 골라 하기",
+   "basic": "오늘 볼 내용을 정하고 읽기·표시하기·적기 중 한 방식을 선택해 한 단위를 수행한다.",
+   "small": "오늘 볼 내용의 제목 하나만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "내가 고른 방식으로 학업 행동 한 단위를 했다.",
+   "smallRecord": "오늘 볼 내용의 제목 하나를 읽었다.",
+   "conditionSummary": "정해진 학습 방식이 맞지 않아 미루는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "A18"
+  },
+  {
+   "id": "A18",
+   "categoryId": "academic",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "공부할 자리에 필요한 것만 한 칸 놓아 볼까?",
+   "name": "시작 자리 한 칸",
+   "basic": "작업 공간 한 칸에 필요한 자료를 놓고 해당 자료 첫 문장을 읽는다.",
+   "small": "필요한 자료 하나만 손이 닿는 자리에 둔다.",
+   "buttonLabel": "했어",
+   "record": "작업 자리를 준비하고 첫 문장을 읽었다.",
+   "smallRecord": "학업 자료 하나를 손이 닿는 곳에 뒀다.",
+   "conditionSummary": "공간 준비가 시작을 막는 경우에만",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyMaterial"
+   ],
+   "smallFacts": [
+    "hasStudyMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A19"
+  },
+  {
+   "id": "A19",
+   "categoryId": "academic",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "오늘은 어디까지 할지 골라 볼까? 여기서 마쳐도 돼.",
+   "name": "여기까지 하고 마치기",
+   "basic": "끝낼 지점을 고르고 학업 행동 한 단위를 수행한 뒤 그 지점에서 마친다. 다음 표지판은 원할 때만 남긴다.",
+   "small": "고른 자료의 첫 문장만 읽고 마친다. 표지판은 선택이다.",
+   "buttonLabel": "했어",
+   "record": "고른 끝 지점까지 학업 행동을 하고 마쳤다.",
+   "smallRecord": "고른 자료 첫 문장만 읽고 마쳤다.",
+   "conditionSummary": "멈출 때 다음 시작점을 잃어버리는 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [
+    "hasStudyMaterial"
+   ],
+   "smallFacts": [
+    "hasStudyMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "A20"
+  },
+  {
+   "id": "A20",
+   "categoryId": "academic",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "지난 표지판이 있으면 거기부터, 없으면 오늘 볼 곳부터 보자.",
+   "name": "남은 자리 다시 열기",
+   "basic": "마지막 위치를 다시 열고 남겨 둔 다음 행동 하나를 수행한다.",
+   "small": "마지막 자료나 오늘 고른 자료를 다시 연다.",
+   "buttonLabel": "했어",
+   "record": "남겨 둔 위치에서 다음 행동을 했다.",
+   "smallRecord": "학업 자료를 다시 열었다.",
+   "conditionSummary": "학업을 중단한 뒤 재접근이 어려운 경우",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "A21"
+  },
+  {
+   "id": "A21",
+   "categoryId": "academic",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "네 할 일에서 끝이 보이는 행동 하나를 만들어 해 볼래?",
+   "name": "내 미션 첫 설계",
+   "basic": "자기 학업 목표에서 완료 기준이 보이는 행동 하나를 직접 쓰고 수행한다.",
+   "small": "기존 카드 하나를 골라 자기 자료명으로 바꾼 뒤 축소 행동을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "내가 만든 학업 미션을 수행했다.",
+   "smallRecord": "내 자료에 맞춘 카드의 축소 행동을 했다.",
+   "conditionSummary": "사용자가 직접 미션 만들기·수정을 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "A22"
+  },
+  {
+   "id": "A22",
+   "categoryId": "academic",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "같은 일에 기본과 작은 버전을 만들어 두고 하나 해 보자.",
+   "name": "내 미션 두 크기",
+   "basic": "자기 미션의 기본·축소 행동을 각각 만들고 오늘 고른 크기로 수행한다.",
+   "small": "제공된 축소 예시 하나를 자기 미션에 적용하고 수행한다.",
+   "buttonLabel": "했어",
+   "record": "두 크기로 설계한 미션 중 하나를 수행했다.",
+   "smallRecord": "축소 예시를 내 미션에 적용해 수행했다.",
+   "conditionSummary": "사용자가 직접 미션 만들기·수정을 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "A23"
+  },
+  {
+   "id": "A23",
+   "categoryId": "academic",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "네 하루에서 떠올릴 수 있는 순간에 이 행동을 붙여 보자.",
+   "name": "계기 붙여 해 보기",
+   "basic": "실행 계기·장소·자기 미션을 정하고 해당 계기에 선택한 행동을 수행한다.",
+   "small": "지금 있는 자리에서 할 최소 행동 하나를 정해 바로 수행한다.",
+   "buttonLabel": "했어",
+   "record": "정한 계기에 내 학업 미션을 수행했다.",
+   "smallRecord": "지금 자리에서 정한 최소 학업 행동을 했다.",
+   "conditionSummary": "사용자가 직접 미션 만들기·수정을 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "A24"
+  },
+  {
+   "id": "A24",
+   "categoryId": "academic",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "지금 방식이 막히면 네가 바꿔도 돼. 할 수 있는 쪽으로 한 번 해 보자.",
+   "name": "막히면 바꿔 하기",
+   "basic": "자기 미션의 자료·방법·크기 중 하나를 바꾸고 수정한 행동을 수행한다.",
+   "small": "준비된 대체 행동 하나를 골라 수행한다.",
+   "buttonLabel": "했어",
+   "record": "내 미션을 수정하고 바뀐 행동을 했다.",
+   "smallRecord": "대체 학업 행동 하나를 했다.",
+   "conditionSummary": "사용자가 직접 미션 만들기·수정을 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "A25"
+  },
+  {
+   "id": "A25",
+   "categoryId": "academic",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "전에 해 볼 만했던 미션을 오늘 자료에도 써 볼까?",
+   "name": "맞았던 미션 다시 쓰기",
+   "basic": "지난 기록에서 자기에게 맞았던 미션 하나를 골라 오늘 자료에 맞게 수정해 수행한다.",
+   "small": "지난 미션의 축소 행동을 같은 자료에서 다시 수행한다.",
+   "buttonLabel": "했어",
+   "record": "지난 미션을 오늘 자료에 맞춰 다시 수행했다.",
+   "smallRecord": "지난 미션의 축소 행동을 다시 했다.",
+   "conditionSummary": "사용자가 직접 미션 만들기·수정을 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "A26"
+  },
+  {
+   "id": "A26",
+   "categoryId": "academic",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "오늘 하고 싶은 공부 중 먼저 손댈 것 하나를 골라 해 보자.",
+   "name": "오늘 중요한 한 가지",
+   "basic": "오늘 학업 후보 2개를 적고 본인이 먼저 할 하나를 골라 수행한다.",
+   "small": "현재 할 학업 행동 하나를 골라 그 축소 행동을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "오늘 후보 중 우선할 학업 행동을 골라 했다.",
+   "smallRecord": "오늘 할 학업 행동 하나를 축소해 했다.",
+   "conditionSummary": "사용자가 하루 설계를 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "A27"
+  },
+  {
+   "id": "A27",
+   "categoryId": "academic",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "pio",
+   "dialogue": "할 일 두 개를 하루의 어느 순간에 둘지 네가 정해 보자.",
+   "name": "하루에 놓아 보기",
+   "basic": "학업 미션 2개를 하루의 서로 다른 계기에 배치하고 선택한 하나를 수행한다.",
+   "small": "미션 하나만 계기에 배치하고 그 축소 행동을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "학업 미션 두 개를 배치하고 한 개를 수행했다.",
+   "smallRecord": "미션 하나를 배치하고 축소 행동을 했다.",
+   "conditionSummary": "사용자가 하루 설계를 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "A28"
+  },
+  {
+   "id": "A28",
+   "categoryId": "academic",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "nuri",
+   "dialogue": "계획에 쉬는 자리도 남겨 두자. 하고 싶은 한 걸음만 먼저 해 보자.",
+   "name": "여유를 남긴 공부날",
+   "basic": "학업 미션 2개 사이에 휴식·빈칸을 둔 하루안을 만들고 선택한 미션 하나를 수행한다.",
+   "small": "미션 하나와 쉬는 선택을 두고 그 미션의 축소 행동을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "여유를 둔 하루안에서 학업 미션 하나를 했다.",
+   "smallRecord": "쉬는 선택을 남기고 축소 학업 행동을 했다.",
+   "conditionSummary": "사용자가 하루 설계를 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "A29"
+  },
+  {
+   "id": "A29",
+   "categoryId": "academic",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "moru",
+   "dialogue": "오늘 사정이 달라졌으면 하루 계획도 고치자. 남길 한 행동을 해 보자.",
+   "name": "달라진 하루 고치기",
+   "basic": "오늘 계획에서 미션 하나를 옮기거나 빼고, 남긴 미션 하나를 수행한다.",
+   "small": "지금 가능한 축소 미션 하나로 하루안을 바꾸고 수행한다.",
+   "buttonLabel": "했어",
+   "record": "하루 계획을 수정하고 남긴 학업 행동을 했다.",
+   "smallRecord": "하루안을 축소 미션 하나로 바꾸고 했다.",
+   "conditionSummary": "사용자가 하루 설계를 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "A30"
+  },
+  {
+   "id": "A30",
+   "categoryId": "academic",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "all"
+   ],
+   "npc": "sprout",
+   "dialogue": "이제 네 하루에 맞는 공부길을 그려 보자. 전부 끝내지 않아도 한 걸음은 고를 수 있어.",
+   "name": "내 공부 하루 만들기",
+   "basic": "학업 미션 두 개를 직접 만들거나 기존 미션을 고쳐 하루에 배치하고, 선택한 한 개를 수행한다. 세 번째 미션은 원할 때 추가한다.",
+   "small": "학업 미션 하나를 고르거나 만들고 그 행동의 최소 버전을 수행한다.",
+   "buttonLabel": "했어",
+   "record": "학업 미션 두 개로 하루를 만들고 선택한 하나를 했다.",
+   "smallRecord": "학업 미션 하나를 정하고 최소 행동을 했다.",
+   "conditionSummary": "사용자가 하루 설계를 선택했을 때. 첫날에도 가능.",
+   "allowedWorkStatuses": [],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "day_and_execute",
+   "nextId": "A26"
+  },
+  {
+   "id": "W01",
+   "categoryId": "work",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "안내받은 날짜부터 한 번 확인해 볼까?",
+   "name": "돌아갈 날 한 칸",
+   "basic": "본인이 받은 공식 복귀 안내에서 날짜와 장소를 확인한다.",
+   "small": "복귀 날짜만 확인한다.",
+   "buttonLabel": "했어",
+   "record": "복귀 날짜와 장소를 확인했다.",
+   "smallRecord": "복귀 날짜를 확인했다.",
+   "conditionSummary": "확정된 복귀 안내가 있을 때",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [
+    "hasReturnNotice"
+   ],
+   "smallFacts": [
+    "hasReturnNotice"
+   ],
+   "mode": "activity",
+   "nextId": "W02"
+  },
+  {
+   "id": "W02",
+   "categoryId": "work",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "들어갈 곳이나 접속할 곳, 하나만 찾아보자.",
+   "name": "들어가는 곳 하나",
+   "basic": "기존 안내에서 출입구 또는 재택업무 접속 안내 한 항목을 확인한다.",
+   "small": "관련 안내가 있는 위치만 찾는다.",
+   "buttonLabel": "했어",
+   "record": "출입·접속 안내 한 항목을 확인했다.",
+   "smallRecord": "출입·접속 안내 위치를 찾았다.",
+   "conditionSummary": "출입·접속 안내가 있을 때",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [
+    "hasEntryGuide"
+   ],
+   "smallFacts": [
+    "hasEntryGuide"
+   ],
+   "mode": "activity",
+   "nextId": "W03"
+  },
+  {
+   "id": "W03",
+   "categoryId": "work",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "전부 챙기지 않아도 돼. 네 물건 하나만 꺼내 볼까?",
+   "name": "내 준비물 하나",
+   "basic": "사용할 개인 노트나 필기도구 등 물건 하나를 꺼내 둔다.",
+   "small": "그 물건의 위치만 확인한다.",
+   "buttonLabel": "했어",
+   "record": "개인 준비물 하나를 꺼냈다.",
+   "smallRecord": "개인 준비물 위치를 확인했다.",
+   "conditionSummary": "복귀 전·후 개인 준비",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [
+    "hasPersonalTool"
+   ],
+   "smallFacts": [
+    "hasPersonalTool"
+   ],
+   "mode": "activity",
+   "nextId": "W04"
+  },
+  {
+   "id": "W04",
+   "categoryId": "work",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "길게 읽기 전에 제목 하나만 보자.",
+   "name": "안내의 제목부터",
+   "basic": "공식 복귀 안내에서 필요한 소제목과 첫 문장을 읽는다.",
+   "small": "필요한 소제목 하나만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "복귀 안내의 소제목과 첫 문장을 읽었다.",
+   "smallRecord": "복귀 안내 소제목 하나를 읽었다.",
+   "conditionSummary": "공식 복귀 안내가 있을 때",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [
+    "hasReturnNotice"
+   ],
+   "smallFacts": [
+    "hasReturnNotice"
+   ],
+   "mode": "activity",
+   "nextId": "W05"
+  },
+  {
+   "id": "W05",
+   "categoryId": "work",
+   "stage": 1,
+   "stageName": "첫발 떼기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "기억을 시험하지 않을게. 네 메모 한 곳만 다시 볼까?",
+   "name": "익숙한 메모 펼치기",
+   "basic": "사용 가능한 개인 준비 메모나 익숙한 업무 메모 한 부분을 읽는다.",
+   "small": "메모 제목만 확인한다.",
+   "buttonLabel": "했어",
+   "record": "익숙한 메모 한 부분을 읽었다.",
+   "smallRecord": "익숙한 메모 제목을 확인했다.",
+   "conditionSummary": "복귀 전에는 개인 준비 메모, 복귀 후에는 허용된 메모",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [
+    "hasPersonalNote"
+   ],
+   "smallFacts": [
+    "hasPersonalNote"
+   ],
+   "mode": "activity",
+   "nextId": "W06"
+  },
+  {
+   "id": "W06",
+   "categoryId": "work",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "지금 필요한 자료 하나만 열어 볼까?",
+   "name": "오늘 자료 한 곳",
+   "basic": "현재 업무에 필요한 자료를 열고 첫 문장을 읽는다.",
+   "small": "해당 자료만 연다.",
+   "buttonLabel": "했어",
+   "record": "현재 업무 자료의 첫 문장을 읽었다.",
+   "smallRecord": "현재 업무 자료를 열었다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkMaterial"
+   ],
+   "smallFacts": [
+    "hasWorkMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "W07"
+  },
+  {
+   "id": "W07",
+   "categoryId": "work",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "맡은 요청에서 첫 문장만 읽어 보자.",
+   "name": "요청 한 문장",
+   "basic": "현재 배정된 요청 한 문장을 읽고 첫 동작을 표시한다.",
+   "small": "요청의 첫 문장만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "요청에서 첫 동작을 표시했다.",
+   "smallRecord": "요청 첫 문장을 읽었다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasAssignedTask"
+   ],
+   "smallFacts": [
+    "hasAssignedTask"
+   ],
+   "mode": "activity",
+   "nextId": "W08"
+  },
+  {
+   "id": "W08",
+   "categoryId": "work",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "보낼 글 말고, 네가 볼 초안으로 시작해도 돼.",
+   "name": "초안의 첫 단어",
+   "basic": "개인 초안에 현재 작성할 업무 내용의 제목 한 줄을 적는다.",
+   "small": "관련 단어 하나를 적는다.",
+   "buttonLabel": "했어",
+   "record": "업무 초안의 제목 한 줄을 적었다.",
+   "smallRecord": "업무 초안에 쓸 단어 하나를 적었다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWritingTask"
+   ],
+   "smallFacts": [
+    "hasWritingTask"
+   ],
+   "mode": "activity",
+   "nextId": "W09"
+  },
+  {
+   "id": "W09",
+   "categoryId": "work",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "참고할 곳 하나만 찾으면 돼.",
+   "name": "참고 예시 한 곳",
+   "basic": "허용된 예시나 서식을 찾아 필요한 한 부분을 읽는다.",
+   "small": "예시나 서식 위치만 찾는다.",
+   "buttonLabel": "했어",
+   "record": "참고 예시의 한 부분을 읽었다.",
+   "smallRecord": "참고 예시 위치를 찾았다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkExample"
+   ],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "W10"
+  },
+  {
+   "id": "W10",
+   "categoryId": "work",
+   "stage": 2,
+   "stageName": "한 가지 해내기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "지금 보내지 않아도 돼. 궁금한 것 하나만 적어볼까?",
+   "name": "물어볼 한 줄",
+   "basic": "현재 업무에서 확인할 사실 하나를 개인 질문 초안으로 적는다.",
+   "small": "질문 주제의 단어 하나만 적는다.",
+   "buttonLabel": "했어",
+   "record": "업무 질문 초안 한 줄을 적었다.",
+   "smallRecord": "업무 질문 주제 하나를 적었다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkQuestion"
+   ],
+   "smallFacts": [
+    "hasWorkQuestion"
+   ],
+   "mode": "activity",
+   "nextId": "W11"
+  },
+  {
+   "id": "W11",
+   "categoryId": "work",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "한 문장 읽고, 남길 단어 하나만 골라보자.",
+   "name": "읽고 한 단어",
+   "basic": "현재 자료의 한 문장을 읽고 핵심 단어 하나를 개인 메모에 적는다.",
+   "small": "한 문장을 읽으며 단어 하나만 표시한다.",
+   "buttonLabel": "했어",
+   "record": "자료를 읽고 단어 하나를 메모했다.",
+   "smallRecord": "자료에서 단어 하나를 표시했다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkMaterial"
+   ],
+   "smallFacts": [
+    "hasWorkMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "W12"
+  },
+  {
+   "id": "W12",
+   "categoryId": "work",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "예시를 보고 네 초안에 제목 하나만 붙여 볼까?",
+   "name": "예시에서 내 초안으로",
+   "basic": "허용된 예시 제목을 참고해 개인 초안 제목 하나를 적는다.",
+   "small": "예시에서 참고할 제목 하나만 표시한다.",
+   "buttonLabel": "했어",
+   "record": "예시를 참고해 개인 초안 제목을 적었다.",
+   "smallRecord": "예시에서 참고할 제목을 표시했다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkExample",
+    "hasWritingTask"
+   ],
+   "smallFacts": [
+    "hasWorkExample"
+   ],
+   "mode": "activity",
+   "nextId": "W13"
+  },
+  {
+   "id": "W13",
+   "categoryId": "work",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "말할 의무는 없어. 확인하고 싶은 것만 남겨 두자.",
+   "name": "회의 전 한 줄",
+   "basic": "예정된 회의 주제 하나를 읽고 확인할 내용 한 줄을 개인 메모에 적는다.",
+   "small": "회의 주제 하나만 읽는다.",
+   "buttonLabel": "했어",
+   "record": "회의 주제를 읽고 확인할 내용을 적었다.",
+   "smallRecord": "회의 주제 하나를 읽었다.",
+   "conditionSummary": "복귀 후 예정된 회의가 있을 때",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasUpcomingMeeting"
+   ],
+   "smallFacts": [
+    "hasUpcomingMeeting"
+   ],
+   "mode": "activity",
+   "nextId": "W14"
+  },
+  {
+   "id": "W14",
+   "categoryId": "work",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "전부 기억하지 않아도 돼. 남길 내용 하나만 적어볼까?",
+   "name": "들은 것에서 메모로",
+   "basic": "실제 참석한 회의에서 기억해 둘 업무 사실 한 줄을 개인 메모에 적는다.",
+   "small": "관련 단어 하나만 적는다.",
+   "buttonLabel": "했어",
+   "record": "회의의 업무 내용 한 줄을 메모했다.",
+   "smallRecord": "회의 내용의 단어 하나를 메모했다.",
+   "conditionSummary": "복귀 후 실제 회의 참석 뒤",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "attendedMeeting"
+   ],
+   "smallFacts": [
+    "attendedMeeting"
+   ],
+   "mode": "activity",
+   "nextId": "W15"
+  },
+  {
+   "id": "W15",
+   "categoryId": "work",
+   "stage": 3,
+   "stageName": "두 행동 이어 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "아까 표시한 곳을 다시 보고, 다음 동작을 해 볼까?",
+   "name": "필요한 곳 다시 보기",
+   "basic": "표시해 둔 자료 한 곳을 읽고 본인이 고른 작은 동작 하나를 수행한다.",
+   "small": "표시한 곳만 다시 읽는다.",
+   "buttonLabel": "했어",
+   "record": "표시한 자료를 보고 작은 동작 하나를 했다.",
+   "smallRecord": "표시한 자료를 다시 읽었다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkMaterial"
+   ],
+   "smallFacts": [
+    "hasWorkMaterial"
+   ],
+   "mode": "activity",
+   "nextId": "W16"
+  },
+  {
+   "id": "W16",
+   "categoryId": "work",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "크기를 바꿔도 돼. 오늘 할 조각 하나만 남겨보자.",
+   "name": "오늘 크기로 접기",
+   "basic": "현재 행동을 본인이 더 작게 바꾼 뒤 실제로 수행한다.",
+   "small": "해당 자료를 열거나 필요한 개인 준비물 하나를 꺼낸다.",
+   "buttonLabel": "했어",
+   "record": "현재 행동을 줄여 실제로 했다.",
+   "smallRecord": "시작에 필요한 자료를 열거나 개인 도구를 꺼냈다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "W17"
+  },
+  {
+   "id": "W17",
+   "categoryId": "work",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "둘 다 할 필요 없어. 지금 할 수 있는 것 하나만 골라볼까?",
+   "name": "둘 중 하나 먼저",
+   "basic": "현재 수행 가능한 두 행동 중 하나를 선택해 수행한다.",
+   "small": "선택한 행동의 자료 제목만 확인한다.",
+   "buttonLabel": "했어",
+   "record": "두 행동 중 고른 하나를 했다.",
+   "smallRecord": "고른 행동의 자료 제목을 확인했다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "W18"
+  },
+  {
+   "id": "W18",
+   "categoryId": "work",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "쓰는 게 막히면, 먼저 읽거나 표시하는 방법도 있어.",
+   "name": "방법 바꿔 이어 보기",
+   "basic": "현재 행동의 방식을 읽기·개인 메모·표시 중 하나로 바꿔 실제로 수행한다.",
+   "small": "제목 한 줄 읽기 또는 단어 하나 표시 중 하나를 한다.",
+   "buttonLabel": "했어",
+   "record": "다른 방법을 골라 업무 한 조각을 했다.",
+   "smallRecord": "제목 읽기 또는 단어 표시 중 하나를 했다.",
+   "conditionSummary": "복귀 후 현재 배정된 업무",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "W19"
+  },
+  {
+   "id": "W19",
+   "categoryId": "work",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "필요한 도움을 네가 볼 초안으로 적어보자. 보내기는 나중에 골라도 돼.",
+   "name": "도움의 초안 한 줄",
+   "basic": "현재 업무에서 필요한 확인이나 도움을 개인 초안 한 줄로 적는다.",
+   "small": "도움이 필요한 부분의 단어 하나만 적는다.",
+   "buttonLabel": "했어",
+   "record": "필요한 도움의 초안을 적었다.",
+   "smallRecord": "도움이 필요한 부분을 단어로 적었다.",
+   "conditionSummary": "복귀 후 도움 요청을 원할 때",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "wantsHelp"
+   ],
+   "smallFacts": [
+    "wantsHelp"
+   ],
+   "mode": "activity",
+   "nextId": "W20"
+  },
+  {
+   "id": "W20",
+   "categoryId": "work",
+   "stage": 4,
+   "stageName": "내 방식으로 조절하기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "여기에 남겨 둔 자리가 있어. 오늘은 이 부분만 볼까?",
+   "name": "남겨 둔 자리 다시",
+   "basic": "저장한 표지판의 자료를 열고 해당 부분을 읽는다. 표지판이 없으면 사용자가 고른 자료 한 부분을 읽는다.",
+   "small": "다시 볼 자료의 위치만 찾는다.",
+   "buttonLabel": "했어",
+   "record": "다시 시작할 자료의 한 부분을 읽었다.",
+   "smallRecord": "다시 볼 자료의 위치를 찾았다.",
+   "conditionSummary": "복귀 후 재시작할 때",
+   "allowedWorkStatuses": [
+    "returned"
+   ],
+   "basicFacts": [
+    "hasWorkMaterial"
+   ],
+   "smallFacts": [],
+   "mode": "activity",
+   "nextId": "W21"
+  },
+  {
+   "id": "W21",
+   "categoryId": "work",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "지금 필요한 첫 행동을 네 말로 정하고, 한번 해 볼래?",
+   "name": "내가 고른 첫 행동",
+   "basic": "개인 준비 또는 현재 허용된 업무에서 작은 행동 하나를 직접 만들고 수행한다.",
+   "small": "직접 고른 행동의 자료를 열거나 개인 도구 위치를 확인한다.",
+   "buttonLabel": "했어",
+   "record": "직접 만든 첫 행동을 했다.",
+   "smallRecord": "직접 고른 행동의 자료를 열거나 개인 도구 위치를 확인했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "W22"
+  },
+  {
+   "id": "W22",
+   "categoryId": "work",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "nuri",
+   "dialogue": "어디까지 하면 마칠지 네가 정해도 돼.",
+   "name": "끝낼 곳도 내가",
+   "basic": "본인이 끝낼 지점 하나를 정하고 해당 행동을 수행한다. 예: 안내 한 문단까지만 읽기.",
+   "small": "제목 하나까지만 읽기 등 더 작은 종료점을 정해 실제 수행한다.",
+   "buttonLabel": "했어",
+   "record": "직접 정한 끝 지점까지 행동했다.",
+   "smallRecord": "더 작은 끝 지점까지 행동했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "W23"
+  },
+  {
+   "id": "W23",
+   "categoryId": "work",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "어떤 일이 끝난 뒤 시작하면 편할까? 그 계기에 한 행동을 붙여보자.",
+   "name": "계기 하나에 붙이기",
+   "basic": "사용자가 고른 계기 뒤에 직접 만든 행동 하나를 실제 수행한다.",
+   "small": "같은 계기 뒤 자료 열기 또는 개인 준비물 꺼내기를 한다.",
+   "buttonLabel": "했어",
+   "record": "정한 계기 뒤 직접 만든 행동을 했다.",
+   "smallRecord": "정한 계기 뒤 자료 열기 또는 개인 준비물 꺼내기를 했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "W24"
+  },
+  {
+   "id": "W24",
+   "categoryId": "work",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "기본 크기와 작은 크기, 둘 다 네가 만들어 볼까?",
+   "name": "내 줄인 버전까지",
+   "basic": "자기 미션의 기본·축소 버전을 만들고 둘 중 하나를 실제로 수행한다.",
+   "small": "기존 카드의 축소 행동을 골라 실제 수행한다.",
+   "buttonLabel": "했어",
+   "record": "직접 만든 크기 중 하나를 실행했다.",
+   "smallRecord": "기존의 작은 행동을 골라 실행했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "W25"
+  },
+  {
+   "id": "W25",
+   "categoryId": "work",
+   "stage": 5,
+   "stageName": "내 미션 만들고 해 보기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "해 보니 안 맞았던 부분이 있으면, 네 방식으로 바꾸고 다시 해 보자.",
+   "name": "내 미션 고쳐 쓰기",
+   "basic": "자기 미션에서 대상·방법·크기 중 하나를 바꾼 뒤 실제로 수행한다.",
+   "small": "바꾼 행동의 첫 자료를 확인하거나 개인 준비물 위치를 확인한다.",
+   "buttonLabel": "했어",
+   "record": "자기 미션을 고쳐 실제로 했다.",
+   "smallRecord": "고친 미션의 첫 자료 또는 개인 도구 위치를 확인했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "create_and_execute",
+   "nextId": "W26"
+  },
+  {
+   "id": "W26",
+   "categoryId": "work",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "오늘 할 수 있는 두 가지 중, 먼저 해 볼 하나를 골라보자.",
+   "name": "오늘 먼저 한 칸",
+   "basic": "게임 편집기에서 오늘 가능한 기존 미션 두 개를 고르고, 먼저 할 한 개를 선택해 실제 수행한다.",
+   "small": "오늘 가능한 미션 한 개만 고르고, 그 미션의 자료를 열거나 개인 준비물 위치를 확인한다.",
+   "buttonLabel": "했어",
+   "record": "오늘 후보 두 개 중 먼저 할 한 개를 골라 실행했다.",
+   "smallRecord": "오늘 할 미션 한 개를 고르고 첫 자료 또는 개인 준비물 위치를 확인했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "W27"
+  },
+  {
+   "id": "W27",
+   "categoryId": "work",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "이미 해 본 미션 두 개를 오늘의 다른 순간에 놓아볼까? 지금은 하나만 해도 돼.",
+   "name": "하루에 두 자리 놓기",
+   "basic": "게임 편집기에서 기존 미션 두 개를 서로 다른 하루 계기에 배치하고, 선택한 한 개를 실제 수행한다.",
+   "small": "기존 미션 한 개만 하루 계기에 배치하고, 그 미션의 자료를 열거나 개인 준비물 하나를 꺼낸다.",
+   "buttonLabel": "했어",
+   "record": "기존 미션 두 개를 하루 계기에 배치하고 한 개를 실행했다.",
+   "smallRecord": "기존 미션 한 개를 하루 계기에 배치하고 첫 자료를 열거나 개인 준비물을 꺼냈다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "W28"
+  },
+  {
+   "id": "W28",
+   "categoryId": "work",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "오늘 할 것 하나를 놓고, 쉴 자리도 남겨 둘까? 빈칸을 모두 채울 필요는 없어.",
+   "name": "여유 한 자리 남기기",
+   "basic": "게임 편집기에서 하루에 행동 한 개를 배치하고, 원하면 가능한 휴식 자리 한 개도 남긴 뒤 행동을 실제 수행한다.",
+   "small": "오늘 할 작은 행동 한 개만 고르고, 그 행동의 자료를 열거나 개인 준비물 위치를 확인한다. 휴식 자리 선택은 건너뛰어도 된다.",
+   "buttonLabel": "했어",
+   "record": "하루에 행동 한 개를 배치하고 실행했다.",
+   "smallRecord": "오늘의 작은 행동을 고르고 첫 자료 또는 개인 준비물 위치를 확인했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "W29"
+  },
+  {
+   "id": "W29",
+   "categoryId": "work",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "moru",
+   "dialogue": "예상과 달라졌다면 오늘의 한 칸을 바꿔도 돼.",
+   "name": "바뀐 하루 다시 접기",
+   "basic": "하루 계획에서 현재 가능한 행동 하나만 남기고 실제로 수행한다.",
+   "small": "남긴 행동의 첫 자료나 개인 도구 위치를 확인한다.",
+   "buttonLabel": "했어",
+   "record": "달라진 하루에 맞춰 남긴 행동을 했다.",
+   "smallRecord": "남긴 행동의 첫 자료 또는 개인 도구 위치를 확인했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "plan_and_execute",
+   "nextId": "W30"
+  },
+  {
+   "id": "W30",
+   "categoryId": "work",
+   "stage": 6,
+   "stageName": "내 하루 지도 만들기",
+   "intentIds": [
+    "work"
+   ],
+   "npc": "pio",
+   "dialogue": "오늘의 작은 길 두세 개를 네가 놓아 볼래? 지금은 그중 하나만 걸어도 돼.",
+   "name": "내 하루 지도",
+   "basic": "개인 준비 또는 현재 허용된 업무 안에서 자기 미션 2~3개를 하루에 배치하고, 선택한 1개를 실제 수행한다.",
+   "small": "자기 미션 1개만 정하고 그 행동의 최소 버전을 실제 수행한다.",
+   "buttonLabel": "했어",
+   "record": "하루 미션 2~3개를 배치하고 선택한 1개를 실행했다.",
+   "smallRecord": "자기 미션 1개를 정하고 최소 행동을 실행했다.",
+   "conditionSummary": "복귀 전 준비 또는 복귀 후 허용된 업무",
+   "allowedWorkStatuses": [
+    "pre_return",
+    "returned",
+    "unknown"
+   ],
+   "basicFacts": [],
+   "smallFacts": [],
+   "mode": "day_and_execute",
+   "nextId": "W26"
+  }
+ ]
+}

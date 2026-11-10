@@ -20,18 +20,18 @@ export function growthStage(plantedOn: string, today: string, plantId = ''): Gro
 export const FRUIT_PER_HARVEST = 3;
 /** 나무에 다시 열린 열매는 하나다. 꽃보다 크게 유리하지 않게 한다(임시값). */
 export const FRUIT_PER_REGROW = 1;
-/** 나무는 수확 뒤 주머니를 받은 날이 이만큼 쌓이면 다시 열린다. 날짜만 지나서는 열리지 않는다(보상은 현실 활동에서만). */
+/** 나무는 수확 뒤 정원에 참여한 날(회차를 마친 날·쉬기를 고른 날)이 이만큼 쌓이면 다시 열린다. 날짜만 지나서는 열리지 않는다(보상은 현실 활동에서만). */
 export const REGROW_DAYS = 3;
 
-/** 그 날짜 뒤로 주머니를 받은 날 수. 쉬기를 고른 날도 들어가고 연속 여부는 보지 않는다. */
-function packetDaysSince(days: AppState['days'], since: string): number {
-  return Object.entries(days).filter(([date, d]) => date > since && d.packet).length;
+/** 그 날짜 뒤로 참여한 날 수: 회차를 마친 날, 쉬기를 고른 날, 예전 저장본에서 하루 주머니를 받은 날. 연속 여부는 보지 않는다. */
+function activeDaysSince(days: AppState['days'], since: string): number {
+  return Object.entries(days).filter(([date, d]) => date > since && (d.packet || d.rested || (d.sessions ?? 0) > 0)).length;
 }
 
 export function canHarvest(plant: PlantedItem, today: string, days: AppState['days']): boolean {
   if (growthStage(plant.date, today, plant.plantId) !== 'bloom') return false;
   if (!plant.harvested) return true;
-  return isTree(plant.plantId) && packetDaysSince(days, plant.harvestedOn ?? plant.date) >= REGROW_DAYS;
+  return isTree(plant.plantId) && activeDaysSince(days, plant.harvestedOn ?? plant.date) >= REGROW_DAYS;
 }
 
 /** 열매를 딴다. 꽃은 창고로 가서 두둑이 비고, 나무는 자리에 남아 다시 맺는다. 딴 열매 수를 돌려준다(못 땄으면 0). */

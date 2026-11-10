@@ -1,33 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { activities, activityById } from '../core/activities';
 import {
-  chooseRest, completePlan, DAILY_LIMIT, defaultPlanInfo, designPlan, flipDecor, limitReached, makeSmaller, pastItems, setEnergy,
-  setPlan, storeDecor, storePlant, suggest, swapCandidate, tabHints, takeFromStorage, openPacket, pendingPacketDates, plantSeed, undoRest,
+  chooseRest, closeSession, DAILY_LIMIT, designPlan, flipDecor, limitReached, openPacket, openSessionPacket, pendingPacketCount,
+  pendingPacketDates, plantSeed, reportAction, sessionHasActions, setPlan, settleOldSession, storeDecor, storePlant, takeFromStorage,
 } from '../core/rules';
 import { plants } from '../core/plants';
 import { rng } from '../core/random';
 import { createState } from '../core/store';
+import type { Plan } from '../core/types';
 
 const D = '2026-10-26';
-const walk = activityById('walk5')!;
-const plan = { activityId: walk.id, info: defaultPlanInfo(walk), source: 'mission' as const };
+/** 예전 활동으로 세운 계획(예전 저장본에 남아 있을 수 있다). 미션 카드는 missions.test.ts에서 본다. */
+const plan: Plan = { activityId: 'walk5', info: { when: '지금', where: '집 근처', minutes: 5 }, source: 'mission' };
 type S = ReturnType<typeof createState>;
+/** 예전 저장본의 하루 봉투 */
+const ready = (s: S, date: string) => {
+  s.days[date] = { refresh: 0, packet: 'ready' };
+};
+/** 계획을 세우고 [했어]까지(회차는 열어 둔다) */
+const doOne = (s: S, date = D) => {
+  expect(setPlan(s, date, plan)).toBe(true);
+  return reportAction(s, date, [])!;
+};
 const openAndPlant = (s: S, date: string, slot: { col: number; row: number }, r?: () => number) => {
   const seed = openPacket(s, date, r);
   return seed && plantSeed(s, seed.id, date, slot);
 };
 
 describe('rules', () => {
-  it('하루 3개를 해내면 상한에 닿고 새 계획은 받지 않는다', () => {
-    const s = createState();
-    for (let i = 0; i < DAILY_LIMIT; i++) {
-      expect(setPlan(s, D, plan)).toBe(true);
-      expect(completePlan(s, D, [])).not.toBeNull();
-    }
-    expect(limitReached(s, D)).toBe(true);
-    expect(setPlan(s, D, plan)).toBe(false);
-  });
-
   it('쉬기는 기록을 남기지 않고 계획만 내려놓는다', () => {
     const s = createState();
     setPlan(s, D, plan);
@@ -44,53 +43,8 @@ describe('rules', () => {
     expect(s.days[D].rested).toBe(false);
   });
 
-  it('해낸 활동만 기록하고 씨앗 주머니만 받는다(소품은 바로 받지 않는다)', () => {
-    const s = createState();
-    setPlan(s, D, plan);
-    const res = completePlan(s, D, ['achieved'])!;
-    expect(s.logs).toEqual([res.log]);
-    expect(s.days[D].plan).toBeUndefined();
-    expect(s.days[D].packet).toBe('ready');
-    expect(s.garden.items).toHaveLength(0);
-    expect(s.garden.storage).toHaveLength(0);
-  });
-
-  it('계획 없이는 완료할 수 없다', () => {
-    expect(completePlan(createState(), D, [])).toBeNull();
-  });
-
-  it('무거운 날은 1~2분짜리만 제안한다', () => {
-    const s = createState();
-    setEnergy(s, D, 'heavy');
-    const list = suggest(s, D);
-    expect(list.length).toBeGreaterThan(0);
-    for (const a of list) expect(a.minutes).toBeLessThanOrEqual(2);
-  });
-
-  it('보통인 날은 서로 다른 종류를 3개 제안한다', () => {
-    const s = createState();
-    const list = suggest(s, D);
-    expect(list).toHaveLength(3);
-    expect(new Set(list.map((a) => a.kind)).size).toBe(3);
-  });
-
-  it('바꾸기는 보이는 것과 겹치지 않는 후보를 준다', () => {
-    const s = createState();
-    const shown = suggest(s, D);
-    expect(shown.some((a) => a.id === swapCandidate(s, D, shown)!.id)).toBe(false);
-  });
-
-  it('더 작게는 끝까지 줄어들고 순환하지 않는다', () => {
-    for (const a of activities) {
-      let cur = a;
-      for (let steps = 0; steps < 10; steps++) {
-        const next = makeSmaller(cur);
-        if (!next) break;
-        expect(next.minutes).toBeLessThan(cur.minutes);
-        cur = next;
-      }
-      expect(makeSmaller(cur)).toBeUndefined();
-    }
+  it('계획 없이는 [했어]를 누를 수 없다', () => {
+    expect(reportAction(createState(), D, [])).toBeNull();
   });
 
   it('직접 계획은 글이 비어 있으면 만들 수 없다', () => {
@@ -98,45 +52,6 @@ describe('rules', () => {
     expect(designPlan('공원 다녀오기', '오후 3시', '입구까지')).toMatchObject({
       text: '공원 다녀오기', source: 'design', info: { when: '오후 3시', criterion: '입구까지' },
     });
-  });
-
-  it('해본 활동은 최근 순, 중복 없이 일상 연결에 나온다', () => {
-    const s = createState();
-    for (const [date, p] of [['2026-10-20', plan], ['2026-10-21', designPlan('공원', '지금', '')!], ['2026-10-22', plan]] as const) {
-      setPlan(s, date, p);
-      completePlan(s, date, []);
-    }
-    expect(pastItems(s).map((i) => i.label)).toEqual(['집 앞 5분 걷기', '공원']);
-  });
-
-  it('탭은 잠기지 않고 기록이 쌓이면 힌트만 켜진다', () => {
-    const s = createState();
-    expect(tabHints(s)).toEqual({ daily: false, design: false });
-    for (let i = 0; i < 3; i++) {
-      setPlan(s, `2026-10-2${i}`, plan);
-      completePlan(s, `2026-10-2${i}`, []);
-    }
-    expect(tabHints(s)).toEqual({ daily: true, design: false });
-  });
-
-  it('씨앗 봉투는 완료한 날 하루 한 번만 온다', () => {
-    const s = createState();
-    for (let i = 0; i < 2; i++) {
-      setPlan(s, D, plan);
-      completePlan(s, D, []);
-    }
-    expect(pendingPacketDates(s)).toEqual([D]);
-  });
-
-  it('쉬기를 고른 날도 봉투를 받고, 마음이 바뀌어도 두 번 받지 않는다', () => {
-    const s = createState();
-    chooseRest(s, D);
-    expect(pendingPacketDates(s)).toEqual([D]);
-    openPacket(s, D);
-    undoRest(s, D);
-    setPlan(s, D, plan);
-    completePlan(s, D, []);
-    expect(pendingPacketDates(s)).toEqual([]);
   });
 
   it('주머니를 열면 랜덤 씨앗 하나가 심기고, 같은 식물이 또 나와도 정상이다', () => {
@@ -156,7 +71,7 @@ describe('rules', () => {
 
   it('주머니를 열면 씨앗은 씨앗함에 들어가고, 심기 전에는 정원에 없다', () => {
     const s = createState();
-    chooseRest(s, D);
+    ready(s, D);
     const seed = openPacket(s, D)!;
     expect(s.seeds).toEqual([seed]);
     expect(s.garden.plants).toHaveLength(0);
@@ -165,7 +80,7 @@ describe('rules', () => {
 
   it('심으면 씨앗함에서 빠지고, 성장은 주머니를 받은 날이 아니라 심은 날부터다', () => {
     const s = createState();
-    chooseRest(s, D);
+    ready(s, D);
     const seed = openPacket(s, D)!;
     const planted = plantSeed(s, seed.id, '2026-11-10', { col: 101, row: 100 })!;
     expect(planted).toMatchObject({ plantId: seed.plantId, date: '2026-11-10', col: 101, row: 100 });
@@ -175,7 +90,7 @@ describe('rules', () => {
 
   it('자리가 없거나 없는 씨앗이면 심지 않고 씨앗은 그대로 남는다', () => {
     const s = createState();
-    chooseRest(s, D);
+    ready(s, D);
     const seed = openPacket(s, D)!;
     expect(plantSeed(s, seed.id, D, null)).toBeNull();
     expect(plantSeed(s, 'nope', D, { col: 100, row: 100 })).toBeNull();
@@ -186,20 +101,20 @@ describe('rules', () => {
   it('씨앗함의 씨앗은 며칠이 지나도 사라지지 않고 서로 구분된다', () => {
     const s = createState();
     for (const d of ['2026-11-01', '2026-11-02']) {
-      chooseRest(s, d);
+      ready(s, d);
       openPacket(s, d);
     }
     expect(s.seeds).toHaveLength(2);
     expect(new Set(s.seeds.map((x) => x.id)).size).toBe(2);
     plantSeed(s, s.seeds[0].id, '2026-12-01', { col: 100, row: 100 });
-    chooseRest(s, '2026-12-01');
+    ready(s, '2026-12-01');
     openPacket(s, '2026-12-01');
     expect(new Set(s.seeds.map((x) => x.id)).size).toBe(2);
   });
 
   it('이미 연 봉투는 다시 열 수 없다', () => {
     const s = createState();
-    chooseRest(s, D);
+    ready(s, D);
     expect(openPacket(s, D)).not.toBeNull();
     expect(openPacket(s, D)).toBeNull();
     expect(s.seeds).toHaveLength(1);
@@ -256,7 +171,7 @@ describe('rules', () => {
 
   it('심은 식물도 창고로 치우고 꺼낼 수 있다(처음 만난 날짜는 그대로)', () => {
     const s = createState();
-    chooseRest(s, D);
+    ready(s, D);
     const planted = openAndPlant(s, D, { col: 14, row: 15 })!;
     storePlant(s, planted.id);
     expect(s.garden.plants).toHaveLength(0);
@@ -273,5 +188,99 @@ describe('rules', () => {
     storePlant(s, 'nope');
     expect(s.garden.plants).toHaveLength(0);
     expect(s.garden.storage).toHaveLength(0);
+  });
+});
+
+describe('회차와 씨앗', () => {
+  it('계획을 세우면 회차가 열리고, [했어]마다 기록이 남지만 씨앗은 회차를 닫을 때 한 번', () => {
+    const s = createState();
+    const { log } = doOne(s);
+    expect(s.logs).toEqual([log]);
+    expect(log.sessionId).toBe(s.missions.session!.id);
+    expect(s.days[D].plan).toBeUndefined();
+    expect(s.sessionPackets).toBe(0);
+    expect(sessionHasActions(s, D)).toBe(true);
+    doOne(s); // 같은 회차에 하나 더
+    expect(s.missions.session!.actions).toHaveLength(2);
+    expect(closeSession(s)).toEqual({ seeded: true });
+    expect(s.sessionPackets).toBe(1);
+    expect(s.days[D].sessions).toBe(1);
+  });
+
+  it('닫기를 두 번 눌러도 씨앗은 한 번', () => {
+    const s = createState();
+    doOne(s);
+    closeSession(s);
+    expect(closeSession(s)).toEqual({ seeded: false });
+    expect(s.sessionPackets).toBe(1);
+  });
+
+  it('행동 없이 닫으면 씨앗 없이 건너뛴 것으로 끝난다', () => {
+    const s = createState();
+    setPlan(s, D, plan);
+    expect(closeSession(s)).toEqual({ seeded: false });
+    expect(s.sessionPackets).toBe(0);
+    expect(s.days[D].sessions).toBeUndefined();
+  });
+
+  it('행동 뒤에 쉬면 그 회차를 정상으로 닫고(씨앗 1개) 쉰다', () => {
+    const s = createState();
+    doOne(s);
+    chooseRest(s, D);
+    expect(s.sessionPackets).toBe(1);
+    expect(s.missions.session).toBeNull();
+    expect(s.days[D].rested).toBe(true);
+  });
+
+  it('행동 없이 쉬면 씨앗은 없고 잃는 것도 없다', () => {
+    const s = createState();
+    s.fruit = 5;
+    setPlan(s, D, plan);
+    chooseRest(s, D);
+    expect(s.sessionPackets).toBe(0);
+    expect(s.fruit).toBe(5);
+    expect(s.days[D].plan).toBeUndefined();
+  });
+
+  it('마친 회차가 3개면 새 회차를 열지 않는다(열린 회차 안에서는 계속할 수 있다)', () => {
+    const s = createState();
+    for (let i = 0; i < DAILY_LIMIT; i++) {
+      doOne(s);
+      expect(limitReached(s, D)).toBe(false);
+      closeSession(s);
+    }
+    expect(limitReached(s, D)).toBe(true);
+    expect(setPlan(s, D, plan)).toBe(false);
+    expect(s.sessionPackets).toBe(DAILY_LIMIT);
+  });
+
+  it('지난 날에 열어 둔 회차는 그날 것으로 정산한다', () => {
+    const s = createState();
+    doOne(s, '2026-11-01');
+    settleOldSession(s, '2026-11-01'); // 같은 날이면 그대로
+    expect(s.missions.session).not.toBeNull();
+    settleOldSession(s, '2026-11-02');
+    expect(s.missions.session).toBeNull();
+    expect(s.days['2026-11-01'].sessions).toBe(1);
+    expect(s.sessionPackets).toBe(1);
+  });
+
+  it('다음 날 계획을 세우면 어제 회차를 먼저 정산한다', () => {
+    const s = createState();
+    doOne(s, '2026-11-01');
+    setPlan(s, '2026-11-02', plan);
+    expect(s.days['2026-11-01'].sessions).toBe(1);
+    expect(s.missions.session!.date).toBe('2026-11-02');
+  });
+
+  it('회차 주머니를 열면 씨앗함에 씨앗이 들어간다', () => {
+    const s = createState();
+    doOne(s);
+    closeSession(s);
+    expect(pendingPacketCount(s)).toBe(1);
+    const seed = openSessionPacket(s, rng(3))!;
+    expect(s.seeds).toEqual([seed]);
+    expect(s.sessionPackets).toBe(0);
+    expect(openSessionPacket(s)).toBeNull();
   });
 });

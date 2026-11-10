@@ -31,6 +31,9 @@ let pickHint = '';
 const subs = new Set<() => void>();
 const notify = () => subs.forEach((fn) => fn());
 
+/** 꾸미거나 심을 곳을 고르는 중인지(flow.ts가 화면이 비었는지 볼 때) */
+export const isDecorating = (): boolean => on;
+
 export function exitDecorate(): void {
   if (!on) return;
   on = false;

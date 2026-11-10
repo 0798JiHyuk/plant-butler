@@ -1,6 +1,8 @@
 // core·scene·ui가 서로를 직접 참조하지 않고 대화하는 얇은 이벤트 버스.
 
-export type HudAction = 'records' | 'decorate' | 'settings' | 'talk' | 'plan-check' | 'other-activity' | 'done' | 'packet' | 'shop' | 'bag' | 'book' | 'gift';
+export type HudAction =
+  | 'records' | 'decorate' | 'settings' | 'talk' | 'mission' | 'mission-other' | 'done' | 'session-more' | 'session-end'
+  | 'packet' | 'shop' | 'bag' | 'book' | 'gift';
 
 export type NpcId = 'nuri' | 'moru' | 'pio';
 

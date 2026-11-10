@@ -1,10 +1,17 @@
 import { loadJson, saveJson } from './storage';
-import type { AppState } from './types';
+import type { AppState, MissionState } from './types';
 
 const KEY = 'plantkeeper:v1';
 
+export function createMissionState(): MissionState {
+  return {
+    category: null, intents: {}, workStatus: 'unknown', stage: { daily: 1, academic: 1, work: 1 },
+    skip: { date: '', facts: [], cards: [] }, session: null, seq: 0, bookmarks: {}, last: {},
+  };
+}
+
 export function createState(): AppState {
-  return { version: 1, logs: [], garden: { items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, chats: [], days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
+  return { version: 1, logs: [], garden: { items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, chats: [], missions: createMissionState(), sessionPackets: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
 }
 
 export function loadState(): AppState {
@@ -12,7 +19,13 @@ export function loadState(): AppState {
   if (!saved || saved.version !== 1) return createState();
   const base = createState();
   // 이전 버전에 저장된 데이터에 없는 항목은 기본값으로 채운다.
-  return { ...base, ...saved, garden: { ...base.garden, ...saved.garden }, settings: { ...base.settings, ...saved.settings } };
+  return {
+    ...base,
+    ...saved,
+    garden: { ...base.garden, ...saved.garden },
+    settings: { ...base.settings, ...saved.settings },
+    missions: { ...base.missions, ...saved.missions, stage: { ...base.missions.stage, ...saved.missions?.stage } },
+  };
 }
 
 let state = loadState();

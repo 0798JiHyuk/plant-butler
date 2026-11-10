@@ -102,6 +102,14 @@ describe('열매나무', () => {
     expect(s.fruit).toBe(FRUIT_PER_HARVEST + FRUIT_PER_REGROW);
   });
 
+  it('회차를 마친 날도 다시 맺기에 센다', () => {
+    const s = createState();
+    const t = plantTree(s, D);
+    harvest(s, t.id, '2026-11-08');
+    for (const date of ['2026-11-09', '2026-11-10', '2026-11-11']) s.days[date] = { refresh: 0, sessions: 1 };
+    expect(canHarvest(s.garden.plants[0], '2026-11-20', s.days)).toBe(true);
+  });
+
   it('창고에 넣었다 꺼내도 수확 기록은 그대로다', () => {
     const s = createState();
     const t = plantTree(s, D);

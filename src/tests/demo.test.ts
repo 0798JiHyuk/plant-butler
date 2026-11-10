@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { shiftDate } from '../core/clock';
 import { addTestSeeds, fillSample } from '../core/demo';
 import { canHarvest, giftAvailable } from '../core/economy';
-import { DAILY_LIMIT } from '../core/rules';
+import { DAILY_LIMIT, pendingPacketDates } from '../core/rules';
 import { createState } from '../core/store';
 import { directPlanRatio } from '../core/stats';
 
@@ -29,19 +29,18 @@ describe('fillSample', () => {
     expect(s.days[TODAY]).toBeUndefined();
   });
 
-  it('하루 3개 상한을 지키고, 쉰 날에는 기록이 없다', () => {
+  it('하루 3회차 상한을 지키고, 쉰 날에는 기록이 없다', () => {
     const s = sample();
-    const perDay = new Map<string, number>();
-    for (const l of s.logs) perDay.set(l.date, (perDay.get(l.date) ?? 0) + 1);
-    for (const n of perDay.values()) expect(n).toBeLessThanOrEqual(DAILY_LIMIT);
-    for (const [date, d] of Object.entries(s.days)) if (d.rested) expect(perDay.get(date) ?? 0).toBe(0);
+    for (const d of Object.values(s.days)) expect(d.sessions ?? 0).toBeLessThanOrEqual(DAILY_LIMIT);
+    const logDays = new Set(s.logs.map((l) => l.date));
+    for (const [date, d] of Object.entries(s.days)) if (d.rested) expect(logDays.has(date)).toBe(false);
   });
 
-  it('식물이 심겨 있고, 최근 이틀의 주머니는 열지 않은 채 남는다', () => {
+  it('식물이 심겨 있고, 최근 이틀에 받은 주머니는 열지 않은 채 남는다', () => {
     const s = sample();
     expect(s.garden.plants.length).toBeGreaterThan(3);
-    const ready = Object.entries(s.days).filter(([, d]) => d.packet === 'ready').map(([date]) => date);
-    for (const date of ready) expect(date >= shiftDate(TODAY, -2)).toBe(true);
+    expect(s.sessionPackets).toBeGreaterThan(0);
+    expect(pendingPacketDates(s)).toEqual([]);
   });
 
   it('열매 12개와 놓아 둔 소품 2개가 있고, 시연할 때 딸 수 있는 꽃이 하나 이상 남는다', () => {
@@ -57,7 +56,6 @@ describe('fillSample', () => {
     expect(giftAvailable(s, TODAY)).toBe(true);
     expect(s.visits.count).toBe(4);
     expect(directPlanRatio(s.logs)).toBeGreaterThan(0);
-    expect(s.logs.some((l) => l.source === 'daily')).toBe(true);
   });
 
   it('같은 입력이면 같은 결과이고, 다시 채워도 쌓이지 않는다', () => {
@@ -75,5 +73,15 @@ describe('fillSample', () => {
     expect(s.seeds.every((x) => plants.some((p) => p.id === x.plantId))).toBe(true);
     expect(s.seeds.some((x) => plants.find((p) => p.id === x.plantId)?.tree)).toBe(true); // 나무도 시험할 수 있게
     expect(s.garden.plants).toHaveLength(0);
+  });
+
+  it('샘플 기록은 미션 카드와 직접 적은 일이고, 회차로 묶인다', () => {
+    const s = sample();
+    expect(s.logs.some((l) => l.missionId)).toBe(true);
+    expect(s.logs.every((l) => l.sessionId)).toBe(true);
+    const sessions = Object.values(s.days).reduce((n, d) => n + (d.sessions ?? 0), 0);
+    expect(new Set(s.logs.map((l) => l.sessionId)).size).toBe(sessions);
+    expect(s.missions.session).toBeNull();
+    expect(s.missions.category).toBe('daily');
   });
 });

@@ -1,5 +1,12 @@
 import type { NpcId } from './events';
 
+/** 미션 영역: 일상·학업·업무복귀 */
+export type CategoryId = 'daily' | 'academic' | 'work';
+/** 카드의 두 크기: 기본 행동·줄인 행동 */
+export type Variant = 'basic' | 'small';
+/** 업무복귀: 복귀 전·복귀 후·모름. W06~W20(실무)은 복귀 후에만 추천한다. */
+export type WorkStatus = 'pre_return' | 'returned' | 'unknown';
+
 export type Energy = 'heavy' | 'normal' | 'good';
 export type ActivityKind = 'selfcare' | 'outing' | 'joy' | 'connect' | 'plant';
 export type LogSource = 'mission' | 'daily' | 'design';
@@ -23,6 +30,9 @@ export interface PlanInfo {
 
 export interface Plan {
   activityId?: string;
+  /** 미션 카드와 고른 크기 */
+  missionId?: string;
+  variant?: Variant;
   text?: string;
   info: PlanInfo;
   source: LogSource;
@@ -32,6 +42,10 @@ export interface LogEntry {
   id: string;
   date: string;
   activityId?: string;
+  missionId?: string;
+  variant?: Variant;
+  /** 이 행동이 들어간 회차 */
+  sessionId?: string;
   text?: string;
   plan: PlanInfo;
   chips: ReflectChip[];
@@ -94,14 +108,49 @@ export interface ChatLog {
   mind?: MindPlant;
 }
 
+/** 카드 한 장과 고른 크기 */
+export interface MissionStep {
+  missionId: string;
+  variant: Variant;
+}
+
+/** 회차: 계획을 세우면 열리고 [여기까지]·쉬기로 닫힌다. 닫을 때 해낸 행동이 있으면 씨앗 1개(한 번만). */
+export interface MissionSession {
+  id: string;
+  date: string;
+  /** 해낸 행동(직접 적은 일·예전 활동은 missionId가 없다) */
+  actions: { missionId?: string; variant?: Variant }[];
+}
+
+export interface MissionState {
+  /** 오늘의 영역(언제든 바꿀 수 있다). 없으면 처음 미션을 열 때 묻는다. */
+  category: CategoryId | null;
+  /** 영역별로 지금 하려는 장면(drink·exam 등). 없으면 그 영역의 모든 장면 */
+  intents: Partial<Record<CategoryId, string>>;
+  workStatus: WorkStatus;
+  /** 영역별 추천 단계(1~4). "다음 길을 볼래"를 고를 때만 오르고, 쉬거나 작게 해도 내려가지 않는다. */
+  stage: Record<CategoryId, number>;
+  /** "해당 없어요"라고 한 카드와 그 조건. 조건은 날마다 바뀌어서 그날만 적용한다. */
+  skip: { date: string; facts: string[]; cards: string[] };
+  session: MissionSession | null;
+  /** 회차 번호(id 만들기용) */
+  seq: number;
+  /** 표지판: 영역별로 다음에 이어갈 작은 행동 */
+  bookmarks: Partial<Record<CategoryId, MissionStep>>;
+  /** 영역별 마지막으로 고른 카드 */
+  last: Partial<Record<CategoryId, string>>;
+}
+
 export interface DayInfo {
   energy?: Energy;
   rested?: boolean;
   plan?: Plan;
   /** [바꾸기]로 제안 순서를 다시 섞는 용도 */
   refresh: number;
-  /** 씨앗 봉투: 완료한 날, 쉬기를 고른 날 하루 한 번 */
+  /** 예전 저장본의 하루 봉투(지금은 회차를 마치면 sessionPackets를 받는다) */
   packet?: 'ready' | 'opened';
+  /** 그날 마친 회차 수(하루 상한, 나무 다시 맺기) */
+  sessions?: number;
 }
 
 export interface AppState {
@@ -131,6 +180,10 @@ export interface AppState {
   purchases: number;
   /** 주민과 나눈 대화(사용자가 남기기로 한 것만). 기기 안에만 저장한다. */
   chats: ChatLog[];
+  /** 미션 카드 흐름(영역·장면·추천 단계·회차·표지판) */
+  missions: MissionState;
+  /** 회차를 마치고 받은, 아직 안 연 씨앗 주머니 */
+  sessionPackets: number;
   days: Record<string, DayInfo>;
   /** viewZoom: 정원을 보는 배율(없으면 화면 크기에 맞는 기본값) */
   settings: { sound: boolean; demo: boolean; dayOffset: number; viewZoom?: number };

@@ -1,11 +1,11 @@
 // 수첩: 내가 쌓아 온 것을 모은다. 기록은 해낸 활동만, 도감은 만난 식물만, 출석은 찾아온 횟수만. 빈 날은 보이지 않는다.
 import { useState } from 'react';
-import { activityById } from '../../core/activities';
 import { chatsByDate, deleteChat } from '../../core/chat';
 import { todayKey } from '../../core/clock';
 import { copy } from '../../core/copy';
+import { missionById, recordText } from '../../core/missions';
 import { plantById } from '../../core/plants';
-import { groupByDate, weekKindsCount } from '../../core/stats';
+import { groupByDate, logName, weekKindsCount } from '../../core/stats';
 import { store } from '../../core/store';
 import type { ChatLog, LogEntry } from '../../core/types';
 import { ActivityImg, PlantImg, UiIconImg } from '../icons';
@@ -13,6 +13,7 @@ import { openModal } from '../modal';
 import { useAppState } from '../useAppState';
 import { NpcBadge } from './Chat';
 import { GiftBody } from './Gift';
+import { MissionFace } from './Mission';
 import { PanelHead } from './PanelHead';
 
 type RecordsTab = 'log' | 'chat' | 'book' | 'stamps';
@@ -23,14 +24,14 @@ function formatDate(date: string): string {
 }
 
 function LogRow({ l }: { l: LogEntry }) {
-  const a = activityById(l.activityId);
-  const place = [l.plan.when, l.plan.where || l.plan.criterion].filter(Boolean).join(' · ');
+  const m = missionById(l.missionId);
+  const sub = m && l.variant ? recordText(m, l.variant) : [l.plan.when, l.plan.where || l.plan.criterion].filter(Boolean).join(' · ');
   return (
     <li className="rec-item">
-      <span className="mission-icon"><ActivityImg id={l.activityId} /></span>
+      <span className="mission-icon">{m ? <MissionFace who={m.npc} /> : <ActivityImg id={l.activityId} />}</span>
       <div className="mission-info">
-        <strong>{a?.name ?? l.text ?? ''}</strong>
-        <small>{place}</small>
+        <strong>{logName(l)}</strong>
+        <small>{sub}</small>
         {l.chips.length > 0 && <small className="rec-chips">{l.chips.map((c) => copy.records.chip[c]).join(' · ')}</small>}
       </div>
     </li>

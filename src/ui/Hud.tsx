@@ -6,8 +6,10 @@ import { todayKey } from '../core/clock';
 import { copy } from '../core/copy';
 import { giftAvailable } from '../core/economy';
 import { events, type HudAction } from '../core/events';
-import { isResting, limitReached, pendingPacketCount } from '../core/rules';
+import { actionText, missionById } from '../core/missions';
+import { isResting, limitReached, pendingPacketCount, sessionHasActions } from '../core/rules';
 import { ActivityImg, UiIconImg, type UiIcon } from './icons';
+import { MissionFace } from './panels/Mission';
 import { useAppState } from './useAppState';
 
 const emit = (id: HudAction) => () => events.emit('hud-action', { id });
@@ -48,7 +50,7 @@ function ActivityCard() {
       <>
         <p className="card-message">{copy.card.resting}</p>
         <p className="card-sub">{copy.card.restingSub}</p>
-        <button type="button" className="btn btn-secondary" onClick={emit('other-activity')}>{copy.card.unrest}</button>
+        <button type="button" className="btn btn-secondary" onClick={emit('mission')}>{copy.card.unrest}</button>
       </>
     );
   } else if (limitReached(s, date)) {
@@ -58,30 +60,42 @@ function ActivityCard() {
         <p className="card-sub">{copy.card.enoughSub}</p>
       </>
     );
-  } else if (!plan) {
+  } else if (plan) {
+    // 미션 카드면 주민 얼굴·고른 행동·[했어], 직접 적은 일·예전 활동이면 언제·기준
+    const m = missionById(plan.missionId);
+    body = (
+      <>
+        <div className="card-activity">
+          {m ? <MissionFace who={m.npc} /> : <ActivityImg id={plan.activityId} className="card-icon" />}
+          <div>
+            <strong>{m?.name ?? activityById(plan.activityId)?.name ?? plan.text ?? ''}</strong>
+            <small className="card-action">
+              {m && plan.variant ? actionText(m, plan.variant) : [plan.info.when, plan.info.where || plan.info.criterion].filter(Boolean).join(' · ')}
+            </small>
+          </div>
+        </div>
+        <button type="button" className="btn btn-primary" onClick={emit('done')}>{m?.buttonLabel ?? copy.card.done}</button>
+        <button type="button" className="btn btn-secondary" onClick={emit('mission-other')}>{copy.card.other}</button>
+      </>
+    );
+  } else if (sessionHasActions(s, date)) {
+    // 계획 없이 회차만 열려 있다([더 해 볼래] 뒤 카드를 닫은 경우): 이어 하거나 여기서 마친다.
+    body = (
+      <>
+        <p className="card-message">{copy.card.between}</p>
+        <p className="card-sub">{copy.card.betweenSub}</p>
+        <div className="btn-pair">
+          <button type="button" className="btn btn-primary" onClick={emit('session-more')}>{copy.card.more}</button>
+          <button type="button" className="btn btn-secondary" onClick={emit('session-end')}>{copy.card.end}</button>
+        </div>
+      </>
+    );
+  } else {
     body = (
       <>
         <p className="card-message">{copy.card.empty}</p>
         <p className="card-sub" />
-        <button type="button" className="btn btn-primary" onClick={emit('other-activity')}>{copy.card.pick}</button>
-      </>
-    );
-  } else {
-    const a = activityById(plan.activityId);
-    body = (
-      <>
-        <div className="card-activity">
-          <ActivityImg id={plan.activityId} className="card-icon" />
-          <div>
-            <strong>{a?.name ?? plan.text ?? ''}</strong>
-            <small>{[plan.info.when, plan.info.where || plan.info.criterion].filter(Boolean).join(' · ')}</small>
-          </div>
-        </div>
-        <button type="button" className="btn btn-primary" onClick={emit('done')}>{copy.card.done}</button>
-        <div className="btn-pair">
-          <button type="button" className="btn btn-secondary" onClick={emit('plan-check')}>{copy.card.confirm}</button>
-          <button type="button" className="btn btn-secondary" onClick={emit('other-activity')}>{copy.card.other}</button>
-        </div>
+        <button type="button" className="btn btn-primary" onClick={emit('mission')}>{copy.card.pick}</button>
       </>
     );
   }
@@ -100,7 +114,8 @@ export function Hud() {
   const s = useAppState();
   const date = todayKey();
   const packets = pendingPacketCount(s);
-  const bubble = isResting(s, date) ? copy.bubble.rest : limitReached(s, date) ? copy.bubble.enough : s.days[date]?.plan ? copy.bubble.planned : copy.bubble.ask;
+  const busy = !!s.days[date]?.plan || sessionHasActions(s, date);
+  const bubble = isResting(s, date) ? copy.bubble.rest : limitReached(s, date) ? copy.bubble.enough : busy ? copy.bubble.planned : copy.bubble.ask;
   return (
     <>
       <div className="garden-name">
