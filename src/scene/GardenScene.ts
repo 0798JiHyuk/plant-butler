@@ -11,7 +11,7 @@ import { canHarvest, growthStage, placeZone } from '../core/economy';
 import { isTree } from '../core/plants';
 import { preloadAssets } from './assets';
 import { BED_BACK, bedFoot, decorFoot, feetOverlap, footDepth, inFront, insideFoot, smallFoot, trunkFoot, type Foot } from './footprints';
-import { Npc } from './Npc';
+import { Npc, TEXT_STYLE } from './Npc';
 import { BED, DEFAULT_BED, bedFits, COLS, coverZoom, defaultViewZoom, inBed, isDecorTile, isFieldTile, isWalkable, MAP_H, MAP_W, NPC_HOMES, nearestSlot, plantSlots, ROWS, setBedPos, slotWorld, SPAWN, TILE, treeRoomAt } from './map';
 import { Player } from './Player';
 
@@ -73,6 +73,8 @@ export class GardenScene extends Phaser.Scene {
   private hitbox?: Phaser.GameObjects.Graphics;
   /** 다가갔을 때 인사 차례(주민마다 돌아가며 다른 말) */
   private greetTurn = 0;
+  private plantNote?: Phaser.GameObjects.Text;
+  private plantNoteTimer?: Phaser.Time.TimerEvent;
   /** 꾸미기에서 짚은 것. 아래쪽에 [옮기기]·[방향 바꾸기]·[창고에 넣기] 메뉴가 뜬다. */
   private selected: { id: string; kind: 'decor' | 'plant' } | null = null;
   /** [옮기기]로 들고 있는 중: 포인터를 따라 칸에 맞춰 보이다가, 손을 뗀 칸에 놓인다. */
@@ -93,7 +95,7 @@ export class GardenScene extends Phaser.Scene {
     this.npcs = []; this.stick = { x: 0, y: 0 }; this.locked = false;
     this.decorating = false; this.dragId = null; this.dragKind = null;
     this.placing = null; this.placingSprite = undefined; this.seedPick = null; this.seedPickTree = false;
-    this.selected = null; this.carrying = false;
+    this.selected = null; this.carrying = false; this.plantNote = undefined; this.plantNoteTimer = undefined;
     this.grid = undefined; this.hint = undefined; this.moundHint = undefined;
     this.add.image(0, 0, 'garden_background').setOrigin(0, 0).setDepth(0);
     this.drawField();
@@ -140,6 +142,7 @@ export class GardenScene extends Phaser.Scene {
       events.on('decor-action', ({ action }) => this.onDecorAction(action)),
       events.on('seed-pick-start', ({ seedId, tree }) => this.startSeedPick(seedId, tree)),
       events.on('harvested', ({ id }) => this.liftPlant(id)),
+      events.on('plant-note', ({ id, text }) => this.showPlantNote(id, text)),
       events.on('state-restored', () => this.scene.restart()),
       () => this.scale.off('resize', resize),
       store.subscribe(() => { if (!store.restoring) this.refreshPlants(); }),
@@ -222,7 +225,10 @@ export class GardenScene extends Phaser.Scene {
     kb.enabled = !locked;
     if (locked) kb.disableGlobalCapture();
     else kb.enableGlobalCapture();
-    if (locked) this.npcs.forEach((n) => n.hush());
+    if (locked) {
+      this.npcs.forEach((n) => n.hush());
+      this.clearPlantNote();
+    }
   }
 
   /** 그날 열린 이야기가 있는 주민 머리 위에 표시. 꾸미는 중에는 숨긴다. */
@@ -368,7 +374,7 @@ export class GardenScene extends Phaser.Scene {
     const stage = growthStage(plantedOn, todayKey(), plantId);
     if (stage === 'young') return { key: 'plant_tree_young', size: TREE_SIZE * 0.7 };
     if (stage === 'bloom' && isTree(plantId)) return { key: fruiting ? `plant_${plantId}` : 'plant_tree_grown', size: TREE_SIZE };
-    if (stage === 'seed') return { key: 'plant_seed', size: 26 };
+    if (stage === 'seed') return { key: 'plant_planted', size: isTree(plantId) ? 60 : PLANT_SIZE }; // 막 심은 흙무더기(나무는 열린 마당이라 조금 크게)
     if (stage === 'sprout' && !isTree(plantId) && daysBetween(plantedOn, todayKey()) >= 2) return { key: 'plant_bud', size: 40 }; // 꽃이 피기 전날은 봉오리
     if (stage === 'sprout') return { key: 'plant_sprout', size: 40 };
     return { key: `plant_${plantId}`, size: PLANT_SIZE };
@@ -389,6 +395,7 @@ export class GardenScene extends Phaser.Scene {
     });
     this.plantSprites.set(p.id, img);
     if (pop) this.pop(img);
+    if (pop && growthStage(p.date, todayKey(), p.plantId) === 'seed') this.dustPuff(pos.x, pos.y);
     this.refreshPlants();
   }
 
@@ -455,6 +462,40 @@ export class GardenScene extends Phaser.Scene {
     this.tweens.add({ targets: img, y: img.y - 24, alpha: 0, duration: 320, ease: 'Sine.easeOut', onComplete: () => img.destroy() });
   }
 
+  /** 막 심은 자리에 흙이 톡 튀는 효과(움직임을 줄이는 설정이면 건너뛴다). */
+  private dustPuff(x: number, y: number): void {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    for (let i = 0; i < 7; i++) {
+      const a = Math.PI * (1 + (i + 0.5) / 7); // 위쪽 반원으로
+      const dot = this.add.circle(x, y - 4, 2 + (i % 2), 0x7a5230).setDepth(y + 1);
+      this.tweens.add({
+        targets: dot, x: x + Math.cos(a) * 22, y: y - 4 + Math.sin(a) * 18, alpha: 0, duration: 420, ease: 'Quad.easeOut',
+        onComplete: () => dot.destroy(),
+      });
+    }
+  }
+
+  /** 열매를 딸 수 없는 식물을 눌렀을 때 그 위에 다음 모습까지 남은 날을 잠깐 띄운다. */
+  private showPlantNote(id: string, text: string): void {
+    const img = this.plantSprites.get(id);
+    if (!img || this.decorating || this.locked) return;
+    this.clearPlantNote();
+    const seed = img.texture.key === 'plant_planted';
+    this.plantNote = this.add
+      .text(img.x, img.y - img.displayHeight * (seed ? 0.55 : 1) - 4, text, { ...TEXT_STYLE, padding: { x: 8, y: 4 }, align: 'center' })
+      .setOrigin(0.5, 1)
+      .setResolution(2)
+      .setDepth(8001);
+    this.plantNoteTimer = this.time.delayedCall(2600, () => this.clearPlantNote());
+  }
+
+  private clearPlantNote(): void {
+    this.plantNoteTimer?.remove();
+    this.plantNoteTimer = undefined;
+    this.plantNote?.destroy();
+    this.plantNote = undefined;
+  }
+
   private pop(img: Phaser.GameObjects.Image): void {
     const target = img.scale;
     img.setScale(0);
@@ -506,6 +547,7 @@ export class GardenScene extends Phaser.Scene {
     this.hint = this.add.graphics().setDepth(DRAG_DEPTH + 1); // 들고 있는 그림(DRAG_DEPTH)에 가려지지 않게 그 위에
     this.selectMark = this.add.graphics().setDepth(DRAG_DEPTH - 1);
     this.npcs.forEach((n) => n.hush());
+    this.clearPlantNote();
     this.refreshMarks();
   }
 

@@ -2,10 +2,11 @@
 import { setDayOffset, todayKey } from '../core/clock';
 import { copy } from '../core/copy';
 import { events } from '../core/events';
-import { canHarvest, harvest } from '../core/economy';
+import { canHarvest, harvest, nextGrowth } from '../core/economy';
 import { bookmarkSuggestion, saveBookmark } from '../core/missions';
 import { closeSession, isResting, limitReached, pendingPacketCount, pendingPacketDates, reportAction, settleOldSession } from '../core/rules';
 import { factLineFor } from '../core/stats';
+import { isTree } from '../core/plants';
 import { markReturnSeen, needsIntro, nextSceneFor, returnScene, type NpcSpeaker, type StoryAfter } from '../core/story';
 import { store } from '../core/store';
 import type { ReflectChip } from '../core/types';
@@ -85,6 +86,11 @@ function harvestPlant(id: string): void {
     const stayed = store.state.garden.plants.some((p) => p.id === id); // 나무는 자리에 남는다
     showToast([stayed ? copy.harvest.doneTree(got) : copy.harvest.done(got), copy.speak(copy.talk.npc.moru.name, copy.lines.harvested)]);
     events.emit('harvested', { id });
+  } else {
+    // 아직 딸 수 없으면 다음 모습까지 남은 날을 그 식물 위에 알려 준다.
+    const p = store.state.garden.plants.find((x) => x.id === id);
+    const n = p && nextGrowth(p.date, todayKey(), p.plantId);
+    if (p && n) events.emit('plant-note', { id, text: copy.plantNote(isTree(p.plantId), n.next, n.days) });
   }
 }
 

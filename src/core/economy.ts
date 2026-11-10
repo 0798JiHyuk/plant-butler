@@ -16,6 +16,16 @@ export function growthStage(plantedOn: string, today: string, plantId = ''): Gro
   return !isTree(plantId) || days >= 6 ? 'bloom' : 'young';
 }
 
+/** 다음 모습까지 남은 날. 더 자랄 모습이 없으면 null. growthStage와 같은 기준이다. */
+export function nextGrowth(plantedOn: string, today: string, plantId = ''): { next: 'sprout' | 'young' | 'bloom'; days: number } | null {
+  const days = daysBetween(plantedOn, today);
+  const steps = isTree(plantId)
+    ? ([['sprout', 1], ['young', 3], ['bloom', 6]] as const)
+    : ([['sprout', 1], ['bloom', 3]] as const);
+  const step = steps.find(([, at]) => days < at);
+  return step ? { next: step[0], days: step[1] - days } : null;
+}
+
 // ---------- 수확 ----------
 export const FRUIT_PER_HARVEST = 3;
 /** 나무에 다시 열린 열매는 하나다. 꽃보다 크게 유리하지 않게 한다(임시값). */

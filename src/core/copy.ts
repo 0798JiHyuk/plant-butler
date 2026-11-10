@@ -140,6 +140,13 @@ export const copy = {
     more: '더 해 볼래',
     footnote: '쉬어도 정원과 기록은 그대로예요',
   },
+  /** 식물을 눌렀을 때: 다음 모습까지 남은 날(사실만 말한다). */
+  plantNote: (tree: boolean, next: 'sprout' | 'young' | 'bloom', days: number): string => {
+    if (next === 'sprout') return days === 1 ? '내일 새싹이 나요' : `${days}일 뒤에 새싹이 나요`;
+    if (next === 'young') return days === 1 ? '내일 어린 나무가 돼요' : `어린 나무가 되기까지 ${days}일`;
+    if (tree) return days === 1 ? '내일 다 자라요' : `다 자라기까지 ${days}일`;
+    return days === 1 ? '내일 꽃이 펴요' : `꽃이 피기까지 ${days}일`;
+  },
   fact: {
     weekNth: (name: string, n: number) => `이번 주 ${name} ${n}번째예요.`,
   },

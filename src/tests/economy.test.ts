@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buy, canHarvest, claimGift, FRUIT_PER_HARVEST, GIFT_BOARD_SIZE, giftBoard, FRUIT_PER_REGROW, giftAvailable, GIFT_DAILY_FRUIT, growthStage, harvest, placeZone, SHOP,
+  buy, canHarvest, claimGift, FRUIT_PER_HARVEST, GIFT_BOARD_SIZE, giftBoard, FRUIT_PER_REGROW, giftAvailable, GIFT_DAILY_FRUIT, growthStage, harvest, nextGrowth, placeZone, SHOP,
 } from '../core/economy';
 import { drawPlant, isTree, plants, RARE_CHANCE, TREE_CHANCE } from '../core/plants';
 import { rng } from '../core/random';
@@ -13,6 +13,38 @@ const plantedOn = (s: AppState, date: string) => {
   s.days[date] = { refresh: 0, packet: 'ready' };
   return plantSeed(s, openPacket(s, date, rng(1))!.id, date, { col: 5, row: 5 })!;
 };
+
+describe('다음 성장까지', () => {
+  const flower = plants.find((p) => !p.tree)!.id;
+  const tree = plants.find((p) => p.tree)!.id;
+
+  it('꽃은 심은 다음 날 새싹, 3일째 꽃이다', () => {
+    expect(nextGrowth('2026-11-02', '2026-11-02', flower)).toEqual({ next: 'sprout', days: 1 });
+    expect(nextGrowth('2026-11-02', '2026-11-03', flower)).toEqual({ next: 'bloom', days: 2 });
+    expect(nextGrowth('2026-11-02', '2026-11-04', flower)).toEqual({ next: 'bloom', days: 1 });
+    expect(nextGrowth('2026-11-02', '2026-11-05', flower)).toBeNull();
+  });
+
+  it('나무는 3일째 어린 나무, 6일째 다 자란다', () => {
+    expect(nextGrowth('2026-11-02', '2026-11-02', tree)).toEqual({ next: 'sprout', days: 1 });
+    expect(nextGrowth('2026-11-02', '2026-11-04', tree)).toEqual({ next: 'young', days: 1 });
+    expect(nextGrowth('2026-11-02', '2026-11-05', tree)).toEqual({ next: 'bloom', days: 3 });
+    expect(nextGrowth('2026-11-02', '2026-11-08', tree)).toBeNull();
+  });
+
+  it('growthStage가 바뀌는 날과 어긋나지 않는다', () => {
+    for (const id of [flower, tree]) {
+      for (let d = 0; d < 9; d++) {
+        const today = `2026-11-${String(2 + d).padStart(2, '0')}`;
+        const n = nextGrowth('2026-11-02', today, id);
+        if (!n) continue;
+        const later = `2026-11-${String(2 + d + n.days).padStart(2, '0')}`;
+        expect(growthStage('2026-11-02', later, id)).toBe(n.next);
+        expect(growthStage('2026-11-02', today, id)).not.toBe(n.next);
+      }
+    }
+  });
+});
 
 describe('씨앗 뽑기', () => {
   it('일반 8종 85%, 특별 4종 15% 정도로 나오고 모든 식물이 나온다', () => {

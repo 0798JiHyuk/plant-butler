@@ -7,7 +7,7 @@ const ROAM = 60; // 자기 자리에서 이만큼 안쪽만 서성인다
 const NEAR = 90; // 새싹이가 이 안에 오면 멈춰서 돌아본다
 const SAY_MS = 2600; // 말풍선이 떠 있는 시간
 const SAY_GAP = 60000; // 같은 주민은 1분 동안 다시 말을 걸지 않는다
-const TEXT_STYLE = {
+export const TEXT_STYLE = {
   fontFamily: "'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
   fontSize: '13px',
   color: '#2b1f17',

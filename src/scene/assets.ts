@@ -20,6 +20,7 @@ export function preloadAssets(scene: Phaser.Scene): void {
   for (const p of plants) scene.load.image(`plant_${p.id}`, `${base}assets/plants/${p.id}.png`);
   scene.load.image('plant_tree_young', `${base}assets/plants/tree_young.png`);
   scene.load.image('plant_tree_grown', `${base}assets/plants/tree_grown.png`);
+  scene.load.image('plant_planted', `${base}assets/plants/planted.png`);
   scene.load.image('plant_seed', `${base}assets/icons-ui/seed.png`);
   scene.load.image('plant_sprout', `${base}assets/icons-ui/seedling.png`);
   scene.load.image('plant_bud', `${base}assets/icons-ui/bud.png`);

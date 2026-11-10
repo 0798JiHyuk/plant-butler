@@ -40,6 +40,8 @@ export interface AppEvents {
   'npc-talk': { id: NpcId };
   /** 정원에서 식물을 눌렀을 때(꽃이 폈으면 열매를 딴다) */
   'plant-tap': { id: string };
+  /** 열매를 딸 수 없는 식물을 눌렀을 때 그 식물 위에 띄울 안내 */
+  'plant-note': { id: string; text: string };
   /** 효과음을 낸다 */
   sfx: { name: 'open' | 'buy' | 'gift' };
   /** 열매를 땄다 */
