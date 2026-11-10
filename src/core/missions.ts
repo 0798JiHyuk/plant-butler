@@ -1,215 +1,238 @@
-import raw from './data/missions-v2.json';
-import type { AppState, Plan, ReflectChip } from './types';
-import type { CategoryId, CustomMission, DayMission, Mission, MissionBookmark, MissionProgress, MissionVariant, FactValue } from './missionTypes';
-import { limitReached } from './rules';
+// 팀 미션 90개(일상·학업·업무복귀 × 6단계)를 고르고 잇는 규칙. 원본은 docs/missions/,
+// 게임용 데이터(data/missions.json)는 tools/import_missions.py가 만든다. 이번엔 1~4단계 카드만 추천한다.
+import raw from './data/missions.json';
+import { setPlan } from './rules';
+import type { Speaker } from './story';
+import type { AppState, CategoryId, MissionStep, Variant, WorkStatus } from './types';
 
-export const missionCatalog = raw;
-export const missions = raw.missions as Mission[];
-export const missionById = (id: string | undefined) => missions.find(m => m.id === id);
-export const categories: CategoryId[] = ['daily', 'academic', 'work'];
-export function createMissionProgress(): MissionProgress {
-  return { selectedCategory: null, selectedIntent: null, workStatus: 'unknown', stages: { daily: 1, academic: 1, work: 1 }, facts: {}, sessions: {}, activeSessionId: null, execution: null, bookmarks: {}, custom: [], myDays: {}, dayMapDefault: {}, packets: 0 };
+export interface Mission {
+  id: string;
+  categoryId: CategoryId;
+  stage: number;
+  stageName: string;
+  /** 장면(drink·exam 등). all이면 그 영역의 모든 장면에 맞는다. */
+  intentIds: string[];
+  npc: Speaker;
+  dialogue: string;
+  name: string;
+  /** 기본 행동과 줄인 행동 */
+  basic: string;
+  small: string;
+  buttonLabel: string;
+  /** 수첩에 남는 기록 문장 */
+  record: string;
+  smallRecord: string;
+  conditionSummary: string;
+  /** 비어 있으면 복귀 상태와 상관없다. W06~W20은 복귀 후(returned)만. */
+  allowedWorkStatuses: WorkStatus[];
+  /** 그 크기를 하는 데 필요한 조건 키. 처음엔 모두 모른다(묻지 않고 카드에 조건을 보여 준다). */
+  basicFacts: string[];
+  smallFacts: string[];
+  mode: 'activity' | 'create_and_execute' | 'plan_and_execute' | 'day_and_execute';
+  /** 정렬용 다음 번호. 바로 실행하지 않고, 거르기를 통과하는 다음 카드를 찾을 때만 쓴다. */
+  nextId: string | null;
 }
-export const missionProgress = (s: AppState): MissionProgress => s.missions ?? createMissionProgress();
-const writable = (s: AppState) => (s.missions ??= createMissionProgress());
-export const activeMissionSession = (s: AppState) => {
-  const p = missionProgress(s); return p.activeSessionId ? p.sessions[p.activeSessionId] : undefined;
-};
 
-export function setMissionCategory(s: AppState, category: CategoryId): void {
-  const p = writable(s); if (p.selectedCategory !== category) { p.selectedCategory = category; p.selectedIntent = null; }
+export interface SceneChoice {
+  label: string;
+  missionId: string;
 }
-export function setMissionFact(s: AppState, key: string, value: FactValue): void {
-  if (!raw.factKeys.includes(key)) return;
-  writable(s).facts[key] = value;
+
+interface MissionData {
+  version: string;
+  first: {
+    daily: { scenes: SceneChoice[]; previews: string[] };
+    academic: { missionId: string; targets: { label: string; intent: string }[] };
+    work: { pre_return: SceneChoice[]; returned: SceneChoice[] };
+  };
+  missions: Mission[];
 }
-/** Do not infer unknown conditions, user health, or work readiness from text. */
-export function missionEligibility(p: MissionProgress, m: Mission, variant: MissionVariant): 'eligible' | 'unknown' | 'excluded' {
-  const e = m.eligibility;
-  if (m.categoryId === 'work' && e.allowedWorkStatuses.length && !e.allowedWorkStatuses.includes(p.workStatus)) return 'excluded';
-  const keys = variant === 'basic' ? e.basicRequiredFacts : e.smallRequiredFacts;
-  if (keys.some(k => p.facts[k] === false)) return 'excluded';
-  return keys.some(k => p.facts[k] !== true) ? 'unknown' : 'eligible';
+
+const data = raw as unknown as MissionData;
+export const MISSIONS: Mission[] = data.missions;
+/** 영역별 첫 미션 표(원본 firstRecommendations) */
+export const FIRST = data.first;
+/** 이번엔 4단계까지만 추천한다(5~6단계는 미션 편집기·내 하루 지도와 함께). */
+export const MAX_STAGE = 4;
+
+export function missionById(id: string | null | undefined): Mission | undefined {
+  return id ? MISSIONS.find((m) => m.id === id) : undefined;
 }
-export function missionCandidates(p: MissionProgress, options: { after?: string; exclude?: string[]; allStages?: boolean } = {}): Mission[] {
-  if (!p.selectedCategory) return [];
-  const stage = p.stages[p.selectedCategory];
-  const eligible = missions.filter(m => m.categoryId === p.selectedCategory && (!p.selectedIntent || m.intentIds.includes(p.selectedIntent) || m.intentIds.includes('all'))
-    && !options.exclude?.includes(m.id) && ['basic', 'small'].some(v => missionEligibility(p, m, v as MissionVariant) !== 'excluded'));
-  const after = missionById(options.after);
-  const number = (m: Mission) => Number(m.id.slice(1));
-  const ordered = eligible.slice().sort((a, b) => number(a) - number(b));
-  if (options.allStages) return ordered;
-  if (after) {
-    const later = ordered.filter(m => number(m) > number(after));
-    const same = later.filter(m => m.stage <= stage);
-    return [...same, ...later.filter(m => m.stage > stage)];
+
+// ---------- 거르기 ----------
+function skipOf(state: AppState, date: string): AppState['missions']['skip'] {
+  return state.missions.skip.date === date ? state.missions.skip : { date, facts: [], cards: [] };
+}
+
+/** 그날 "해당 없어요"에 걸리지 않는 크기. 조건을 모르면(처음엔 모두 모른다) 맞는 것으로 보고 카드에 조건을 보여 준다. */
+export function eligibleVariants(state: AppState, date: string, m: Mission): Variant[] {
+  const skip = skipOf(state, date);
+  if (skip.cards.includes(m.id)) return [];
+  const ok = (facts: string[]) => !facts.some((f) => skip.facts.includes(f));
+  return (['basic', 'small'] as const).filter((v) => ok(v === 'basic' ? m.basicFacts : m.smallFacts));
+}
+
+/** 후보 거르기(원본 0.6 순서): 같은 영역 → 장면이 맞거나 all → 업무 복귀 상태 → 조건 → 4단계까지 */
+export function fits(state: AppState, date: string, m: Mission, category: CategoryId): boolean {
+  const ms = state.missions;
+  if (m.categoryId !== category || m.stage > MAX_STAGE) return false;
+  const intent = ms.intents[category];
+  if (intent && !m.intentIds.includes('all') && !m.intentIds.includes(intent)) return false;
+  if (m.allowedWorkStatuses.length > 0 && !m.allowedWorkStatuses.includes(ms.workStatus)) return false;
+  return eligibleVariants(state, date, m).length > 0;
+}
+
+/** 먼저 보여 줄 크기: 오늘 "조금 무거워요"면 줄인 행동, 아니면 기본(안 맞는 크기는 건너뛴다). 고르는 건 사용자다. */
+export function preferred(state: AppState, date: string, m: Mission): Variant {
+  const vs = eligibleVariants(state, date, m);
+  const heavy = state.days[date]?.energy === 'heavy';
+  return (heavy && vs.includes('small')) || !vs.includes('basic') ? 'small' : 'basic';
+}
+
+// ---------- 다음 카드 ----------
+export interface Suggestion extends MissionStep {
+  /** 지금 추천 단계보다 높은 단계라 "다음 길을 볼래?"를 먼저 묻는다 */
+  crosses: boolean;
+}
+
+/** 이번 회차에 마지막으로 해낸 카드 행동(직접 적은 일은 건너뛴다) */
+export function lastStep(state: AppState): MissionStep | null {
+  const acts = state.missions.session?.actions ?? [];
+  for (let i = acts.length - 1; i >= 0; i--) {
+    const { missionId, variant } = acts[i];
+    if (missionId && variant) return { missionId, variant };
   }
-  return [...ordered.filter(m => m.stage === stage), ...ordered.filter(m => m.stage < stage)];
+  return null;
 }
-export function chooseMissionStage(s: AppState, m: Mission): void {
-  const p = writable(s); p.stages[m.categoryId] = Math.max(p.stages[m.categoryId], m.stage);
-}
-export function recommendedMission(p: MissionProgress): Mission | undefined {
-  const reports = Object.values(p.sessions).flatMap(s => s.reportedActions);
-  const last = reports.reverse().find(a => {
-    const m = missionById(a.missionId);
-    return m?.categoryId === p.selectedCategory && (!p.selectedIntent || m.intentIds.includes(p.selectedIntent) || m.intentIds.includes('all'))
-      && ['basic', 'small'].some(v => missionEligibility(p, m, v as MissionVariant) !== 'excluded');
-  });
-  if (last && p.selectedIntent) {
-    const source = missionById(last.missionId)!;
-    if (source.recommendation.afterFinal) return undefined;
-    if (source.mode === 'activity' && last.variant === 'small') return source;
-    const next = missionCandidates(p, { after: source.id })[0];
-    if (next) return next;
+
+/** 다음 번호를 따라가며 거르기를 통과하는 첫 카드. 4단계를 넘으면 멈춘다(번호는 정렬용일 뿐 그대로 실행하지 않는다). */
+function nextFitting(state: AppState, date: string, cur: Mission): Mission | null {
+  const seen = new Set([cur.id]);
+  for (let m = missionById(cur.nextId); m && m.stage <= MAX_STAGE && !seen.has(m.id); m = missionById(m.nextId)) {
+    seen.add(m.id);
+    if (fits(state, date, m, cur.categoryId)) return m;
   }
-  const defaults: Record<string, string> = { drink: 'D01', meal: 'D02', wash: 'D03', clothes: 'D04', space: 'D05', observe: 'D13', outing: 'D14', rest: 'D15', contact: 'D20' };
-  const preferred = p.selectedCategory === 'daily' ? missionById(defaults[p.selectedIntent ?? '']) : undefined;
-  if (preferred && preferred.stage >= p.stages.daily && ['basic', 'small'].some(v => missionEligibility(p, preferred, v as MissionVariant) !== 'excluded')) return preferred;
-  return missionCandidates(p)[0];
+  return null;
 }
-export function customEligibility(p: MissionProgress, c: CustomMission, variant: MissionVariant) {
-  const source = missionById(c.sourceMissionId);
-  return source ? missionEligibility(p, source, variant) : 'eligible';
-}
-function ensureSession(p: MissionProgress) {
-  let session = p.activeSessionId ? p.sessions[p.activeSessionId] : undefined;
-  if (!session || session.status !== 'active') {
-    const id = crypto.randomUUID();
-    session = { sessionId: id, status: 'active' as const, reportedActions: [], rewardGranted: false };
-    p.sessions[id] = session; p.activeSessionId = id;
+
+/** [더 해 볼래]: 줄인 행동만 했으면 같은 카드의 기본, 기본을 했으면 조건에 맞는 다음 카드. 4단계 안에 없으면 null. */
+export function moreAfter(state: AppState, date: string, step: MissionStep): Suggestion | null {
+  const cur = missionById(step.missionId);
+  if (!cur) return null;
+  const didBasic = (state.missions.session?.actions ?? []).some((a) => a.missionId === cur.id && a.variant === 'basic');
+  if (step.variant === 'small' && !didBasic && eligibleVariants(state, date, cur).includes('basic')) {
+    return { missionId: cur.id, variant: 'basic', crosses: false };
   }
-  return session;
+  const next = nextFitting(state, date, cur);
+  if (!next) return null;
+  return { missionId: next.id, variant: preferred(state, date, next), crosses: next.stage > state.missions.stage[cur.categoryId] };
 }
-export function missionPlan(s: AppState): Plan | undefined {
-  const p = missionProgress(s); const x = p.execution;
-  if (!x || activeMissionSession(s)?.status !== 'active') return undefined;
-  const c = p.custom.find(item => item.id === x.customId);
-  return { activityId: x.missionId || undefined, text: x.text, source: c ? 'design' : 'mission',
-    info: { when: x.when ?? c?.trigger ?? '', where: x.where ?? '', minutes: 0, criterion: x.criterion ?? c?.criterion ?? x.text } };
+
+/** [다른 걸 할래]: 같은 영역·장면·단계에서 맞는 다른 카드 최대 2개(지금 카드 다음 번호부터). 없으면 이전 단계에서 가까운 것부터. */
+export function alternatives(state: AppState, date: string, fromId: string): Mission[] {
+  const cur = missionById(fromId);
+  if (!cur) return [];
+  const pool = MISSIONS.filter((m) => m.id !== cur.id && fits(state, date, m, cur.categoryId));
+  const same = pool.filter((m) => m.stage === cur.stage);
+  const ordered = [...same.filter((m) => m.id > cur.id), ...same.filter((m) => m.id < cur.id)];
+  if (ordered.length > 0) return ordered.slice(0, 2);
+  return pool.filter((m) => m.stage < cur.stage).sort((a, b) => b.stage - a.stage || a.id.localeCompare(b.id)).slice(0, 2);
 }
-function startExecution(s: AppState, date: string, missionId: string, variant: MissionVariant, confirmed: boolean,
-  customId?: string, parentMissionId?: string): boolean {
-  if (limitReached(s, date)) return false;
-  const p = writable(s); const m = missionById(missionId); const c = p.custom.find(item => item.id === customId);
-  if ((!m && !c) || (m && m.categoryId !== p.selectedCategory) || (c && c.categoryId !== p.selectedCategory)) return false;
-  if (m && (((!c || parentMissionId === m.id) && m.stage > p.stages[m.categoryId]) || ((m.mode !== 'activity' || m.eligibility.inheritCustomActionRequirements) && !c))) return false;
-  const status = c ? customEligibility(p, c, variant) : missionEligibility(p, m!, variant);
-  if (status === 'excluded' || (status === 'unknown' && !confirmed)) return false;
-  ensureSession(p);
-  p.execution = { actionId: crypto.randomUUID(), missionId, variant, customId, parentMissionId,
-    text: c ? c[variant] : m![variant], record: c ? c[variant] : variant === 'basic' ? m!.record : m!.smallRecord,
-    when: c?.trigger ?? '', where: '', criterion: variant === 'small' ? c?.small ?? m!.small : c?.criterion ?? m!.basic };
-  const day = (s.days[date] ??= { refresh: 0 }); day.rested = false; day.plan = missionPlan(s);
+
+/** 일상에서 장면을 건너뛰면: D01·D03·D05 미리보기 중 지금 맞는 것 */
+export function previewCards(state: AppState, date: string): Mission[] {
+  return FIRST.daily.previews.map((id) => missionById(id)).filter((m): m is Mission => !!m && fits(state, date, m, 'daily'));
+}
+
+/** 카드 흐름을 다시 열 때의 첫 카드: 표지판 → 마지막으로 고른 카드(둘 다 조건을 다시 거른다). 없으면 null(장면 고르기). */
+export function startCard(state: AppState, date: string): (MissionStep & { bookmark: boolean }) | null {
+  const cat = state.missions.category;
+  if (!cat) return null;
+  const bm = state.missions.bookmarks[cat];
+  const bmCard = missionById(bm?.missionId);
+  if (bm && bmCard && fits(state, date, bmCard, cat)) {
+    const vs = eligibleVariants(state, date, bmCard);
+    return { missionId: bmCard.id, variant: vs.includes(bm.variant) ? bm.variant : vs[0], bookmark: true };
+  }
+  const last = missionById(state.missions.last[cat]);
+  if (last && fits(state, date, last, cat)) return { missionId: last.id, variant: preferred(state, date, last), bookmark: false };
+  return null;
+}
+
+/** [여기까지] 뒤 표지판 제안: 줄인 행동만 했으면 같은 카드의 기본, 기본을 했으면 다음 카드의 줄인 행동. 번호만 보고 정하지 않는다. */
+export function bookmarkSuggestion(state: AppState, date: string): MissionStep | null {
+  const step = lastStep(state);
+  if (!step) return null;
+  const next = moreAfter(state, date, step);
+  if (!next) return null;
+  if (next.missionId === step.missionId) return { missionId: step.missionId, variant: 'basic' };
+  const m = missionById(next.missionId)!;
+  return { missionId: m.id, variant: eligibleVariants(state, date, m).includes('small') ? 'small' : 'basic' };
+}
+
+// ---------- 고르기 ----------
+export function chooseArea(draft: AppState, category: CategoryId): void {
+  draft.missions.category = category;
+}
+
+export function chooseWorkStatus(draft: AppState, status: WorkStatus): void {
+  draft.missions.workStatus = status;
+}
+
+/** 장면 고르기. null이면 그 영역의 모든 장면(미리보기에서 고를 때) */
+export function chooseIntent(draft: AppState, category: CategoryId, intent: string | null): void {
+  if (intent) draft.missions.intents[category] = intent;
+  else delete draft.missions.intents[category];
+}
+
+/** "해당 없어요": 이 카드와, 같은 조건이 걸린 카드를 그날만 뺀다. */
+export function markNotApplicable(draft: AppState, date: string, id: string): void {
+  const m = missionById(id);
+  if (!m) return;
+  const cur = skipOf(draft, date);
+  draft.missions.skip = {
+    date,
+    facts: [...new Set([...cur.facts, ...m.basicFacts, ...m.smallFacts])],
+    cards: [...new Set([...cur.cards, m.id])],
+  };
+}
+
+/** "다음 길을 볼래": 추천 단계를 그 카드의 단계로 올린다(내려가지 않고 4단계까지). */
+export function advanceStage(draft: AppState, id: string): void {
+  const m = missionById(id);
+  if (!m) return;
+  const st = draft.missions.stage;
+  st[m.categoryId] = Math.min(MAX_STAGE, Math.max(st[m.categoryId], m.stage));
+}
+
+/** 표지판에 남긴다(영역마다 하나). */
+export function saveBookmark(draft: AppState, step: MissionStep): void {
+  const m = missionById(step.missionId);
+  if (m) draft.missions.bookmarks[m.categoryId] = step;
+}
+
+/** 카드의 한 크기를 고른다: 오늘 계획이 되고(회차가 없으면 열린다) 마지막 카드·장면을 기억한다. 표지판 카드면 표지판을 쓴 것으로 지운다. 하루 상한이면 false. */
+export function chooseMission(draft: AppState, date: string, step: MissionStep): boolean {
+  const m = missionById(step.missionId);
+  if (!m || !eligibleVariants(draft, date, m).includes(step.variant)) return false;
+  const plan = { missionId: m.id, variant: step.variant, info: { when: '지금', where: '', minutes: 0 }, source: 'mission' as const };
+  if (!setPlan(draft, date, plan)) return false;
+  const ms = draft.missions;
+  ms.category = m.categoryId;
+  const intent = ms.intents[m.categoryId];
+  if (!m.intentIds.includes('all') && !(intent && m.intentIds.includes(intent))) ms.intents[m.categoryId] = m.intentIds[0];
+  ms.last[m.categoryId] = m.id;
+  if (ms.bookmarks[m.categoryId]?.missionId === m.id) delete ms.bookmarks[m.categoryId];
   return true;
 }
-export function startMission(s: AppState, date: string, missionId: string, variant: MissionVariant, confirmed: boolean,
-  customId?: string, parentMissionId?: string): boolean {
-  const m = missionById(missionId);
-  if (m?.mode === 'plan_and_execute' || m?.mode === 'day_and_execute') return false;
-  return startExecution(s, date, missionId, variant, confirmed, customId, parentMissionId);
-}
-export function reportMission(s: AppState, date: string): boolean {
-  const p = writable(s); const session = activeMissionSession(s); const x = p.execution;
-  if (!x || !session || session.status !== 'active' || limitReached(s, date) || session.reportedActions.some(a => a.actionId === x.actionId)) return false;
-  const plan = missionPlan(s)!;
-  const isCustom = p.custom.some(c => c.id === x.customId);
-  const logId = `${date}-${s.logs.length + 1}`;
-  s.logs.push({ id: logId, date, activityId: isCustom ? undefined : x.missionId || undefined, text: x.record, plan: plan.info, chips: [], source: plan.source,
-    mission: { sessionId: session.sessionId, actionId: x.actionId, variant: x.variant, record: x.record, parentMissionId: x.parentMissionId } });
-  session.reportedActions.push({ ...x, date, logId }); p.execution = null;
-  if (s.days[date]) delete s.days[date].plan;
-  const parent = missionById(x.parentMissionId);
-  if (parent?.recommendation.afterFinal) p.dayMapDefault[parent.categoryId] = true;
-  return true;
-}
-export function reduceMission(s: AppState, date: string, confirmed: boolean): boolean {
-  const p = writable(s); const x = p.execution; if (!x) return false;
-  const c = p.custom.find(v => v.id === x.customId); const m = missionById(x.missionId);
-  const status = c ? customEligibility(p, c, 'small') : m ? missionEligibility(p, m, 'small') : 'excluded';
-  if (!confirmed || status === 'excluded') return false;
-  x.variant = 'small'; x.text = c?.small ?? m!.small; x.record = c?.small ?? m!.smallRecord; x.criterion = x.text;
-  (s.days[date] ??= { refresh: 0 }).plan = missionPlan(s); return true;
-}
-/** Mark the same session closed and award its one pouch in the same store transaction. */
-export function closeMissionSession(s: AppState, date: string, sessionId: string, chips?: ReflectChip[]): boolean {
-  const p = writable(s); const session = p.sessions[sessionId];
-  if (!session || session.status !== 'active') return false;
-  const performed = session.reportedActions.length > 0;
-  if (performed && !session.rewardGranted) {
-    p.packets++; session.rewardGranted = true;
-    (s.days[date] ??= { refresh: 0 }).sessionRewarded = true;
-    const log = s.logs.find(l => l.id === session.reportedActions[session.reportedActions.length - 1]?.logId);
-    if (log && chips) log.chips = chips;
-  }
-  session.status = performed ? 'closed' : 'skipped'; session.closedOn = date;
-  if (p.activeSessionId === sessionId) { p.activeSessionId = null; p.execution = null; if (s.days[date]) delete s.days[date].plan; }
-  return performed;
-}
-export function restMissions(s: AppState, date: string): void {
-  const session = activeMissionSession(s); if (session) closeMissionSession(s, date, session.sessionId);
-  const day = (s.days[date] ??= { refresh: 0 }); day.rested = true; delete day.plan;
-}
-export function saveMissionBookmark(s: AppState, bookmark: MissionBookmark): boolean {
-  if (!bookmark.nextAction.trim() || !missionById(bookmark.sourceMissionId) || (bookmark.targetMissionId && !missionById(bookmark.targetMissionId))) return false;
-  writable(s).bookmarks[bookmark.categoryId] = { ...bookmark, nextAction: bookmark.nextAction.trim() }; return true;
-}
-export function resumeMissionBookmark(s: AppState, date: string, category: CategoryId, confirmed: boolean): boolean {
-  const p = writable(s); const b = p.bookmarks[category]; if (!b || limitReached(s, date)) return false;
-  setMissionCategory(s, category);
-  const source = missionById(b.targetMissionId ?? b.sourceMissionId);
-  if (!source) return false;
-  const custom = p.custom.find(c => c.id === b.customId);
-  if ((custom ? customEligibility(p, custom, 'small') : missionEligibility(p, source, 'small')) === 'excluded' || !confirmed || (!custom && source.stage > p.stages[category])) return false;
-  if (!source.intentIds.includes('all')) p.selectedIntent = source.intentIds[0];
-  ensureSession(p);
-  p.execution = { actionId: crypto.randomUUID(), missionId: source.id, variant: 'small', text: b.nextAction, record: b.nextAction, customId: b.customId, criterion: b.nextAction };
-  const day = (s.days[date] ??= { refresh: 0 }); day.rested = false; day.plan = missionPlan(s); return true;
-}
-export function saveCustomMission(s: AppState, input: Omit<CustomMission, 'id'>, id?: string): string | null {
-  if (![input.name, input.basic, input.small, input.criterion].every(x => x.trim() && x.length <= 500)) return null;
-  const original = missionById(input.sourceMissionId);
-  if (input.sourceMissionId && (original?.categoryId !== input.categoryId || original.mode !== 'activity' || original.eligibility.inheritCustomActionRequirements)) return null;
-  const p = writable(s); const found = p.custom.find(c => c.id === id);
-  const next = { ...input, sourceMissionId: found?.sourceMissionId ?? input.sourceMissionId, id: found?.id ?? crypto.randomUUID() };
-  if (found) Object.assign(found, next); else p.custom.push(next);
-  return next.id;
-}
-export function saveMyDay(s: AppState, category: CategoryId, entries: DayMission[]): boolean {
-  const p = writable(s);
-  if (entries.length < 1 || entries.length > 3 || new Set(entries.map(x => x.id)).size !== entries.length
-    || entries.some(e => !p.custom.some(c => c.id === e.customId && c.categoryId === category) || !e.cue.trim())) return false;
-  p.myDays[category] = structuredClone(entries);
-  p.selectedDayEntry ??= {};
-  if (!entries.some(e => e.id === p.selectedDayEntry![category])) p.selectedDayEntry[category] = entries[0].id;
-  return true;
+
+// ---------- 문장 ----------
+/** 고른 크기의 행동 문장 */
+export function actionText(m: Mission, v: Variant): string {
+  return v === 'basic' ? m.basic : m.small;
 }
 
-export function startDayMission(s: AppState, date: string, category: CategoryId, entryId: string, variant: MissionVariant,
-  confirmed: boolean, parentId?: string, parentVariant: MissionVariant = 'basic'): boolean {
-  const p = missionProgress(s); const entries = p.myDays[category] ?? [];
-  const entry = entries.find(e => e.id === entryId); const c = p.custom.find(x => x.id === entry?.customId);
-  const parent = missionById(parentId);
-  if (!entry || !c || p.selectedCategory !== category || (parent && parent.stage > p.stages[category])) return false;
-  if (parent && parentVariant === 'basic' && [26, 27, 30].includes(Number(parent.id.slice(1))) && entries.length < 2) return false;
-  const ok = startExecution(s, date, parentId ?? c.sourceMissionId ?? '', variant, confirmed, c.id, parentId);
-  if (ok && s.days[date]?.plan) {
-    p.selectedDayEntry ??= {}; p.selectedDayEntry[category] = entryId;
-    p.execution!.when = [entry.cue, entry.time].filter(Boolean).join(' · ');
-    p.execution!.where = entry.place ?? '';
-    s.days[date].plan = missionPlan(s);
-  }
-  return ok;
-}
-
-export function bookmarkSuggestion(s: AppState): MissionBookmark | null {
-  const p = missionProgress(s); const session = activeMissionSession(s) ?? Object.values(p.sessions).filter(x => x.status === 'closed').slice(-1)[0];
-  const last = session?.reportedActions[session.reportedActions.length - 1]; const source = missionById(last?.missionId);
-  if (!last || !source) return null;
-  const custom = p.custom.find(c => c.id === last.customId);
-  const target = custom ? missionById(custom.sourceMissionId) ?? source
-    : missionCandidates({ ...p, selectedCategory: source.categoryId }, { after: source.id }).find(m => m.mode === 'activity' && !m.intentIds.includes('all')) ?? source;
-  return { categoryId: source.categoryId, sourceMissionId: source.id, targetMissionId: target.id,
-    nextAction: custom?.small ?? target.small, variant: 'small', customId: last.customId };
+/** 수첩에 남는 기록 문장 */
+export function recordText(m: Mission, v: Variant): string {
+  return v === 'basic' ? m.record : m.smallRecord;
 }

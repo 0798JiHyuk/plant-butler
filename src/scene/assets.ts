@@ -24,5 +24,6 @@ export function preloadAssets(scene: Phaser.Scene): void {
   scene.load.image('plant_sprout', `${base}assets/icons-ui/seedling.png`);
   scene.load.image('plant_bud', `${base}assets/icons-ui/bud.png`);
   scene.load.image('fruit_mark', `${base}assets/icons-ui/fruit.png`);
+  scene.load.image('npc_mark', `${base}assets/icons-ui/talk.png`); // 그날 열린 이야기가 있는 주민 머리 위
   for (const id of NPC_IDS) for (const pose of NPC_POSES) scene.load.image(`npc_${id}_${pose}`, npcUrl(id, pose));
 }

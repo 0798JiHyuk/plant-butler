@@ -44,7 +44,7 @@ export const NPC_HOMES = {
 
 export const SPAWN = { x: 640, y: 540 };
 
-function inPolygon(x: number, y: number, poly: [number, number][]): boolean {
+export function inPolygon(x: number, y: number, poly: [number, number][]): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const [xi, yi] = poly[i];

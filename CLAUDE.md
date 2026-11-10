@@ -9,12 +9,12 @@ npm run dev     # http://localhost:5173
 npm test        # Vitest, src/core 규칙·문구·통계·저장·샘플 데이터
 npm run build   # tsc --noEmit + vite build
 ```
-테스트용 주소: `/?decor`(소품 6개), `/?packet=3`(지난 3일치 씨앗 주머니), `/?fruit=20`(열매 20개), `/?seeds=5`(씨앗함에 씨앗 5개), `/?nostory`(프롤로그 건너뛰기). 데모 모드의 [씨앗 5개]도 같다. 데모 모드의 [샘플 채우기]가 시연용 정원을 만든다. 발표 전 `src/main.ts`에서 제거해도 된다.
+테스트용 주소: `/?decor`(소품 6개), `/?packet=3`(지난 3일치 씨앗 주머니), `/?fruit=20`(열매 20개), `/?seeds=5`(씨앗함에 씨앗 5개), `/?nostory`(프롤로그 건너뛰기), `/?hitbox`(소품·텃밭의 발자국과 새싹이 발을 빨강·파랑 선으로 보기). 데모 모드의 [씨앗 5개]도 같다. 데모 모드의 [샘플 채우기]가 시연용 정원을 만든다. 발표 전 `src/main.ts`에서 제거해도 된다.
 
 ## 절대 어기지 말 것 (이 앱의 설계 원칙)
 - 스트릭·벌점·미완료 표시·정원 시들기/초기화 **없음**. 안 한 일은 기록하지 않는다. 해낸 것만 쌓인다.
 - 칭찬 금지, **사실 피드백만**: "이번 주 집 앞 걷기 3번째예요."
-- 하루 활동 최대 3개(`DAILY_LIMIT`), "오늘은 쉬기"도 정상 선택(새싹이도 같이 쉼).
+- 하루에 마치는 회차는 최대 3개(`DAILY_LIMIT`, 씨앗도 하루 최대 3개). 회차는 카드(또는 직접 적은 일)를 고르면 열리고 [여기까지]·쉬기로 닫히며, 해낸 행동이 있으면 씨앗 주머니 1개(몇 개를 했든, 두 번 닫아도 한 번). "오늘은 쉬기"도 정상 선택이고(새싹이도 같이 쉼) 잃는 것이 없다.
 - 재촉 알림·유료 요소 없음. 씨앗 주머니는 랜덤이지만(일반 꽃 55%·나무 30%·특별 15%) 꽝·재뽑기·확률 표시가 없고, 중복도 정상이며 특별 씨앗도 열매는 같다. 결정은 `docs/monday-plan.md`.
 - UI 문구에 "우울/증상/치료/진단/상담" 같은 단어 금지. 말투는 존댓말, 부드럽고 짧게. 효과를 단정하는 표현도 쓰지 않는다(효과는 검증 전, 재발 예방은 주장하지 않음).
 - 상담·진단·치료를 제공하지 않고, AI로 마음 상태를 판정하는 기능도 만들지 않는다. 이웃 방문·식물 나눔·하드웨어는 후속 기능이라 이번 범위 밖.
@@ -22,11 +22,17 @@ npm run build   # tsc --noEmit + vite build
 
 ## 구조
 - `src/core` — 순수 TS(규칙·데이터·저장). Phaser·DOM을 모른다. **테스트는 여기에.**
-  `rules.ts`(상한·쉬기·제안·주머니·씨앗함), `economy.ts`(성장·수확·열매·상점·방문 선물함·도장판), `stats.ts`(사실 피드백), `store.ts`(단일 상태+localStorage), `demo.ts`(샘플 데이터),
-  `story.ts`+`data/story.json`(이야기 장면), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
+  `rules.ts`(상한·쉬기·회차와 씨앗·주머니·씨앗함), `economy.ts`(성장·수확·열매·상점·방문 선물함·도장판), `stats.ts`(사실 피드백), `store.ts`(단일 상태+localStorage), `demo.ts`(샘플 데이터),
+  `story.ts`+`data/story.json`(이야기 장면: 프롤로그·주민 본편·서브·복귀. 열리는 순서와 하루 한 장면 규칙은 `story.ts`, 대본에서 바꾸거나 뺀 부분은 `docs/story-scenes.md`), `clock.ts`(날짜는 항상 여기서), `copy.ts`(**모든 UI 문구**).
+  `missions.ts`+`data/missions.json`(팀 미션 90개. 거르기·첫 카드·더 해 볼래·다른 걸 할래·표지판. 1~4단계만 추천하고 추천 단계는 "다음 길을 볼래"로만 오른다. "해당 없어요"는 그날만. 원본은 `docs/missions/`, 데이터는 `python3 -I tools/import_missions.py <원본.json>`으로 다시 만든다. 설계는 `docs/superpowers/specs/2026-11-09-missions-card-loop-design.md`).
 - `src/scene` — Phaser 정원(`GardenScene`, `Player`, `map`, `assets`, `sprites`). 그래픽은 `assets.ts` 한 곳이 출입구.
   배경은 그림 한 장(1266×712), 걸을 수 있는 곳은 `map.ts`의 다각형, 소품은 32px 칸에 스냅하고, 키우는 식물은 밭 그림(`public/assets/garden/field.png`, 원본 `art/source/field-bed2.webp`)의 두둑 16곳에만 심긴다(수확한 꽃은 창고로 가고, 꺼내면 소품처럼 마당 칸에 놓는다. 열매나무는 마당 칸에 심고 남아서 다시 맺는다. `economy.placeZone`. 나무 그림은 임시이고 `tools/make_tree_placeholders.py`가 만든다). 식물 칸 번호는 (100+열, 100+행)이고 위치는 `map.ts`의 `MOUNDS`가 정한다. 밭 그림을 바꾸면 `MOUNDS`(그림 속 두둑 좌표)와 `DEFAULT_BED`(처음 자리·크기)를 다시 맞춰야 한다. 텃밭은 꾸미기에서 끌어 옮길 수 있고(`bedFits`가 놓을 수 있는 곳을 판단, 자리는 `garden.bed`에 저장) 식물은 두둑 번호로 저장되어 텃밭을 따라 움직인다. 코드에서 텃밭 위치는 상수가 아니라 `BED`(바뀌는 값)를 쓸 것.
-- `src/ui` — **React** 오버레이. `App.tsx`가 뿌리, `Hud.tsx`(정원 위 화면), `modal.tsx`(`openModal(<패널/>)`·`closeModal()`), `toast.tsx`, `panels/`(활동·기록·설정·상점·선물·대화·주머니·꾸미기 등 패널 하나가 파일 하나, `Bag.tsx`는 가진 것(씨앗·소품·식물), `Records.tsx`는 쌓아 온 것(기록·도감·출석). 분류 기준은 `docs/ux-research.md`). 화면 사이의 흐름은 `flow.ts`. 상태는 `useAppState()`로 읽고 `store.update()`로 바꾼다.
+  못 지나가는 곳과 앞뒤(그리는 순서)는 `footprints.ts`의 **발자국**(소품·텃밭이 땅에 닿은 자리)이 정한다. 소품 그림을 바꾸면 `FOOTPRINTS`를 그림에 맞춰 다시 재고 `?hitbox`로 겹쳐 확인한다. 새싹이·주민의 앞뒤는 `GardenScene.standDepth`가 발자국 기준으로 매 프레임 정하고, 소품이 새싹이 위에 놓이면 앞쪽 빈자리로 폴짝 비켜선다(`Player.hopOutIfStuck`).
+  주민(`Npc.ts`)은 버릇(`HABITS`: 느리는 느리고 고개를 기울이고, 모루는 망치질하듯 들썩이고, 피오는 통통 뛴다)으로 움직이고, 그날 열린 이야기가 있으면 머리 위에 표시가 뜬다(`GardenScene.refreshMarks`). 새싹이가 다가가면 돌아보고 짧게 말을 건다(같은 주민은 1분 간격, 쉬는 날엔 쉬는 말). 쉬는 날엔 서성이지 않는다. 버릇은 위치를 바꾸지 않고 기울기·크기·기준점만 움직인다.
+  꾸미기: 소품·식물을 짚으면 아래쪽 메뉴([옮기기]·[방향 바꾸기]·[창고에 넣기], `Decorate.tsx`의 `SelectBar` ↔ 씬은 `decor-select`·`decor-action` 이벤트)가 뜨고, 끌어서 바로 옮길 수도 있다. 마당에서는 놓일 발자국이 텃밭·다른 소품·나무 줄기·장식 꽃과 겹치면 놓지 않는다(`canPlace`, 끄는 동안 초록·빨강 발자국으로 미리 보여 줌). 좌우 방향은 `DecorItem.flip`(창고에 넣었다 꺼내도 유지).
+- `src/ui` — **React** 오버레이. `App.tsx`가 뿌리, `Hud.tsx`(정원 위 화면), `modal.tsx`(`openModal(<패널/>)`·`closeModal()`), `toast.tsx`, `panels/`(미션 카드·기록·설정·상점·선물·대화·주머니·꾸미기 등 패널 하나가 파일 하나, `Bag.tsx`는 가진 것(씨앗·소품·식물), `Records.tsx`는 쌓아 온 것(기록·이야기·도감·출석). 분류 기준은 `docs/ux-research.md`). 화면 사이의 흐름은 `flow.ts`. 상태는 `useAppState()`로 읽고 `store.update()`로 바꾼다.
+  미션 카드 흐름은 `Mission.tsx` 모달 하나가 영역 → 장면 → 카드 → 다음 길·끝 화면을 바꿔 보여 주고, "내가 직접 만들래"는 `Direct.tsx`. [했어] 뒤 `Reflect.tsx`의 [여기까지]가 회차를 닫고(표지판 물음 → 정원 변화 → 씨앗 주머니), [더 해 볼래]가 같은 회차에서 다음 카드로 간다(`flow.ts`의 `complete`·`endSession`).
+  주민을 누르면(그날 열린 이야기 장면이 없을 때) `Chat.tsx` 대화창이 열린다. 주민 대답은 `core/chat.ts`의 `npcReply`가 받아 주는 말을 차례로 고를 뿐 사용자의 글을 읽지 않는다(해석·판정 금지). 내가 쓴 말이 있으면 끝낼 때 남길 말(굵게)·마음 식물·한 줄을 골라 `chats`에 기기 안에만 남기고, 수첩의 "이야기" 탭에서 보고 지운다. 대화는 통계에 넣지 않는다. 설계는 `docs/superpowers/specs/2026-11-08-npc-chat-and-behaviors-design.md`.
 - core·scene·ui는 서로 직접 부르지 않고 `core/events.ts` 이벤트로 대화한다.
 
 ## 그림(아트) 규칙
@@ -44,8 +50,8 @@ npm run build   # tsc --noEmit + vite build
 - 규칙을 바꾸면 `src/tests/`에 먼저 테스트를 쓴다. 날짜 계산은 `clock.ts`(데모 모드의 날짜 넘기기가 거기에 의존).
 - 저장된 상태 모양을 바꾸면 `store.ts`의 `loadState`가 이전 저장본을 기본값으로 채우는지 확인한다.
 - 화면은 가로 844 고정, 세로는 창 비율에 맞춰 390~563으로 늘어난다(`main.ts`의 `layout()`, CSS 변수 `--stage-h`). 고정 높이 390을 가정하는 코드를 쓰지 말고 `cam.height`·`game.scale.height`를 쓸 것.
-- 새 패널은 `panels/`에 컴포넌트와 `openXxx()`를 함께 만들고 `flow.ts`에서 부른다. 패널끼리 직접 부르지 않는다(대화 끝의 이어짐은 `talkActions`처럼 flow가 채운다).
-- 모든 버튼은 44px 이상, 844×390에서 스크롤 없이 한 화면. 패널 높이는 372px 안(활동 패널이 가장 빠듯함).
+- 새 패널은 `panels/`에 컴포넌트와 `openXxx()`를 함께 만들고 `flow.ts`에서 부른다. 패널끼리 직접 부르지 않는다(이어짐은 `chatActions`·`missionLinks`·`directLinks`처럼 flow가 채운다).
+- 모든 버튼은 44px 이상, 844×390에서 스크롤 없이 한 화면. 패널 높이는 372px 안(미션 카드가 가장 빠듯함).
 - 텍스트 입력 중에는 Phaser 키보드 가로채기를 끈다(`GardenScene.setLocked`). 새 입력창을 만들면 같은 모달 경로를 쓸 것.
 
 ## 알려진 한계

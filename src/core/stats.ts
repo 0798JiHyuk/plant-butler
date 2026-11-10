@@ -1,5 +1,6 @@
 import { activityById } from './activities';
 import { copy } from './copy';
+import { missionById } from './missions';
 import type { Activity, LogEntry } from './types';
 
 function parse(date: string): Date {
@@ -38,20 +39,26 @@ export function directPlanRatio(logs: LogEntry[]): number {
   return logs.length === 0 ? 0 : logs.filter((l) => l.source === 'design').length / logs.length;
 }
 
-/** 활동이든 직접 적은 일이든, 같은 것을 이번 주에 몇 번 했는지로 말한다. */
-export function factLineFor(logs: LogEntry[], log: LogEntry, date: string): string {
-  const same = (l: LogEntry) => (log.activityId ? l.activityId === log.activityId : l.text === log.text);
-  const label = log.mission?.record ?? activityName(log) ?? log.text ?? '';
-  return copy.fact.weekNth(label, thisWeek(logs, date).filter(same).length);
+/** 기록의 이름: 미션 카드면 미션 이름, 예전 활동이면 활동 이름, 직접 적은 일이면 그 글 */
+export function logName(log: LogEntry): string {
+  return missionById(log.missionId)?.name ?? activityById(log.activityId)?.name ?? log.text ?? '';
 }
 
-function activityName(log: LogEntry): string | undefined {
-  return log.activityId ? activityById(log.activityId)?.name : undefined;
+/** 같은 일인지: 같은 카드, 같은 예전 활동, 같은 글 */
+function sameThing(a: LogEntry, b: LogEntry): boolean {
+  if (b.missionId) return a.missionId === b.missionId;
+  if (b.activityId) return a.activityId === b.activityId;
+  return !a.missionId && !a.activityId && a.text === b.text;
+}
+
+/** 카드든 직접 적은 일이든, 같은 것을 이번 주에 몇 번 했는지로 말한다. */
+export function factLineFor(logs: LogEntry[], log: LogEntry, date: string): string {
+  return copy.fact.weekNth(logName(log), thisWeek(logs, date).filter((l) => sameThing(l, log)).length);
 }
 
 /** 이번 주에 해본 서로 다른 일의 수 */
 export function weekKindsCount(logs: LogEntry[], date: string): number {
-  return new Set(thisWeek(logs, date).map((l) => l.activityId ?? `text:${l.text}`)).size;
+  return new Set(thisWeek(logs, date).map((l) => l.missionId ?? l.activityId ?? `text:${l.text}`)).size;
 }
 
 /** 날짜별(최신 먼저)로 묶는다. 해낸 것만 들어 있다. */

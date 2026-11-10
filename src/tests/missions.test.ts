@@ -1,177 +1,222 @@
 import { describe, expect, it } from 'vitest';
-import { createState, decodeState, stateKey } from '@/core/state';
-import { activeMissionSession, bookmarkSuggestion, chooseMissionStage, closeMissionSession, createMissionProgress, customEligibility,
-  missionById, missionCandidates, missionCatalog, missionEligibility, missions, reduceMission, reportMission,
-  restMissions, recommendedMission, resumeMissionBookmark, saveCustomMission, saveMissionBookmark, saveMyDay, setMissionCategory, startDayMission, startMission } from '@/core/missions';
-import { openMissionPacket, pendingPacketCount } from '@/core/rules';
-import { canHarvest } from '@/core/economy';
-import { copy } from '@/core/copy';
-const D = '2026-11-09';
-function fixture(category: 'daily' | 'academic' | 'work' = 'daily', intent = 'drink') {
-  const s = createState(); setMissionCategory(s, category); s.missions!.selectedIntent = intent; return s;
-}
-const custom = (s: ReturnType<typeof fixture>, sourceMissionId?: string) => saveCustomMission(s, {
-  categoryId: s.missions!.selectedCategory!, name: '내 행동', basic: '고른 행동 하기', small: '고른 행동의 첫 부분 하기', trigger: '식사 뒤', criterion: '고른 행동 한 번', sourceMissionId,
-})!;
+import { FORBIDDEN_WORDS } from '../core/copy';
+import {
+  advanceStage, alternatives, bookmarkSuggestion, chooseArea, chooseIntent, chooseMission, chooseWorkStatus, eligibleVariants, FIRST, fits,
+  lastStep, markNotApplicable, missionById, MISSIONS, moreAfter, preferred, previewCards, saveBookmark, startCard, type Mission,
+} from '../core/missions';
+import { closeSession, reportAction, setEnergy } from '../core/rules';
+import { createState } from '../core/store';
+import type { Variant } from '../core/types';
 
-describe('최종 90개 콘텐츠', () => {
-  it('v2 원본 90개/영역별 30개/단계별 5개 및 참조 ID를 확인한다', () => {
-    expect(missionCatalog.schemaVersion).toBe(2); expect(missions).toHaveLength(90); expect(new Set(missions.map(m => m.id)).size).toBe(90);
-    for (const c of ['daily', 'academic', 'work']) for (let stage = 1; stage <= 6; stage++) expect(missions.filter(m => m.categoryId === c && m.stage === stage)).toHaveLength(5);
-    for (const m of missions) {
-      expect(missionById(m.next)).toBeDefined(); expect(missionById(m.recommendation.nominalNextId)).toBeDefined();
-      for (const field of ['name', 'dialogue', 'basic', 'small', 'record', 'smallRecord', 'condition'] as const) expect(m[field].length).toBeGreaterThan(0);
-    }
+/** 화면에 나오는 글 */
+const shown = (m: Mission) => [m.name, m.stageName, m.dialogue, m.basic, m.small, m.record, m.smallRecord, m.conditionSummary, m.buttonLabel];
+
+describe('미션 데이터', () => {
+  it('영역마다 30개, 단계마다 15개이고 ID가 겹치지 않는다', () => {
+    expect(MISSIONS).toHaveLength(90);
+    expect(new Set(MISSIONS.map((m) => m.id)).size).toBe(90);
+    for (const c of ['daily', 'academic', 'work'] as const) expect(MISSIONS.filter((m) => m.categoryId === c)).toHaveLength(30);
+    for (let st = 1; st <= 6; st++) expect(MISSIONS.filter((m) => m.stage === st)).toHaveLength(15);
   });
-  it('새 단계 문구 함수에도 금지 표현이 없다', () => {
-    expect(copy.missions.stage(2, '한 가지 해내기')).toBe('2단계 · 한 가지 해내기');
+
+  it('다음 후보와 첫 미션 표의 ID가 모두 있다', () => {
+    for (const m of MISSIONS) if (m.nextId) expect(missionById(m.nextId), m.id).toBeDefined();
+    const firsts = [
+      ...FIRST.daily.scenes.map((s) => s.missionId), ...FIRST.daily.previews, FIRST.academic.missionId,
+      ...FIRST.work.pre_return.map((s) => s.missionId), ...FIRST.work.returned.map((s) => s.missionId),
+    ];
+    for (const id of firsts) expect(missionById(id), id).toBeDefined();
   });
-});
-describe('조건과 사용자 선택 추천', () => {
-  it('영역 자동 선택/선택 보상은 없고 D05를 무조건 추천하지 않는다', () => {
-    const s = createState(); expect(createMissionProgress().selectedCategory).toBeNull(); expect(missionCandidates(createMissionProgress())).toEqual([]);
-    setMissionCategory(s, 'daily'); expect(pendingPacketCount(s)).toBe(0);
-    s.missions!.facts.hasClutteredSeat = false; expect(missionCandidates(s.missions!).some(m => m.id === 'D05')).toBe(false);
+
+  it('주민 이름은 게임 id로 바뀌어 있고, 1~4단계 카드는 느리·모루·피오가 말한다', () => {
+    for (const m of MISSIONS) expect(['nuri', 'moru', 'pio', 'sprout']).toContain(m.npc);
+    for (const m of MISSIONS.filter((x) => x.stage <= 4)) expect(['nuri', 'moru', 'pio']).toContain(m.npc);
   });
-  it('unknown은 미리보기만 가능하며 기본/축소에서 false를 따로 적용한다', () => {
-    const s = fixture(); const m = missionById('D01')!;
-    expect(missionEligibility(s.missions!, m, 'small')).toBe('unknown'); expect(startMission(s, D, m.id, 'small', false)).toBe(false);
-    expect(startMission(s, D, m.id, 'small', true)).toBe(true);
-    s.missions!.facts.hasCup = false; expect(startMission(s, D, m.id, 'small', true)).toBe(false);
-    const outing = missionById('D14')!; s.missions!.facts.canMakeChosenTrip = false; s.missions!.facts.canMoveIndoors = true;
-    expect(missionEligibility(s.missions!, outing, 'basic')).toBe('excluded'); expect(missionEligibility(s.missions!, outing, 'small')).toBe('eligible');
-  });
-  it('D01 음료 뒤 D02 식사가 아니라 D06 후보이며 단계 상승은 동의가 필요하다', () => {
-    const s = fixture(); expect(missionCandidates(s.missions!, { after: 'D01' })[0].id).toBe('D06');
-    expect(startMission(s, D, 'D06', 'basic', true)).toBe(false); chooseMissionStage(s, missionById('D06')!);
-    expect(startMission(s, D, 'D06', 'basic', true)).toBe(true); expect(s.missions!.stages.daily).toBe(2);
-    chooseMissionStage(s, missionById('D01')!); expect(s.missions!.stages.daily).toBe(2);
-  });
-  it('시험 맥락에서 과제 전용 카드를 제외한다', () => {
-    const s = fixture('academic', 'exam'); const list = missionCandidates(s.missions!, { allStages: true });
-    expect(list.every(m => m.intentIds.includes('exam') || m.intentIds.includes('all'))).toBe(true);
-  });
-  it('회차 종료 뒤 다시 열어도 현재 목표의 다음 후보를 미리보기로 유지한다', () => {
-    const s = fixture(); startMission(s, D, 'D01', 'basic', true); reportMission(s, D); closeMissionSession(s, D, s.missions!.activeSessionId!);
-    expect(recommendedMission(s.missions!)?.id).toBe('D06'); expect(s.missions!.stages.daily).toBe(1);
-    s.missions!.selectedIntent = 'meal'; expect(recommendedMission(s.missions!)?.id).toBe('D02');
-  });
-  it('복귀 전/미선택에서는 W06~W20을 제외하고 준비·직접 만들기는 열린다', () => {
-    const s = fixture('work', 'work');
-    for (const status of ['pre_return', 'unknown'] as const) {
-      s.missions!.workStatus = status;
-      const ids = missionCandidates(s.missions!, { allStages: true }).map(m => m.id);
-      for (let i = 6; i <= 20; i++) expect(ids).not.toContain(`W${String(i).padStart(2, '0')}`);
-      expect(ids).toContain('W03'); expect(ids).toContain('W21');
-    }
+
+  it('화면에 나오는 글에 금지 표현이 없다', () => {
+    const labels = [...FIRST.daily.scenes, ...FIRST.work.pre_return, ...FIRST.work.returned].map((s) => s.label);
+    const texts = [...MISSIONS.flatMap(shown), ...labels, ...FIRST.academic.targets.map((t) => t.label)];
+    for (const t of texts) for (const w of FORBIDDEN_WORDS) expect(t).not.toContain(w);
   });
 });
-describe('실제 행동·회차 정산', () => {
-  it('기본·축소·다음 행동이 같은 회차에 묶이고 종료 전 보상은 없다', () => {
-    const s = fixture(); startMission(s, D, 'D01', 'small', true); const id = s.missions!.activeSessionId!;
-    expect(reportMission(s, D)).toBe(true); expect(s.logs[0].mission?.record).toBe(missionById('D01')!.smallRecord);
-    startMission(s, D, 'D01', 'basic', true); reportMission(s, D);
-    chooseMissionStage(s, missionById('D06')!); startMission(s, D, 'D06', 'small', true); reportMission(s, D);
-    expect(s.logs).toHaveLength(3); expect(s.missions!.activeSessionId).toBe(id); expect(pendingPacketCount(s)).toBe(0);
-    expect(startMission(s, D, 'D06', 'basic', true)).toBe(false);
-    expect(closeMissionSession(s, D, id)).toBe(true); expect(pendingPacketCount(s)).toBe(1); expect(s.days[D].packet).toBeUndefined();
+
+const D = '2026-11-09';
+type S = ReturnType<typeof createState>;
+const card = (id: string) => missionById(id)!;
+/** 일상 영역(장면을 주면 그 장면) */
+const daily = (intent?: string) => {
+  const s = createState();
+  chooseArea(s, 'daily');
+  if (intent) chooseIntent(s, 'daily', intent);
+  return s;
+};
+/** 카드를 고르고 [했어]까지 */
+const act = (s: S, missionId: string, variant: Variant) => {
+  expect(chooseMission(s, D, { missionId, variant })).toBe(true);
+  expect(reportAction(s, D, [])).not.toBeNull();
+};
+
+describe('후보 거르기', () => {
+  it('일상에서 장면을 건너뛰면 D01·D03·D05를 미리 보여 준다(D05를 강제하지 않는다)', () => {
+    expect(previewCards(daily(), D).map((m) => m.id)).toEqual(['D01', 'D03', 'D05']);
   });
-  it('중복 완료·중복 정산·저장 복원 뒤 재요청에 추가 지급하지 않는다', () => {
-    let s = fixture(); startMission(s, D, 'D01', 'small', true); const id = s.missions!.activeSessionId!;
-    reportMission(s, D); expect(reportMission(s, D)).toBe(false); closeMissionSession(s, D, id);
-    s = decodeState(JSON.parse(JSON.stringify(s))); expect(closeMissionSession(s, D, id)).toBe(false);
-    expect(s.logs).toHaveLength(1); expect(s.missions!.packets).toBe(1);
-    const seed = openMissionPacket(s, () => 0); expect(seed).not.toBeNull(); expect(openMissionPacket(s)).toBeNull();
+
+  it('장면이 다른 카드는 빼고 all 카드는 남긴다', () => {
+    const s = daily('drink');
+    expect(fits(s, D, card('D02'), 'daily')).toBe(false);
+    expect(fits(s, D, card('D06'), 'daily')).toBe(true);
+    expect(fits(s, D, card('D16'), 'daily')).toBe(true);
   });
-  it('같은 행동의 새 회차는 허용하지만 하루 실제 완료 총 3개는 유지한다', () => {
-    const s = fixture();
-    for (let i = 0; i < 3; i++) { expect(startMission(s, D, 'D01', 'small', true)).toBe(true); reportMission(s, D); closeMissionSession(s, D, s.missions!.activeSessionId!); }
-    expect(s.missions!.packets).toBe(3); expect(startMission(s, D, 'D01', 'small', true)).toBe(false);
+
+  it('5~6단계는 추천하지 않는다', () => {
+    expect(fits(daily(), D, card('D21'), 'daily')).toBe(false);
   });
-  it('미수행 쉬기는 보상 0, 수행 후 쉬기는 기존 회차를 한 번 정산한다', () => {
-    const s = fixture(); startMission(s, D, 'D01', 'small', true); restMissions(s, D);
-    expect(s.logs).toHaveLength(0); expect(pendingPacketCount(s)).toBe(0); expect(activeMissionSession(s)).toBeUndefined();
-    startMission(s, D, 'D01', 'small', true); reportMission(s, D); restMissions(s, D); restMissions(s, D);
-    expect(s.logs).toHaveLength(1); expect(pendingPacketCount(s)).toBe(1); expect(s.days[D].rested).toBe(true);
+
+  it('복귀 전·모를 때는 W06~W20(실무)을 빼고, 복귀 후에는 넣는다', () => {
+    const s = createState();
+    chooseArea(s, 'work');
+    expect(fits(s, D, card('W06'), 'work')).toBe(false);
+    chooseWorkStatus(s, 'pre_return');
+    expect(fits(s, D, card('W03'), 'work')).toBe(true);
+    expect(fits(s, D, card('W06'), 'work')).toBe(false);
+    chooseWorkStatus(s, 'returned');
+    expect(fits(s, D, card('W06'), 'work')).toBe(true);
   });
-  it('쉬기 선택과 D15 실제 휴식 행동 수행은 구분한다', () => {
-    const s = fixture('daily', 'rest'); chooseMissionStage(s, missionById('D15')!); startMission(s, D, 'D15', 'small', true); reportMission(s, D);
-    closeMissionSession(s, D, s.missions!.activeSessionId!); expect(s.logs).toHaveLength(1); expect(s.missions!.packets).toBe(1);
+
+  it('해당 없어요: 그 카드와 같은 조건이 걸린 카드를 그날만 뺀다', () => {
+    const s = daily('drink');
+    markNotApplicable(s, D, 'D01'); // 컵(hasCup)
+    expect(fits(s, D, card('D01'), 'daily')).toBe(false);
+    expect(fits(s, D, card('D06'), 'daily')).toBe(false); // 컵이 필요한 카드
+    expect(fits(s, D, card('D11'), 'daily')).toBe(true);
+    expect(fits(s, '2026-11-10', card('D01'), 'daily')).toBe(true); // 다음 날엔 다시 나온다
   });
-  it('수행 전 축소는 단계와 완료 횟수를 바꾸지 않고 실제 축소 기록만 남긴다', () => {
-    const s = fixture(); startMission(s, D, 'D01', 'basic', true); expect(reduceMission(s, D, true)).toBe(true);
-    expect(s.logs).toHaveLength(0); reportMission(s, D); expect(s.logs[0].text).toBe(missionById('D01')!.smallRecord);
+
+  it('기본 행동에만 걸리는 조건이면 줄인 행동만 남는다', () => {
+    const s = createState();
+    chooseArea(s, 'work');
+    chooseWorkStatus(s, 'returned');
+    markNotApplicable(s, D, 'W08'); // 작성할 과제(hasWritingTask)
+    expect(eligibleVariants(s, D, card('W12'))).toEqual(['small']); // 기본은 예시+작성, 줄인 행동은 예시만
+  });
+
+  it('조금 무거운 날은 줄인 행동을 먼저 보여 준다', () => {
+    const s = daily('drink');
+    expect(preferred(s, D, card('D01'))).toBe('basic');
+    setEnergy(s, D, 'heavy');
+    expect(preferred(s, D, card('D01'))).toBe('small');
   });
 });
-describe('표지판·자기 미션·하루 지도', () => {
-  it('표지판은 숫자 다음 카드가 아닌 목표에 맞는 실제 다음 행동을 제안하고 조건을 다시 확인한다', () => {
-    const s = fixture(); startMission(s, D, 'D01', 'small', true); reportMission(s, D);
-    const bookmark = bookmarkSuggestion(s)!; expect(bookmark.sourceMissionId).toBe('D01'); expect(bookmark.targetMissionId).toBe('D06');
-    expect(bookmark.nextAction).toBe(missionById('D06')!.small); saveMissionBookmark(s, bookmark);
-    closeMissionSession(s, D, s.missions!.activeSessionId!);
-    expect(resumeMissionBookmark(s, D, 'daily', true)).toBe(false); chooseMissionStage(s, missionById('D06')!);
-    expect(resumeMissionBookmark(s, D, 'daily', false)).toBe(false); s.missions!.facts.hasDrink = false;
-    expect(resumeMissionBookmark(s, D, 'daily', true)).toBe(false); s.missions!.facts.hasDrink = 'unknown';
-    expect(resumeMissionBookmark(s, D, 'daily', true)).toBe(true);
+
+describe('더 해 볼래', () => {
+  it('음료(D01) 기본 뒤에는 D02가 아니라 D06이고, 단계가 바뀌어 먼저 묻는다', () => {
+    const s = daily('drink');
+    act(s, 'D01', 'basic');
+    expect(moreAfter(s, D, lastStep(s)!)).toEqual({ missionId: 'D06', variant: 'basic', crosses: true });
+    advanceStage(s, 'D06');
+    expect(moreAfter(s, D, lastStep(s)!)?.crosses).toBe(false);
   });
-  it('영역 변경과 재접속에서도 단계·직접 만든 미션·정원을 보존한다', () => {
-    const s = fixture(); custom(s); s.fruit = 20; s.missions!.stages.daily = 4;
-    setMissionCategory(s, 'academic'); setMissionCategory(s, 'daily');
-    const restored = decodeState(JSON.parse(JSON.stringify(s))); expect(restored.fruit).toBe(20); expect(restored.missions!.stages.daily).toBe(4); expect(restored.missions!.custom).toHaveLength(1);
+
+  it('줄인 행동만 했으면 같은 카드의 기본 행동', () => {
+    const s = daily('drink');
+    act(s, 'D01', 'small');
+    expect(moreAfter(s, D, lastStep(s)!)).toEqual({ missionId: 'D01', variant: 'basic', crosses: false });
+    act(s, 'D01', 'basic');
+    expect(moreAfter(s, D, lastStep(s)!)?.missionId).toBe('D06');
   });
-  it('직접 만들기는 처음부터 가능하고 저장만으로 활동·씨앗이 늘지 않는다', () => {
-    const s = fixture(); const id = custom(s); expect(id).toBeTruthy();
-    expect(s.logs).toHaveLength(0); expect(pendingPacketCount(s)).toBe(0); expect(s.missions!.stages.daily).toBe(1);
-    expect(startMission(s, D, '', 'small', true, id)).toBe(true);
+
+  it('시험 준비 흐름에서는 과제 전용 카드(A11)를 건너뛴다', () => {
+    const s = createState();
+    chooseArea(s, 'academic');
+    chooseIntent(s, 'academic', 'exam');
+    act(s, 'A10', 'basic');
+    expect(moreAfter(s, D, lastStep(s)!)?.missionId).toBe('A12');
   });
-  it('복사 뒤 이름이나 기준을 바꿔도 원래 행동의 조건을 유지한다', () => {
-    const s = fixture('work', 'work'); s.missions!.workStatus = 'returned'; const id = custom(s, 'W06');
-    s.missions!.workStatus = 'pre_return'; const c = s.missions!.custom.find(x => x.id === id)!;
-    expect(customEligibility(s.missions!, c, 'basic')).toBe('excluded'); expect(startMission(s, D, 'W06', 'basic', true, id)).toBe(false);
-    saveCustomMission(s, { ...c, sourceMissionId: undefined }, id); expect(s.missions!.custom[0].sourceMissionId).toBe('W06');
+
+  it('복귀 전에는 준비 카드 안에서만 잇고, 끝나면 null', () => {
+    const s = createState();
+    chooseArea(s, 'work');
+    chooseWorkStatus(s, 'pre_return');
+    act(s, 'W03', 'basic');
+    expect(moreAfter(s, D, lastStep(s)!)?.missionId).toBe('W04');
+    act(s, 'W05', 'basic');
+    expect(moreAfter(s, D, lastStep(s)!)).toBeNull();
   });
-  it('자기 설계 카드만 선택하고 실제 행동 없이 기록할 수 없다', () => {
-    const s = fixture(); chooseMissionStage(s, missionById('D21')!); expect(startMission(s, D, 'D21', 'basic', true)).toBe(false);
-    chooseMissionStage(s, missionById('D16')!); expect(startMission(s, D, 'D16', 'basic', true)).toBe(false);
+
+  it('4단계 마지막 카드 뒤에는 null(5단계는 추천하지 않는다)', () => {
+    const s = daily();
+    act(s, 'D20', 'basic');
+    expect(moreAfter(s, D, lastStep(s)!)).toBeNull();
   });
-  it('A30은 두 개 배치 뒤 하나만 실행해 회차 보상 하나를 받고 나머지는 필수가 아니다', () => {
-    const s = fixture('academic', 'exam'); const one = custom(s); const two = custom(s);
-    chooseMissionStage(s, missionById('A30')!);
-    expect(saveMyDay(s, 'academic', [{ id: '1', customId: one, cue: '먼저' }, { id: '2', customId: two, cue: '나중' }])).toBe(true);
-    expect(s.logs).toHaveLength(0); expect(pendingPacketCount(s)).toBe(0);
-    expect(startMission(s, D, 'A30', 'basic', true, one, 'A30')).toBe(false);
-    expect(startDayMission(s, D, 'academic', '1', 'small', true, 'A30')).toBe(true);
-    reportMission(s, D); closeMissionSession(s, D, s.missions!.activeSessionId!);
-    expect(s.logs).toHaveLength(1); expect(s.missions!.packets).toBe(1); expect(s.missions!.dayMapDefault.academic).toBe(true);
-    expect(s.missions!.myDays.academic).toHaveLength(2);
-  });
-  it('하루 지도를 하나로 줄이면 축소 방식으로 실행할 수 있다', () => {
-    const s = fixture(); const id = custom(s); chooseMissionStage(s, missionById('D30')!);
-    saveMyDay(s, 'daily', [{ id: 'one', customId: id, cue: '식사 뒤' }]);
-    expect(startDayMission(s, D, 'daily', 'one', 'small', true, 'D30', 'basic')).toBe(false);
-    expect(startDayMission(s, D, 'daily', 'one', 'small', true, 'D30', 'small')).toBe(true);
-  });
-  it('지도의 순서·행동·표지판과 미정산 회차가 로컬/서버 snapshot 왕복에서 보존된다', () => {
-    const s = fixture(); const id = custom(s); saveMyDay(s, 'daily', [{ id: 'day', customId: id, cue: '식사 뒤', time: '내 시간', place: '내 자리' }]);
-    startDayMission(s, D, 'daily', 'day', 'small', true);
-    const restored = decodeState(JSON.parse(JSON.stringify(s))); expect(stateKey(restored)).toBe(stateKey(s));
-    reportMission(restored, D); expect(restored.logs[0].plan.when).toContain('식사 뒤'); expect(restored.logs[0].plan.where).toBe('내 자리');
-  });
-  it('하루 지도에서 선택한 두 번째 행동을 재접속 후에도 기억한다', () => {
-    const s = fixture(); const first = custom(s); const second = custom(s);
-    saveMyDay(s, 'daily', [{ id: 'one', customId: first, cue: '먼저' }, { id: 'two', customId: second, cue: '나중' }]);
-    startDayMission(s, D, 'daily', 'two', 'small', true);
-    expect(decodeState(s).missions!.selectedDayEntry?.daily).toBe('two');
-  });
-  it('이전 저장은 그대로 읽고 알 수 없는 진행 값은 조용히 삭제하지 않는다', () => {
-    const old = createState(); expect(decodeState(old)).toEqual(old);
-    const s = fixture(); s.missions!.packets = -1; expect(() => decodeState(s)).toThrow();
-  });
-  it('나무 재수확은 새 회차 보상도 받은 날 단위로 세며 한 날 여러 회차는 중복 계산하지 않는다', () => {
-    const s = fixture(); const tree = { id: 'tree', plantId: 'apple_tree', date: '2026-10-01', harvested: true, harvestedOn: '2026-11-01', col: 1, row: 1 };
-    for (const date of ['2026-11-02', '2026-11-03', '2026-11-04']) {
-      startMission(s, date, 'D01', 'small', true); reportMission(s, date); closeMissionSession(s, date, s.missions!.activeSessionId!);
+
+  it('하루 상한이면 카드를 고를 수 없다', () => {
+    const s = daily('drink');
+    for (let i = 0; i < 3; i++) {
+      act(s, 'D01', 'small');
+      closeSession(s);
     }
-    expect(canHarvest(tree, D, s.days)).toBe(true);
+    expect(chooseMission(s, D, { missionId: 'D01', variant: 'small' })).toBe(false);
+  });
+});
+
+describe('다른 걸 할래', () => {
+  it('같은 단계에서 맞는 다른 카드 최대 2개(지금 카드 다음 번호부터)', () => {
+    const s = createState();
+    chooseArea(s, 'academic');
+    expect(alternatives(s, D, 'A02').map((m) => m.id)).toEqual(['A03', 'A04']);
+  });
+
+  it('같은 단계에 없으면 이전 단계에서 고른다', () => {
+    expect(alternatives(daily('drink'), D, 'D06').map((m) => m.id)).toEqual(['D01']);
+  });
+});
+
+describe('표지판과 다시 열기', () => {
+  it('줄인 행동만 했으면 같은 카드의 기본을, 기본을 했으면 다음 카드의 줄인 행동을 제안한다', () => {
+    const s = daily('drink');
+    act(s, 'D01', 'small');
+    expect(bookmarkSuggestion(s, D)).toEqual({ missionId: 'D01', variant: 'basic' });
+    act(s, 'D01', 'basic');
+    expect(bookmarkSuggestion(s, D)).toEqual({ missionId: 'D06', variant: 'small' });
+  });
+
+  it('카드 행동이 없으면 제안하지 않는다', () => {
+    expect(bookmarkSuggestion(daily(), D)).toBeNull();
+  });
+
+  it('다시 열면 표지판 카드부터, 없으면 마지막 카드부터(조건을 다시 거른다)', () => {
+    const s = daily('drink');
+    act(s, 'D01', 'basic');
+    closeSession(s);
+    expect(startCard(s, D)).toEqual({ missionId: 'D01', variant: 'basic', bookmark: false });
+    saveBookmark(s, { missionId: 'D06', variant: 'small' });
+    expect(startCard(s, D)).toEqual({ missionId: 'D06', variant: 'small', bookmark: true });
+    markNotApplicable(s, D, 'D06'); // 컵·음료가 없다 → D06도 D01도 오늘은 안 맞는다
+    expect(startCard(s, D)).toBeNull();
+  });
+
+  it('표지판 카드를 고르면 표지판을 쓴 것으로 지우고 마지막 카드로 기억한다', () => {
+    const s = daily('drink');
+    saveBookmark(s, { missionId: 'D06', variant: 'small' });
+    chooseMission(s, D, { missionId: 'D06', variant: 'small' });
+    expect(s.missions.bookmarks.daily).toBeUndefined();
+    expect(s.missions.last.daily).toBe('D06');
+    expect(s.days[D].plan).toMatchObject({ missionId: 'D06', variant: 'small', source: 'mission' });
+  });
+
+  it('미리보기에서 고른 카드의 장면을 기억한다', () => {
+    const s = daily();
+    chooseMission(s, D, { missionId: 'D03', variant: 'small' });
+    expect(s.missions.intents.daily).toBe('wash');
+  });
+
+  it('추천 단계는 다음 길을 고를 때만 오르고 내려가지 않는다(4단계까지)', () => {
+    const s = daily();
+    advanceStage(s, 'D11');
+    expect(s.missions.stage.daily).toBe(3);
+    advanceStage(s, 'D01');
+    expect(s.missions.stage.daily).toBe(3);
+    advanceStage(s, 'D21');
+    expect(s.missions.stage.daily).toBe(4);
   });
 });

@@ -44,4 +44,13 @@ describe('stats', () => {
     const groups = groupByDate([log('2026-10-26'), log('2026-10-28'), log('2026-10-28')]);
     expect(groups.map((g) => [g.date, g.logs.length])).toEqual([['2026-10-28', 2], ['2026-10-26', 1]]);
   });
+
+  it('카드 기록은 미션 이름으로 말하고 같은 카드를 센다', () => {
+    const card = (date: string, missionId: string): LogEntry => ({
+      id: date + missionId, date, missionId, variant: 'basic', plan: { when: '지금', where: '', minutes: 0 }, chips: [], source: 'mission',
+    });
+    const logs = [card('2026-10-26', 'D01'), card('2026-10-27', 'D06'), card('2026-10-28', 'D01')];
+    expect(factLineFor(logs, logs[2], '2026-10-28')).toBe('이번 주 쓸 컵 준비하기 2번째예요.');
+    expect(weekKindsCount(logs, '2026-10-28')).toBe(2);
+  });
 });

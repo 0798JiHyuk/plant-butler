@@ -18,8 +18,6 @@
 .card-title .leaf { width: 20px; height: 20px; }
 .mission-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex: none; }
 .mission-icon img { width: 40px; height: 40px; }
-.detail-art { font-size: 0; }
-.detail-img { width: 88px; height: 88px; }
 .reflect-activity { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .reflect-activity .act-icon { width: 40px; height: 40px; }
 .book-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
@@ -94,7 +92,6 @@
 .tab { padding: 0 8px; }
 .btn-chip { padding: 0 2px; }
 .btn-pair .btn { font-size: 12px; }
-.mission-actions .btn-chip { min-width: 66px; }
 
 .packet-btn { top: 104px; }
 .mission-info small { display: block; }

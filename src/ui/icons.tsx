@@ -1,5 +1,4 @@
 // 아이콘·삽화 이미지. 그림 파일은 tools/slice_art.py가 art/source 에서 잘라 public/assets 에 둔다.
-import { activityIconId } from '@/core/activities';
 const base = import.meta.env.BASE_URL;
 
 export type UiIcon = 'records' | 'decorate' | 'settings' | 'talk' | 'packet' | 'leaf' | 'back' | 'close' | 'check' | 'clock' | 'flag' | 'sprout' | 'fruit' | 'gift' | 'shop';
@@ -15,7 +14,7 @@ export const UiIconImg = ({ name, className = 'ui-icon' }: { name: UiIcon; class
 
 /** 활동 아이콘. 직접 적은 일(활동 id 없음)은 연필 아이콘. */
 export const ActivityImg = ({ id, className = 'act-icon' }: { id?: string; className?: string }) => (
-  <Img src={`${base}assets/activities/${activityIconId(id)}.png`} className={className} />
+  <Img src={`${base}assets/activities/${id ?? 'draw'}.png`} className={className} />
 );
 
 export const PlantImg = ({ id, className = 'plant-icon' }: { id: string; className?: string }) => (

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { findFreeSpot } from './footprints';
 import { MAP_H, MAP_W } from './map';
 import { SPROUT_ORIGIN_Y, WALK_FRAMES, type SproutPose, type WalkDir } from './sprites';
 
@@ -31,6 +32,8 @@ export class Player {
   get x(): number { return this.sprite.x; }
   get y(): number { return this.sprite.y; }
   get currentPose(): SproutPose | 'walk' { return this.pose; }
+  /** 뛰는 동안에는 y가 위로 떠 있어서 그리는 순서를 바꾸지 않는다. */
+  get isJumping(): boolean { return this.jumping; }
 
   setPose(pose: SproutPose): void {
     this.pose = pose;
@@ -82,6 +85,29 @@ export class Player {
           });
         },
       });
+    });
+  }
+
+  /** 발밑에 소품이 놓여 갇혔으면 가장 가까운 빈자리로 폴짝 비켜선다(꾸미기에서 새싹이 위에 놓았을 때). */
+  hopOutIfStuck(): void {
+    if (this.jumping || !this.collides(this.x, this.y)) return;
+    const to = findFreeSpot(this.x, this.y, (x, y) => !this.collides(x, y));
+    if (!to) return; // 너무 깊이 갇혔으면 move()처럼 걸어서 빠져나가게 둔다
+    this.jumping = true;
+    const from = { x: this.x, y: this.y };
+    this.scene.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 360,
+      ease: 'Sine.easeInOut',
+      onUpdate: (tw) => {
+        const k = tw.getValue() ?? 0;
+        this.sprite.setPosition(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k - Math.sin(Math.PI * k) * 22);
+      },
+      onComplete: () => {
+        this.sprite.setPosition(to.x, to.y);
+        this.jumping = false;
+      },
     });
   }
 

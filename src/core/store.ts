@@ -2,8 +2,7 @@ import { loadJson, saveJson } from './storage';
 import type { AppState } from './types';
 import { events } from './events';
 import { createState, decodeState, hasProgress, stateKey } from './state';
-import { createMissionProgress } from './missions';
-export { createState } from './state';
+export { createMissionState, createState } from './state';
 
 const LEGACY = 'plantkeeper:v1';
 const LOCAL = 'plantkeeper:local:v1';
@@ -79,7 +78,7 @@ export const store = {
     commit(draft);
   },
   reset(): void {
-    commit({ ...createState(), ...(state.missions ? { missions: createMissionProgress() } : {}) });
+    commit(createState());
   },
   subscribe(fn: () => void): () => void {
     subscribers.add(fn);

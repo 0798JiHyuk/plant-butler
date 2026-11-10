@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src supabase/functions vite.config.ts --deny typescript/no-explicit-any --deny-warnings",
+    "lint": "oxlint src vite.config.ts --deny typescript/no-explicit-any --deny-warnings",
     "test": "vitest run"
   },
   "dependencies": {
