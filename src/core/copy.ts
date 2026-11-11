@@ -233,6 +233,9 @@ export const copy = {
   },
   settings: {
     title: '설정',
+    version: '버전',
+    unknownCommit: '커밋 정보 없음',
+    buildEnvironment: { development: '로컬 개발', production: '정식 배포', preview: '테스트 배포', build: '빌드' },
     sound: '소리 끄기',
     demo: '데모 모드',
     today: (date: string) => `지금 날짜 ${date}`,

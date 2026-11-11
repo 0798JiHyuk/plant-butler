@@ -214,6 +214,7 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 /* ---- 설정 ---- */
 .settings { width: 400px; }
 .settings-body { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+.panel.settings { max-height: 372px; gap: 6px; }
 .photo-check { width: 600px; max-height: 372px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; }
 .photo-camera { width: 100%; height: 130px; min-height: 0; object-fit: contain; background: #242424; border-radius: 8px; }
 .photo-camera[hidden] { display: none; }
