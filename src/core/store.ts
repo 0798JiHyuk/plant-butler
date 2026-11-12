@@ -1,7 +1,7 @@
 import { loadJson, saveJson } from './storage';
 import type { AppState } from './types';
 import { events } from './events';
-import { createState, decodeState, hasProgress, isTeammateFormat, stateKey } from './state';
+import { createState, decodeState, encodeState, hasProgress, stateKey, writtenByTeammate } from './state';
 export { createMissionState, createState } from './state';
 
 const LEGACY = 'plantkeeper:v1';
@@ -14,7 +14,7 @@ export function loadState(): AppState {
   const saved = loadJson<unknown>(key, null) ?? (key === LOCAL && !loadJson('plantkeeper:legacy-owner', null) ? loadJson<unknown>(LEGACY, null) : null);
   if (!saved) return createState();
   try {
-    if (isTeammateFormat(saved)) saveJson(`${key}:pre-upgrade-backup`, saved); // 조원 형식은 변환 전 원본을 보관한다
+    if (writtenByTeammate(saved)) saveJson(`${key}:pre-upgrade-backup`, saved); // 조원 형식은 변환 전 원본을 보관한다
     return decodeState(saved);
   } catch {
     saveJson(`${key}:unreadable-backup`, saved); // 읽을 수 없는 저장본은 덮어쓰지 않고 보관한다
@@ -27,7 +27,7 @@ const subscribers = new Set<() => void>();
 
 function commit(next: AppState): void {
   state = next;
-  saveJson(key, next);
+  saveJson(key, encodeState(next));
   subscribers.forEach((fn) => fn());
 }
 
@@ -52,7 +52,7 @@ export const store = {
     let cached = createState();
     let unreadable = false;
     if (raw) {
-      try { if (isTeammateFormat(raw)) saveJson(`${nextKey}:pre-upgrade-backup`, raw); cached = decodeState(raw); } catch { saveJson(`${nextKey}:unreadable-backup`, raw); unreadable = true; }
+      try { if (writtenByTeammate(raw)) saveJson(`${nextKey}:pre-upgrade-backup`, raw); cached = decodeState(raw); } catch { saveJson(`${nextKey}:unreadable-backup`, raw); unreadable = true; }
     }
     const transfer = userId ? loadJson<{ owner: string | null; state: AppState } | null>('plantkeeper:transfer', null) : null;
     const imported = !!transfer && transfer.owner !== userId && hasProgress(transfer.state);

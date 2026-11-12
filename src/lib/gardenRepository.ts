@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AppState } from '@/core/types';
-import { decodeState } from '@/core/state';
+import { decodeState, encodeState } from '@/core/state';
 import type { Database, Json } from '@/lib/database.types';
 import { getSupabaseClient } from '@/lib/supabase';
 
@@ -33,7 +33,7 @@ export function createGardenRepository(api: SupabaseClient<Database>): GardenRep
     },
     async save(userId, state, revision, requestId) {
       const { data, error } = await api.rpc('save_garden_progress', {
-        p_user_id: userId, p_state: JSON.parse(JSON.stringify(decodeState(state))) as Json,
+        p_user_id: userId, p_state: JSON.parse(JSON.stringify(encodeState(decodeState(state)))) as Json,
         p_expected_revision: revision, p_request_id: requestId,
       }).abortSignal(AbortSignal.timeout(12000));
       if (error) throw failure(error);
