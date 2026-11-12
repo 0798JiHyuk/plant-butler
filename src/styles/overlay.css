@@ -236,6 +236,7 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 /* ---- 설정 ---- */
 .settings { width: 400px; }
 .settings-body { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+.panel.settings { max-height: 372px; gap: 6px; }
 .switch { display: flex; align-items: center; gap: 12px; min-height: var(--tap); padding: 0 6px; font-size: 15px; cursor: pointer; }
 .switch input { width: 24px; height: 24px; accent-color: var(--green); }
 .demo-box { padding: 8px 10px; background: #fff; border: 2px solid var(--sand); border-radius: 10px; display: flex; flex-direction: column; gap: 6px; }

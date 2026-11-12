@@ -109,6 +109,9 @@ function Settings({ onAccount }: { onAccount?: () => void }) {
           <button type="button" className="btn btn-secondary" onClick={() => setConfirmReset(true)}>{copy.settings.reset}</button>
         )}
       </div>
+      <p className="debug-line" aria-label={copy.settings.version}>
+        {`${copy.settings.version} ${__APP_BUILD__.version} · ${__APP_BUILD__.commit || copy.settings.unknownCommit} · ${copy.settings.buildEnvironment[__APP_BUILD__.environment]}`}
+      </p>
     </section>
   );
 }
