@@ -75,4 +75,39 @@ describe('decodeState', () => {
     expect(snap.fruit).toBe(3);
     expect(s.chats).toHaveLength(1); // 원본은 그대로
   });
+
+  it('조원 형식의 직접 만든 미션·하루 지도·책갈피 문구는 legacy에 보관되어 저장을 거쳐도 남는다', () => {
+    const legacy = {
+      ...createState(),
+      missions: {
+        selectedCategory: 'daily', selectedIntent: null, workStatus: 'unknown', stages: { daily: 2, academic: 1, work: 1 }, facts: { hasCup: true },
+        sessions: {}, activeSessionId: null, execution: null,
+        bookmarks: { daily: { categoryId: 'daily', sourceMissionId: 'D01', targetMissionId: 'D06', nextAction: '컵을 꺼내 두기', locationLabel: '부엌', variant: 'small' } },
+        custom: [{ id: 'c1', categoryId: 'daily', name: '내 미션', basic: '물 마시기', small: '컵 꺼내기', trigger: '아침', criterion: '한 모금' }],
+        myDays: { daily: [{ id: 'e1', customId: 'c1', cue: '먼저', time: '8시' }] },
+        dayMapDefault: { daily: true }, selectedDayEntry: { daily: 'e1' }, restCues: { daily: '쉬는 날엔 산책' }, onboardingSeen: true, packets: 0,
+      },
+    };
+    const once = decodeState(legacy);
+    expect(once.missions.legacy).toMatchObject({
+      custom: [{ id: 'c1', name: '내 미션' }], myDays: { daily: [{ id: 'e1', customId: 'c1' }] }, dayMapDefault: { daily: true },
+      facts: { hasCup: true }, restCues: { daily: '쉬는 날엔 산책' }, bookmarkText: { daily: { nextAction: '컵을 꺼내 두기', locationLabel: '부엌' } },
+    });
+    // 저장(JSON)했다 다시 불러와도, 한 번 더 불러와도 그대로 남는다
+    const again = decodeState(JSON.parse(JSON.stringify(once)));
+    expect(again.missions.legacy).toEqual(once.missions.legacy);
+    expect(decodeState(again)).toEqual(again);
+    // 서버로 보내는 모양에도 들어 있다
+    expect(toSnapshot(again).missions.legacy).toEqual(once.missions.legacy);
+  });
+
+  it('조원 형식이 아닌 저장에는 legacy가 생기지 않는다', () => {
+    expect(decodeState(createState()).missions.legacy).toBeUndefined();
+  });
+
+  it('legacy가 객체가 아니면 거부한다', () => {
+    const bad = createState();
+    (bad.missions as { legacy?: unknown }).legacy = 'x';
+    expect(() => decodeState(bad)).toThrow();
+  });
 });

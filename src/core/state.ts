@@ -53,7 +53,8 @@ function missionsOk(m: unknown): boolean {
       && list(m.session.actions, (a) => object(a) && optional(a.missionId, text) && optional(a.variant, (x) => one(x, VARIANTS)))))
     && count(m.seq)
     && object(m.bookmarks) && Object.entries(m.bookmarks).every(([k, b]) => one(k, CATS) && step(b))
-    && object(m.last) && Object.entries(m.last).every(([k, x]) => one(k, CATS) && text(x));
+    && object(m.last) && Object.entries(m.last).every(([k, x]) => one(k, CATS) && text(x))
+    && (m.legacy === undefined || object(m.legacy));
 }
 
 // ---------- 조원 형식(missions.selectedCategory…)을 우리 모양으로 ----------
@@ -65,8 +66,9 @@ interface TeammateRaw {
     stages?: Partial<Record<CategoryId, number>>;
     sessions?: Record<string, { sessionId: string; reportedActions: { missionId: string; variant: 'basic' | 'small'; date: string }[] }>;
     activeSessionId?: string | null; execution?: { variant: 'basic' | 'small' } | null;
-    bookmarks?: Partial<Record<CategoryId, { sourceMissionId: string; targetMissionId?: string; variant: 'basic' | 'small' }>>;
+    bookmarks?: Partial<Record<CategoryId, { sourceMissionId: string; targetMissionId?: string; nextAction?: string; locationLabel?: string; variant: 'basic' | 'small' }>>;
     packets?: number;
+    [k: string]: unknown;
   };
   [k: string]: unknown;
 }
@@ -97,6 +99,19 @@ function upgradeTeammate(input: unknown): unknown {
     session: active && acts.length ? { id: active.sessionId, date: acts[acts.length - 1].date, actions: acts.map((a) => ({ missionId: a.missionId, variant: a.variant })) } : null,
     seq: Object.keys(m.sessions ?? {}).length, bookmarks, last: {},
   };
+  // 지금 화면이 쓰지 않는 값은 지우지 않고 legacy에 보관한다(이식할 때 읽는다).
+  const bookmarkText: Record<string, { nextAction?: string; locationLabel?: string }> = {};
+  for (const c of CATS) {
+    const b = m.bookmarks?.[c];
+    if (b && (b.nextAction || b.locationLabel)) bookmarkText[c] = { nextAction: b.nextAction, locationLabel: b.locationLabel };
+  }
+  const keep: Record<string, unknown> = {};
+  for (const k of ['custom', 'myDays', 'dayMapDefault', 'selectedDayEntry', 'restCues', 'facts', 'onboardingSeen'] as const) {
+    if (m[k] !== undefined) keep[k] = m[k];
+  }
+  if (Object.keys(bookmarkText).length) keep.bookmarkText = bookmarkText;
+  if (m.stages && CATS.some((c) => (m.stages?.[c] ?? 0) > 4)) keep.stages = m.stages; // 4단계로 줄이기 전의 값
+  if (Object.keys(keep).length) missions.legacy = keep;
   for (const day of Object.values(rest.days ?? {})) {
     if (day.sessionRewarded && !day.sessions) day.sessions = 1;
     delete day.sessionRewarded;

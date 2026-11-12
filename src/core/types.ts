@@ -139,6 +139,11 @@ export interface MissionState {
   bookmarks: Partial<Record<CategoryId, MissionStep>>;
   /** 영역별 마지막으로 고른 카드 */
   last: Partial<Record<CategoryId, string>>;
+  /**
+   * 조원 형식의 저장에서 옮겨 온 값 중 지금 화면이 쓰지 않는 것(직접 만든 미션·하루 지도·조건 답·책갈피 문구 등).
+   * 지우지 않고 그대로 들고 다니며(서버 저장 포함), 직접 만든 미션·하루 지도를 이식할 때 읽는다.
+   */
+  legacy?: Record<string, unknown>;
 }
 
 export interface DayInfo {
