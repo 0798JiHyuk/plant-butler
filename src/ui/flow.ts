@@ -1,3 +1,5 @@
+import {openPioSeeds} from './panels/PioSeeds';
+import '../styles/pioSeeds.css';
 import {openCafe,openCafePerson} from './panels/Cafe';
 import {socialLocation} from './socialLocation';
 import { atlasLinks, openResidentMaps, openGardenMapEditor } from './panels/ResidentMaps';
@@ -68,6 +70,8 @@ export function afterDayChange(): void {
 }
 
 export function startFlow(): void {
+  events.on('pio-seeds-found',({seeds})=>{clearToast();events.emit('sfx',{name:'gift'});openPioSeeds(seeds);});
+  events.on('pio-seeds-save-error',()=>showToast([copy.map.saveError]));
   events.on('social-travel',()=>clearToast());
   events.on('cafe-state',({seated})=>{if(seated)clearToast();});
   events.on('cafe-person',({member})=>{if(socialLocation()==='cafe'&&!isModalOpen())openCafePerson(member);});
