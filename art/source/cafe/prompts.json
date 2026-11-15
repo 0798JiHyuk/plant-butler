@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen",
+  "references": [
+    "art/source/home-interior.png",
+    "art/guide/theme_a_props.png"
+  ],
+  "prompts": {
+    "interior": "Create a production game background for a cozy woodland cafe interior, same exact warm pixel-painted 2D game art as reference home interior: honey wood planks, cream plaster, moss green curtains, soft upper-left light, crisp hand-painted pixel edges, overhead three-quarter orthographic view, no horizon. Canvas aspect ratio 4:3 landscape, entire very spacious rectangular room visible, walls only top and narrow sides, doorway centered bottom. Back wall occupies top 22%, walkable uninterrupted wooden floor spans x6%-94% y30%-92%. A coffee counter and pastry cabinet along back wall within top22%, potted greenery corners. IMPORTANT large central and foreground floor empty: no chairs, tables, people, text, signs, UI or rug on floor; interactive separate chairs and tables will be placed in code. Design for 2048x1536 room with sharp detailed wood grain, not blurry. Reference is style only, new cafe layout.",
+    "chair": "One single individual indoor cafe armchair game sprite on genuinely transparent background. Style reference is existing warm pixel-painted woodland garden props, honey wood, dark warm brown outline, sage green upholstered rounded seat cushion, curved short wood backrest, four short wooden legs. Front-facing three-quarter overhead same camera as bench reference, visible cushion top and chair front, symmetrical centered, no person. Distinct from outdoor bench: compact cozy one-person rounded cafe chair. Upper left light, minimal contact shadow only under feet. Full chair uncropped with transparent margin, no other items, no labels, no floor. Ready for game rendered at 96px width, silhouette clear."
+  }
+}

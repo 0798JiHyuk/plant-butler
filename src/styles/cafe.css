@@ -1,0 +1,12 @@
+.panel.cafe-panel{width:min(650px,calc(100% - 24px));height:min(372px,calc(var(--stage-h) - 20px));display:flex;flex-direction:column;overflow:hidden;padding:12px 18px;box-sizing:border-box;}
+.cafe-panel>.panel-head{flex-shrink:0;}
+.cafe-panel-body{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 8px 12px;}
+.cafe-panel-body p{margin:0;line-height:1.5;}
+.cafe-panel-body .btn{min-height:44px;flex-shrink:0;width:100%;white-space:normal;overflow-wrap:anywhere;}
+.cafe-sharing{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;}
+.cafe-sharing input{width:24px;height:24px;accent-color:#627d38;}
+.cafe-note{font-size:14px;color:#75644f;}
+.social-controls{position:absolute;left:12px;right:12px;top:10px;z-index:20;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none;}
+.social-status{padding:10px 14px;border:2px solid #c7b589;background:#fff7e6ed;color:#4a3b2c;border-radius:14px;font-size:14px;max-width:290px;}
+.social-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:470px;pointer-events:auto;}
+.social-actions .btn-chip{min-height:44px;max-width:230px;font-size:14px;}
