@@ -1,0 +1,10 @@
+import { useSyncExternalStore } from 'react';
+import { events } from '../core/events';
+type Location='garden'|'cafe'|'visit';
+let location:Location='garden';
+let name='';
+export const socialGardenName=()=>name;
+const listeners=new Set<()=>void>();
+events.on('social-location',v=>{location=v.location;name=v.name??'';listeners.forEach(fn=>fn());});
+export const socialLocation=()=>location;
+export const useSocialLocation=()=>useSyncExternalStore(fn=>{listeners.add(fn);return()=>{listeners.delete(fn);};},socialLocation);

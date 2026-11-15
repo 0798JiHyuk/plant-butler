@@ -3,6 +3,14 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      garden_sharing: {
+        Row:{user_id:string;enabled:boolean}; Insert:{user_id:string;enabled?:boolean}; Update:{enabled?:boolean}; Relationships:[];
+      };
+      cafe_members: {
+        Row:{user_id:string;garden_name:string;x:number;y:number;seat_id:string|null;updated_at:string};
+        Insert:{user_id:string;garden_name:string;x:number;y:number;seat_id?:string|null;updated_at?:string};
+        Update:{x?:number;y?:number;seat_id?:string|null;updated_at?:string}; Relationships:[];
+      };
       garden_saves: {
         Row: {
           request_id: string;
@@ -33,6 +41,9 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      cafe_step:{Args:{p_session:string;p_x:number;p_y:number;p_seat:string|null;p_join?:boolean};Returns:Json};
+      cafe_leave:{Args:{p_session:string};Returns:undefined};
+      get_shared_garden:{Args:{p_user_id:string};Returns:Json};
       save_garden_progress: {
         Args: {
           p_expected_revision: number;

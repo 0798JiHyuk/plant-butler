@@ -1,3 +1,5 @@
+import {useSocialLocation,socialLocation} from './socialLocation';
+import {CafeControls} from './panels/Cafe';
 import { openWorldMap } from './panels/WorldMap';
 import { isModalOpen } from './modal';
 import '../styles/storyMap.css';
@@ -15,17 +17,14 @@ import { ToastHost } from './toast';
 import { Zoom } from './Zoom';
 
 export function App({ stage }: { stage: HTMLElement }) {
-  useEffect(()=>{const key=(e:KeyboardEvent)=>{const target=e.target as HTMLElement;if(e.key.toLowerCase()==='m'&&!e.isComposing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!isModalOpen()&&!target.closest('input,textarea,select,[contenteditable=true]')){e.preventDefault();openWorldMap();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
+  useEffect(()=>{const key=(e:KeyboardEvent)=>{const target=e.target as HTMLElement;if(e.key.toLowerCase()==='m'&&socialLocation()==='garden'&&!e.isComposing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!isModalOpen()&&!target.closest('input,textarea,select,[contenteditable=true]')){e.preventDefault();openWorldMap();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
+  const location=useSocialLocation();
   const settings=useAppState().settings;
   useEffect(()=>{const ui=document.getElementById('ui');ui?.classList.toggle('ambient-folded',!!settings.folded);ui?.classList.toggle('reduced-motion',!!settings.reducedMotion);return()=>{ui?.classList.remove('ambient-folded','reduced-motion');};},[settings.folded,settings.reducedMotion]);
   return (
     <>
-      <Hud />
-      <Ambient />
-      <SaveStatus />
+      {location==='garden'?<><Hud /><Ambient /><SaveStatus /><Zoom stage={stage} /><DecorateBar /></>:<CafeControls/>}
       <Joystick />
-      <Zoom stage={stage} />
-      <DecorateBar />
       <ModalHost />
       <ToastHost />
       <Rotate />

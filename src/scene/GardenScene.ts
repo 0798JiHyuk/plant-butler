@@ -42,6 +42,7 @@ export class GardenScene extends Phaser.Scene {
   private updateBoard?: ()=>void;
   private indoor = false;
   private returnOutside = false;
+  private fromCafe=false;
   private doorArmed = true;
   private get mapWidth():number {return this.indoor?WORLD_SIZE.interiorWidth:MAP_W;}
   private get mapHeight(): number { return this.indoor ? 712 : MAP_H; }
@@ -49,9 +50,10 @@ export class GardenScene extends Phaser.Scene {
   private walkable(x: number, y: number): boolean {
     return this.indoor ? x > HOME.left + 16 && x < HOME.right - 16 && y > 258 && y < HOME.bottom : isWalkable(x, y);
   }
-  init(data: { indoor?: boolean; returning?: boolean } = {}): void {
+  init(data: { indoor?: boolean; returning?: boolean; fromCafe?:boolean } = {}): void {
     this.indoor = data.indoor ?? (exploration(store.state).seat?.zone === 'home');
     this.returnOutside = data.returning ?? false;
+    this.fromCafe=data.fromCafe??false;
     this.doorArmed = true;
   }
   private player!: Player;
@@ -106,6 +108,7 @@ export class GardenScene extends Phaser.Scene {
     this.updateBoard=undefined;
     if (this.indoor) drawHome(this);
     else { drawMeadow(this); this.updateBoard=drawNeighborhood(this, (point,range)=>this.canInteractAt(point,range),()=>this.state);this.updateBoard(); this.drawField(); }
+    events.emit('social-location',{location:'garden'});
     events.emit('location-changed', { indoor: this.indoor });
     if (!this.indoor) {
       const door = this.add.zone(LANDMARKS.home.x,LANDMARKS.home.y-30,140,100).setDepth(2).setInteractive({ useHandCursor: true });
@@ -116,6 +119,7 @@ export class GardenScene extends Phaser.Scene {
     const isBlocked = (px: number, py: number) => !this.walkable(px, py) || (!this.indoor && districtBlocked(px, py)) || (!this.indoor && inBed(px, py - 6)) || this.blockedByDecor(px, py);
     this.player = new Player(this, this.indoor ? 640 : this.returnOutside ? LANDMARKS.home.x : SPAWN.x, this.indoor ? 540 : this.returnOutside ? LANDMARKS.home.y+55 : SPAWN.y, isBlocked);
 
+    if(this.fromCafe&&!this.indoor)this.player.sprite.setPosition(LANDMARKS.cafe.x,LANDMARKS.cafe.y+80);
     this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight).startFollow(this.player.sprite, true, 0.12, 0.12).setRoundPixels(true);
     this.applyZoom(this.indoor ? Math.min(this.cameras.main.width / this.mapWidth, this.cameras.main.height / this.mapHeight) : this.state.settings.viewZoom ?? defaultViewZoom(this.cameras.main.height));
     const resize = () => this.applyZoom(this.viewZoom);
@@ -142,6 +146,7 @@ export class GardenScene extends Phaser.Scene {
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onDragEnd(p));
 
     const offs = [
+      events.on('social-travel',({destination,garden})=>{if(destination!=='garden'&&!this.decorating)this.scene.start('social',destination==='visit'?{garden}:{});}),
       events.on('move-input', (v) => (this.stick = v)),
       events.on('ui-lock', ({ locked }) => this.setLocked(locked)),
       events.on('ui-pointer-cancel',()=>this.cancelUiPointer()),

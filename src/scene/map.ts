@@ -79,10 +79,14 @@ export function plantSlots(): Cell[] {
 
 /** 식물 칸의 정원 속 위치(발 끝). 밭 칸이 아니면 null. */
 export function slotWorld(col: number, row: number): { x: number; y: number } | null {
+  return slotWorldAt(col,row,BED);
+}
+
+export function slotWorldAt(col:number,row:number,bed:{x:number;y:number}):{x:number;y:number}|null {
   if (!isFieldTile(col, row)) return null;
   const [mx, my] = MOUNDS[row - SLOT_BASE][col - SLOT_BASE];
   const k = BED.w / IMG_W;
-  return { x: BED.x + mx * k, y: BED.y + (my + 30) * k };
+  return { x: bed.x + mx * k, y: bed.y + (my + 30) * k };
 }
 
 /** 가장 가까운 식물 칸(maxDist 안에서). 없으면 null. */

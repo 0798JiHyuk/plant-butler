@@ -7,6 +7,12 @@ export type NpcId = 'nuri' | 'moru' | 'pio';
 import type { DecorItem, PlantedItem, StoredThing } from './types';
 
 export interface AppEvents {
+  'social-travel': { destination:'cafe'|'garden'|'visit'; garden?:import('./sharedGarden').SharedGarden };
+  'social-location': { location:'garden'|'cafe'|'visit'; name?:string };
+  'cafe-notice': { kind:'occupied'|'error' };
+  'cafe-person': { member:import('./cafe').CafeMember };
+  'cafe-stand': Record<string,never>;
+  'cafe-state': { status:'connecting'|'online'|'error'|'replaced'; count:number; seated:boolean };
   'world-position': { x: number; y: number; indoor: boolean };
   'world-interact': { id: 'board' | 'cafe' | 'school' | 'work' };
   'layout-refresh': Record<string, never>;

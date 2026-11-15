@@ -1,3 +1,5 @@
+import {openCafe,openCafePerson} from './panels/Cafe';
+import {socialLocation} from './socialLocation';
 import { atlasLinks, openResidentMaps, openGardenMapEditor } from './panels/ResidentMaps';
 import { openDecorationPreview } from './panels/DecorationPreview';
 import { SHOP } from '../core/economy';
@@ -33,7 +35,7 @@ import { openReflect } from './panels/Reflect';
 import { openShop } from './panels/Shop';
 import { openTalk, talkActions } from './panels/Talk';
 import { startSound } from './sound';
-import { showToast } from './toast';
+import { showToast, clearToast } from './toast';
 import { closeModal, isModalOpen } from './modal';
 import { photoPolicy } from '../core/photoCheck';
 import { stateKey } from '../core/state';
@@ -66,6 +68,10 @@ export function afterDayChange(): void {
 }
 
 export function startFlow(): void {
+  events.on('social-travel',()=>clearToast());
+  events.on('cafe-state',({seated})=>{if(seated)clearToast();});
+  events.on('cafe-person',({member})=>{if(socialLocation()==='cafe'&&!isModalOpen())openCafePerson(member);});
+  events.on('cafe-notice',({kind})=>showToast([copy.cafe[kind]]));
   events.on('interaction-too-far',()=>showToast([copy.world.comeCloser]));
   decorateLinks.shop = openShop;
   narrativeLinks.showMap=openResidentMaps; narrativeLinks.editMap=openGardenMapEditor; atlasLinks.resume=openNarrative;
@@ -88,7 +94,7 @@ export function startFlow(): void {
   };
   events.on('world-interact', ({ id }) => {
     if (isModalOpen()) return;
-    if (id === 'cafe') openNarrative('ST-V01');
+    if (id === 'cafe') openCafe();
       else if(id==='school'||id==='work') openPlaceExterior(id);
     else if(narrative(store.state).decision){const decision=narrative(store.state).decision;openResidentMaps(decision==='own'?'mine':decision==='together'?'together':'blank');}
     else if (sceneAvailable(store.state, 'ST-D01')) openNarrative('ST-D01');
