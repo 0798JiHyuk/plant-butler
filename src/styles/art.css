@@ -188,3 +188,30 @@
 .bag-body { min-height: 200px; max-height: 250px; }
 .zoom-ctl .zoom-label { display: none; }
 .zoom-ctl .zoom-range { width: 72px; }
+
+/* 작은 HUD: 터치 버튼의 44px 영역은 유지한다. */
+.activity-card { width: 184px; border-width: 10px; padding: 0 0 2px; }
+.activity-card .card-title { font-size: 10px; margin-bottom: 3px; }
+.activity-card .card-message { font-size: 13px; margin-top: 3px; }
+.activity-card .card-sub { font-size: 10px; margin-bottom: 3px; }
+.activity-card .card-activity { gap: 5px; margin-bottom: 3px; }
+.activity-card .card-activity strong { font-size: 13px; }
+.activity-card .card-activity > div { min-width: 0; }
+.activity-card .card-activity strong, .activity-card .card-activity small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.activity-card .card-icon { width: 30px; height: 30px; }
+.activity-card .btn { margin-top: 3px; font-size: 12px; }
+.talk-btn { right: 204px; }
+.zoom-ctl { padding: 0; gap: 0; height: 44px; border: 0; border-radius: 0; background: none; box-shadow: none; isolation: isolate; }
+.zoom-ctl::before { content: ''; position: absolute; inset: 8px 0; border: 1px solid #b7a57d; border-radius: 999px; background: rgba(255, 249, 233, .92); pointer-events: none; z-index: -1; }
+.zoom-ctl .zoom-range { width: 44px; }
+.zoom-ctl .zoom-btn { width: 44px; height: 44px; min-height: 44px; border: 0; border-radius: 0; background: none; box-shadow: none; font-size: 18px; font-weight: 500; }
+.zoom-ctl .zoom-range { appearance: none; -webkit-appearance: none; height: 44px; background: transparent; }
+.zoom-ctl .zoom-range::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: #bac4a7; }
+.zoom-ctl .zoom-range::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 12px; height: 12px; margin-top: -4.5px; border: 0; border-radius: 50%; background: #406a32; }
+.zoom-ctl .zoom-range::-moz-range-track { height: 3px; border-radius: 3px; background: #bac4a7; }
+.zoom-ctl .zoom-range::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: #406a32; }
+.bubble { max-width: 112px; padding: 4px 6px; font-size: 10px; line-height: 1.25; }
+.garden-name strong { overflow: hidden; overflow-wrap: anywhere; font-size: 13px; line-height: 1.1; text-align: center; }
+.garden-name-panel { width: 400px; }
+.house-entry { width: 400px; }
+.talk-btn[hidden] { display: none; }

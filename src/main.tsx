@@ -10,7 +10,10 @@ import type { DecorItem } from './core/types';
 import { nextDecorSlot } from './scene/map';
 import { startFlow } from './ui/flow';
 import { createRoot } from 'react-dom/client';
-import { App } from './ui/App';
+import { SessionGate } from './ui/SessionGate';
+import { closeModal } from './ui/modal';
+import { exitDecorate } from './ui/panels/Decorate';
+import { installUiInputPriority } from './ui/inputPriority';
 
 // 화면은 가로 844 고정, 세로는 창 비율에 맞춰 390(폰 가로)~563 사이에서 늘어난다.
 // 그래서 컴퓨터 창에서도 위아래 검은 띠 없이 정원을 더 많이 보여준다. 너무 납작한 창은 양옆에 띠가 생긴다.
@@ -72,26 +75,29 @@ if (location.search.includes('nostory')) store.update((d) => { d.story.seen.push
 const seedsParam = Number(new URLSearchParams(location.search).get('seeds'));
 if (seedsParam > 0) store.update((d) => addTestSeeds(d, Math.min(seedsParam, 16)));
 
-createRoot(document.getElementById('ui')!).render(<App stage={stage} />);
-startFlow();
-
-const game = new Phaser.Game({
-  type: Phaser.AUTO,
-  width: W,
-  height: H,
-  parent: 'game',
-  pixelArt: true,
-  backgroundColor: '#4d6d3a', // 꾸미기에서 정원이 줄어들 때 양옆에 보이는 색(짙은 수풀색)
-  scale: { mode: Phaser.Scale.NONE },
-  scene: [GardenScene],
-});
-
-// 테스트용: ?debug 를 붙이면 화면 확인 도구가 게임 상태를 읽을 수 있게 window.__game 을 열어 둔다.
-if (location.search.includes('debug')) (window as unknown as { __game: Phaser.Game }).__game = game;
+let game:Phaser.Game|null=null;
+let flowStarted=false;
+function setGameAccess(allowed:boolean):void {
+  if(!allowed){
+    closeModal(false);exitDecorate();
+    if(game){game.canvas.style.visibility='hidden';game.input.enabled=false;game.scene.pause('garden');game.loop.sleep();}
+    return;
+  }
+  if(!game){
+    game=new Phaser.Game({type:Phaser.AUTO,width:W,height:H,parent:'game',pixelArt:true,backgroundColor:'#4d6d3a',scale:{mode:Phaser.Scale.NONE},scene:[GardenScene]});
+    if(location.search.includes('debug'))(window as unknown as {__game:Phaser.Game}).__game=game;
+  }else{
+    game.loop.wake();game.input.enabled=true;game.scene.resume('garden');game.scene.getScene('garden').scene.restart();game.canvas.style.visibility='visible';
+  }
+  if(!flowStarted){flowStarted=true;startFlow();}
+}
+const uiRoot=document.getElementById('ui')!;
+const removeUiInputPriority=installUiInputPriority(uiRoot);
+if(import.meta.hot)import.meta.hot.dispose(removeUiInputPriority);
+createRoot(uiRoot).render(<SessionGate stage={stage} onAccessChange={setGameAccess}/>);
 
 // 화면 배율이 바뀌면 Phaser가 포인터 좌표를 다시 계산하도록 알려준다(꾸미기 드래그가 정확해진다).
 window.addEventListener('resize', () => {
   const h = layout();
-  if (h !== game.scale.height) game.scale.resize(W, h);
-  game.scale.refresh();
+  if (game) {if(h!==game.scale.height)game.scale.resize(W,h);game.scale.refresh();}
 });

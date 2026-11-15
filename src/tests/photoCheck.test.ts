@@ -11,7 +11,7 @@ const image = 'data:image/jpeg;base64,/9j/2Q==';
 const config = { origins: [origin], apiKey: 'test-api-key', supabaseUrl: 'https://auth.example', anonKey: 'test-anon' };
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status });
 function fixture(output: unknown = { status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: '{"status":"matched"}' }] }] }) {
-  const api = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => String(input).includes('/auth/v1/user') ? json({ id: 'guest-id' }) : json(output));
+  const api = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => String(input).includes('/auth/v1/user') ? json({ id:'google-id',is_anonymous:false,app_metadata:{provider:'google',providers:['google']} }) : json(output));
   return { api, handler: createPhotoHandler(config, api) };
 }
 const request = (body: unknown = { activityId: 'cafe', image }, headers = {}) => new Request(origin, {
@@ -20,6 +20,10 @@ const request = (body: unknown = { activityId: 'cafe', image }, headers = {}) =>
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('사진 확인 서버', () => {
+  it('기존 익명 토큰은 Google 전용 사진 API에서도 차단한다',async()=>{
+    const f=fixture();f.api.mockResolvedValueOnce(json({id:'legacy-guest',is_anonymous:true,app_metadata:{provider:'anonymous'}}));
+    expect((await f.handler(request())).status).toBe(401);expect(f.api).toHaveBeenCalledTimes(1);
+  });
   it('정책이 있는 활동만 적용하고 시간·대화·개인 계획은 대상이 아니다', () => {
     for (const id of Object.keys(photoPolicies)) expect(activities.some(a => a.id === id)).toBe(true);
     for (const id of ['walk5', 'shower', 'message', 'call', 'water', '__proto__', undefined]) expect(photoPolicy(id)).toBeUndefined();
@@ -57,7 +61,7 @@ describe('사진 확인 서버', () => {
     expect(await (await f.handler(request())).json()).toEqual({ status: 'not_matched' });
   });
   it('API 오류·시간 초과는 우회 가능한 오류 상태로만 반환한다', async () => {
-    const f = fixture(); f.api.mockResolvedValueOnce(json({ id: 'guest-id' })).mockRejectedValueOnce(new Error('secret details'));
+    const f = fixture(); f.api.mockResolvedValueOnce(json({ id:'google-id',is_anonymous:false,app_metadata:{provider:'google',providers:['google']} })).mockRejectedValueOnce(new Error('secret details'));
     const response = await f.handler(request()); expect(response.status).toBe(502); expect(await response.json()).toEqual({ error: 'unavailable' });
   });
   it('인스턴스당 사용자 요청 제한을 넘으면 추가 비용 요청을 막는다', async () => {

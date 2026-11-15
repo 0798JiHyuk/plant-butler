@@ -27,7 +27,6 @@ export function Account() {
       </>}
       {sync.phase === 'error' && <button className="btn btn-secondary" onClick={() => void gardenSync.refresh()}>{text.retry}</button>}
       {sync.phase === 'pending' && <button className="btn btn-secondary" onClick={() => void gardenSync.flush()}>{text.save}</button>}
-      {state.status === 'guest' && sync.phase !== 'conflict' && <p className="panel-note">{text.guestNotice}</p>}
       {state.error && <p className="panel-note" role="alert">{text.errors[state.error]}</p>}
       {sync.phase === 'conflict' ? null : confirm && state.status === 'connected' ? <>
         <p className="panel-note">{text.logoutNotice}</p>
@@ -36,9 +35,7 @@ export function Account() {
           <button className="btn btn-secondary" disabled={state.busy} onClick={() => setConfirm(false)}>{text.cancel}</button>
         </div>
       </> : <div className="btn-pair">
-        {(state.status === 'signed-out' || (state.error === 'request' && state.status !== 'connected')) && <button className="btn btn-secondary" disabled={state.busy} onClick={() => { void auth.startGuest(); }}>{text.guest}</button>}
-        {state.status !== 'local' && state.status !== 'connected' && <button className="btn btn-secondary" disabled={state.busy || state.status === 'checking'} onClick={async () => { await gardenSync.flush(); if (state.status !== 'guest') store.prepareTransfer(); void auth.google(); }}>{state.status === 'guest' ? text.link : text.login}</button>}
-        {state.status === 'guest' && <button className="btn btn-secondary" disabled={state.busy} onClick={async () => { await gardenSync.flush(); store.prepareTransfer(); void auth.google('existing'); }}>{text.existing}</button>}
+        {state.status === 'signed-out' && <button className="btn btn-secondary" disabled={state.busy} onClick={()=>void auth.google()}>{text.login}</button>}
         {state.status === 'connected' && <button className="btn btn-secondary" disabled={state.busy} onClick={() => setConfirm(true)}>{text.logout}</button>}
       </div>}
     </div>
@@ -50,5 +47,5 @@ export const openAccount = () => openModal(<Account />);
 export function SaveStatus() {
   const state = useSyncExternalStore(gardenSync.subscribe, gardenSync.getSnapshot);
   if (state.phase === 'local' || state.phase === 'saved') return null;
-  return <button className="btn btn-secondary interactive" style={{ position: 'absolute', top: 78, right: 10, width: 'auto', padding: '0 10px', fontSize: 12, minHeight: 44 }} onClick={openAccount}>{copy.account.sync[state.phase]}</button>;
+  return <button className="btn btn-secondary interactive" style={{ position: 'absolute', top: 66, right: 180, width: 'auto', maxWidth: 170, padding: '0 10px', fontSize: 12, minHeight: 44 }} onClick={openAccount}>{copy.account.sync[state.phase]}</button>;
 }

@@ -25,3 +25,9 @@ export function saveJson(key: string, value: unknown): void {
     // 저장 실패는 조용히 넘어간다.
   }
 }
+
+/** Transactional edits must not announce success after quota/permission errors. */
+export function persistJson(key: string, value: unknown): boolean {
+  const raw = JSON.stringify(value);
+  try { localStorage.setItem(key, raw); memory.set(key, raw); return true; } catch { return false; }
+}

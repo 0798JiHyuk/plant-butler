@@ -1,9 +1,12 @@
+import { upgradeGardenLayout } from './worldMigration';
+import { validExploration, validNarrative } from './exploration';
 import type { AppState } from './types';
 import { plantById } from './plants';
 import { decodeMissionProgress } from './missionState';
+import { homeCellAllowed, validGardenName } from './world';
 
 export function createState(): AppState {
-  return { version: 1, logs: [], garden: { items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
+  return { version: 1, logs: [], garden: { layoutVersion:2, items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
 }
 
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -34,7 +37,13 @@ export function decodeState(raw: unknown): AppState {
     && list(v.garden.items, x => object(x) && text(x.id) && one(x.kind, kinds) && count(x.variant) && position(x))
     && list(v.garden.plants, x => object(x) && plant(x) && position(x))
     && list(v.garden.storage, x => object(x) && (x.type === 'plant' ? plant(x) : x.type === 'decor' && text(x.id) && one(x.decorKind, kinds) && count(x.variant)))
+    && optional(v.garden.layoutVersion, x=>x===2)
     && optional(v.garden.bed, x => object(x) && finite(x.x) && finite(x.y))
+    && optional(v.garden.exploration, validExploration)
+    && optional(v.garden.narrative, validNarrative)
+    && optional(v.garden.name, validGardenName)
+    && optional(v.garden.namePromptSeen, x => typeof x === 'boolean')
+    && optional(v.garden.interior, x => object(x) && list(x.items, i => object(i) && text(i.id) && one(i.kind, kinds) && count(i.variant) && position(i) && homeCellAllowed(Number(i.col), Number(i.row))))
     && list(v.seeds, x => object(x) && text(x.id) && plantId(x.plantId))
     && [v.fruit, v.freePackets, v.bonusPackets, v.purchases].every(count)
     && object(v.story) && list(v.story.seen, text) && object(v.story.choices) && Object.values(v.story.choices).every(count)
@@ -44,12 +53,16 @@ export function decodeState(raw: unknown): AppState {
       && optional(day.packet, x => one(x, ['ready', 'opened']))
       && optional(day.sessionRewarded, x => typeof x === 'boolean')
       && optional(day.plan, x => object(x) && source(x.source) && optional(x.activityId, text) && optional(x.text, text) && info(x.info)))
+    && optional(v.settings.reducedMotion, x => typeof x === 'boolean')
+    && optional(v.settings.folded, x => typeof x === 'boolean')
     && typeof v.settings.sound === 'boolean' && typeof v.settings.demo === 'boolean'
     && Number.isInteger(v.settings.dayOffset) && optional(v.settings.viewZoom, x => finite(x) && (x as number) > 0);
   if (!valid) throw new Error('Invalid progress');
-  return structuredClone({ version: 1, logs: v.logs, garden: v.garden, seeds: v.seeds, fruit: v.fruit,
+  const restored = structuredClone({ version: 1, logs: v.logs, garden: v.garden, seeds: v.seeds, fruit: v.fruit,
     freePackets: v.freePackets, bonusPackets: v.bonusPackets, story: v.story, visits: v.visits,
     purchases: v.purchases, days: v.days, settings: v.settings, ...(missions ? { missions } : {}) }) as AppState;
+  if(raw.garden.layoutVersion!==2){delete restored.garden.layoutVersion;upgradeGardenLayout(restored);}
+  return restored;
 }
 
 export function stateKey(value: unknown): string {

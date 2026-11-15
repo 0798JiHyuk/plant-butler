@@ -1,3 +1,4 @@
+import { store } from '../core/store';
 import Phaser from 'phaser';
 import { MAP_H, MAP_W } from './map';
 import { SPROUT_ORIGIN_Y, WALK_FRAMES, type SproutPose, type WalkDir } from './sprites';
@@ -14,6 +15,7 @@ export class Player {
   private motion?: Phaser.Tweens.Tween;
   private jumping = false;
   private dir: WalkDir = 'front';
+  private furnitureDepth:number|null=null;
 
   /** x, y는 발 위치. isBlocked는 그 지점에 설 수 없으면 true. */
   constructor(private scene: Phaser.Scene, x: number, y: number, private isBlocked: (px: number, py: number) => boolean) {
@@ -33,10 +35,16 @@ export class Player {
   get currentPose(): SproutPose | 'walk' { return this.pose; }
 
   setPose(pose: SproutPose): void {
+    this.furnitureDepth=null;
     this.pose = pose;
     this.sprite.anims.stop();
     this.sprite.setTexture(`sprout_${pose}`);
+    this.sprite.setOrigin(.5,pose==='lie'?.5:SPROUT_ORIGIN_Y).setFlipX(false);
     this.setMotion(pose === 'idle' ? 'breathe' : 'still');
+  }
+
+  restOnFurniture(pose:'sit'|'lie',depth:number):void {
+    this.setPose(pose);this.furnitureDepth=depth;this.sprite.setDepth(depth);
   }
 
   /** 가만히 있을 땐 숨 쉬듯 살짝 움직인다. 걸을 땐 걷기 그림이 움직임을 맡는다. */
@@ -44,7 +52,7 @@ export class Player {
     this.motion?.remove();
     this.motion = undefined;
     this.sprite.setScale(this.sprite.scaleX < 0 ? -1 : 1, 1).setAngle(0);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || kind === 'still') return;
+    if (store.state.settings.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches || kind === 'still') return;
     if (kind === 'walk') return;
     this.motion =
       this.scene.tweens.add({ targets: this.sprite, scaleY: 1.03, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -53,6 +61,7 @@ export class Player {
   /** 해냈을 때의 점프: 웅크림 → 도약 → 정점 → 착지, 그 뒤 기쁜 표정으로 이어진다. 끝나면 onDone. */
   playJump(onDone?: () => void): void {
     if (this.jumping) return;
+    if(store.state.settings.reducedMotion){this.setPose('joy');onDone?.();return;}
     this.jumping = true;
     this.pose = 'joy';
     this.sprite.anims.stop();
@@ -87,6 +96,7 @@ export class Player {
 
   /** 방향 벡터(-1..1)로 이동. 축마다 따로 충돌을 검사해 벽을 따라 미끄러진다. */
   move(vx: number, vy: number, dtMs: number): void {
+    if(this.furnitureDepth!==null){this.sprite.setDepth(this.furnitureDepth);return;}
     if (this.jumping) return;
     const moving = vx !== 0 || vy !== 0;
     if (moving && (this.pose === 'rest' || this.pose === 'joy')) {

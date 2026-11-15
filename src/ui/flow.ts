@@ -1,3 +1,10 @@
+import { atlasLinks, openResidentMaps, openGardenMapEditor } from './panels/ResidentMaps';
+import { openDecorationPreview } from './panels/DecorationPreview';
+import { SHOP } from '../core/economy';
+import { exploration } from '../core/exploration';
+import { currentPosition } from './worldPosition';
+import { LANDMARKS } from '../core/worldGeometry';
+import { withinReach,INTERACTION_RANGE } from '../core/interaction';
 // 화면 사이의 흐름: 하루 첫 여력 체크 → 활동 고르기 → 했어요 → 회고 → 정원 변화.
 import { setDayOffset, todayKey } from '../core/clock';
 import { copy } from '../core/copy';
@@ -5,12 +12,17 @@ import { events } from '../core/events';
 import { harvest } from '../core/economy';
 import { completePlan, isResting, limitReached, pendingPacketDates } from '../core/rules';
 import { factLineFor } from '../core/stats';
-import { needsIntro } from '../core/story';
+import { narrative } from '../core/exploration';
+import { sceneAvailable } from '../core/narrative';
+import { openNarrative, openNarrativeNotebook, narrativeLinks } from './panels/Narrative';
+import { openWorldMap } from './panels/WorldMap';
+import { saveProgress } from './saveProgress';
+import { ensureExploration } from '../core/exploration';
 import { store } from '../core/store';
 import type { ReflectChip } from '../core/types';
 import { openMissionPanel } from './panels/MissionPanel';
 import { activeMissionSession, missionProgress, reportMission } from '../core/missions';
-import { enterDecorate, exitDecorate } from './panels/Decorate';
+import { decorateLinks, enterDecorate, exitDecorate } from './panels/Decorate';
 import { openBag } from './panels/Bag';
 import { openPacketModal } from './panels/Packet';
 import { openRecords } from './panels/Records';
@@ -19,7 +31,6 @@ import { openAccount } from './panels/Account';
 import { showCheckin } from './panels/Checkin';
 import { openReflect } from './panels/Reflect';
 import { openShop } from './panels/Shop';
-import { openStory } from './panels/Story';
 import { openTalk, talkActions } from './panels/Talk';
 import { startSound } from './sound';
 import { showToast } from './toast';
@@ -27,6 +38,9 @@ import { closeModal, isModalOpen } from './modal';
 import { photoPolicy } from '../core/photoCheck';
 import { stateKey } from '../core/state';
 import { openPhotoCheck } from './panels/PhotoCheck';
+import { openGardenName } from './panels/GardenName';
+import { openHouseEntry } from './panels/HouseEntry';
+import { openPlaceExterior } from './panels/PlaceExterior';
 
 let justCompleted = false;
 
@@ -52,15 +66,46 @@ export function afterDayChange(): void {
 }
 
 export function startFlow(): void {
+  events.on('interaction-too-far',()=>showToast([copy.world.comeCloser]));
+  decorateLinks.shop = openShop;
+  narrativeLinks.showMap=openResidentMaps; narrativeLinks.editMap=openGardenMapEditor; atlasLinks.resume=openNarrative;
+  events.on('house-entry', () => { if (!isModalOpen()) openHouseEntry(); });
+  narrativeLinks.action = action => {
+    if (action === 'mission') openMissionPanel();
+    else if (action === 'packet') openPacketModal();
+    else if (action === 'bag') openBag('seeds');
+    else if (action === 'shop') openShop();
+    else if (action === 'decorate') enterDecorate();
+    else if (action === 'book') openRecords('book');
+    else if (action === 'return') { saveProgress(s => { ensureExploration(s).destination = 'garden'; }); openWorldMap(); }
+    else if (action === 'map') openWorldMap();
+    else if (action === 'name') openGardenName();
+    else if (action === 'gift') openRecords('stamps');
+    else if (action === 'records') openRecords();
+    else if (action === 'preview') { const item=SHOP.find(x=>x.kind===exploration(store.state).goal?.kind); if(item)openDecorationPreview(item.kind,openNarrativeNotebook,openShop); }
+    else if (action === 'harvest') showToast([copy.world.comeCloser]);
+
+  };
+  events.on('world-interact', ({ id }) => {
+    if (isModalOpen()) return;
+    if (id === 'cafe') openNarrative('ST-V01');
+      else if(id==='school'||id==='work') openPlaceExterior(id);
+    else if(narrative(store.state).decision){const decision=narrative(store.state).decision;openResidentMaps(decision==='own'?'mine':decision==='together'?'together':'blank');}
+    else if (sceneAvailable(store.state, 'ST-D01')) openNarrative('ST-D01');
+    else if (sceneAvailable(store.state, 'ST-P02')) openNarrative('ST-P02');
+    else openNarrative('ST-P01');
+  });
   events.on('hud-action', ({ id }) => {
-    if (id === 'talk') openTalk('nuri');
+    if (id === 'map') openWorldMap();
+    else if (id === 'story') openNarrativeNotebook();
+    else if (id === 'talk') {const p=currentPosition();if(!p.indoor&&withinReach(p,LANDMARKS.nuri,INTERACTION_RANGE+60))openTalk('nuri');else showToast([copy.world.comeCloser]);}
     else if (id === 'shop') openShop();
     else if (id === 'gift') openRecords('stamps');
     else if (id === 'other-activity') openMissionPanel(!!activeMissionSession(store.state)?.reportedActions.length && !missionProgress(store.state).execution);
     else if (id === 'plan-check') openMissionPanel(false, true);
     else if (id === 'records') openRecords();
     else if (id === 'decorate') enterDecorate();
-    else if (id === 'settings') openSettings(openAccount);
+    else if (id === 'settings') openSettings(openAccount, openGardenName);
     else if (id === 'packet') openPacketModal();
     else if (id === 'bag') openBag('seeds');
     else if (id === 'book') openRecords('book');
@@ -87,7 +132,11 @@ export function startFlow(): void {
   talkActions.nuri = () => openBag('seeds');
   talkActions.moru = openShop;
   talkActions.pio = () => openRecords('book');
-  events.on('npc-talk', ({ id }) => openTalk(id));
+  events.on('npc-talk', ({ id }) => {
+    const scene = id === 'nuri' ? 'ST-A01' : id === 'moru' ? 'ST-B01' : 'ST-C01';
+    if (sceneAvailable(store.state, scene) && !narrative(store.state).completed.includes(scene)) openNarrative(scene);
+    else openTalk(id);
+  });
   // 꽃이 핀 식물을 누르면 열매를 한 번 딴다. 식물은 그대로 남는다.
   events.on('plant-tap', ({ id }) => {
     let got = 0;
@@ -120,9 +169,7 @@ export function startFlow(): void {
   });
   startSound();
   const begin = () => {
-    const next = () => { const p = missionProgress(store.state); if (!p.selectedCategory && !p.onboardingSeen) openMissionPanel(); else afterDayChange(); };
-    if (needsIntro(store.state)) openStory('intro', after => after === 'packet' ? openPacketModal() : next());
-    else next();
+    if (!store.state.story.seen.includes('intro') && store.state.logs.length === 0 && !narrative(store.state).completed.includes('ST-P01')) openNarrative('ST-P01');
   };
   events.on('state-restored', () => {
     justCompleted = false;
