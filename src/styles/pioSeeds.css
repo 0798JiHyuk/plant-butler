@@ -1,0 +1,12 @@
+.panel.pio-seeds{width:min(640px,calc(100% - 24px));max-height:calc(var(--stage-h) - 20px);box-sizing:border-box;overflow:hidden;padding:6px 12px;gap:4px;}
+.pio-seeds>*{flex-shrink:0;min-width:0;}
+.pio-seed-hero{display:flex;align-items:center;gap:12px;}
+.pio-seed-hero>.speaker-identity{margin:0;gap:8px;min-height:44px;flex:none;}
+.pio-seeds .speaker-portrait{width:44px;height:44px;}
+.pio-seeds p{margin:0;line-height:1.4;font-size:14px;}
+.pio-seeds .panel-note{font-size:12px;}
+.pio-seed-list{display:flex;gap:12px;justify-content:center;}
+.pio-seed-list>div{display:flex;align-items:center;gap:6px;padding:8px;background:#f4e8c7;border-radius:12px;min-width:0;}
+.pio-seed-list img{width:42px;height:42px;object-fit:contain;}
+.pio-seed-list span{font-size:14px;overflow-wrap:anywhere;}
+.pio-seeds .btn-pair .btn{min-width:0;min-height:44px;white-space:normal;}

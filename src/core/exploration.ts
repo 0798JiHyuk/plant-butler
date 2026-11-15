@@ -16,6 +16,7 @@ export interface Exploration {
   tutorialSeen?: boolean;
   goal?: { kind: string; zone: 'garden' | 'home'; col: number; row: number };
   starterGranted?: boolean;
+  pioSeedsFound?: boolean;
   purchases?: Record<string, { kind: string; result: string }>;
 }
 export interface NarrativeProgress {
@@ -116,6 +117,7 @@ export function validExploration(value: unknown): boolean {
     && (p.destination === undefined || zones([p.destination])) && (p.lastZone === undefined || zones([p.lastZone]))
     && (p.goal === undefined || !!p.goal && typeof p.goal === 'object' && typeof (p.goal as Record<string,unknown>).kind === 'string' && ['garden','home'].includes(String((p.goal as Record<string,unknown>).zone)) && Number.isInteger((p.goal as Record<string,unknown>).col) && Number.isInteger((p.goal as Record<string,unknown>).row))
     && (p.purchases === undefined || !!p.purchases && typeof p.purchases === 'object' && !Array.isArray(p.purchases) && Object.values(p.purchases).every(x=>!!x&&typeof x==='object'&&typeof x.kind==='string'&&['ok','poor','unknown'].includes(x.result)))
+    && (p.pioSeedsFound === undefined || typeof p.pioSeedsFound === 'boolean')
     && (p.starterGranted === undefined || typeof p.starterGranted === 'boolean')
     && (p.seat === undefined || typeof p.seat === 'object' && p.seat !== null && zones([(p.seat as Record<string, unknown>).zone]) && typeof (p.seat as Record<string, unknown>).id === 'string');
 }

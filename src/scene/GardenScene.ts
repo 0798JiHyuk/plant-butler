@@ -1,3 +1,5 @@
+import {canFindPioSeeds,findPioSeeds} from '../core/pioSeeds';
+import {pioSeedMarker} from './pioSeedMarker';
 import { withinReach,INTERACTION_RANGE,SHOP_RANGE,seatPlacement } from '../core/interaction';
 import { GARDEN_DECOR_BOUNDS, LANDMARKS, CAFE_BENCH, WORLD_SIZE } from '../core/worldGeometry';
 import { editLayout, layoutState } from '../core/layoutDraft';
@@ -35,6 +37,8 @@ function decorTexture(item: Pick<DecorItem, 'kind' | 'variant'>): string {
 
 export class GardenScene extends Phaser.Scene {
   private get state() { return layoutState(); }
+  private pioHint?:Phaser.GameObjects.Image;
+  private nextSeedAttempt=0;
   private seated: string | null = null;
   private positionTick = 0;
   private reducedMotion = false;
@@ -95,6 +99,7 @@ export class GardenScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.pioHint=undefined;this.nextSeedAttempt=0;
     this.decorSprites.clear(); this.plantSprites.clear(); this.fruitMarks.clear();
     this.npcs = []; this.stick = { x: 0, y: 0 }; this.locked = false;
     this.seated = null; this.lastZone = '';
@@ -108,6 +113,7 @@ export class GardenScene extends Phaser.Scene {
     this.updateBoard=undefined;
     if (this.indoor) drawHome(this);
     else { drawMeadow(this); this.updateBoard=drawNeighborhood(this, (point,range)=>this.canInteractAt(point,range),()=>this.state);this.updateBoard(); this.drawField(); }
+    if(!this.indoor&&!exploration(this.state).pioSeedsFound)this.pioHint=pioSeedMarker(this);
     events.emit('social-location',{location:'garden'});
     events.emit('location-changed', { indoor: this.indoor });
     if (!this.indoor) {
@@ -211,6 +217,16 @@ export class GardenScene extends Phaser.Scene {
         : Math.abs(this.player.x-LANDMARKS.home.x)<58 && Math.abs(this.player.y-LANDMARKS.home.y)<35;
       if (!near) this.doorArmed = true;
       if (near && this.doorArmed) { this.doorArmed = false; if (this.indoor) this.scene.restart({ indoor: false, returning: true }); else events.emit('house-entry', {}); }
+    }
+    this.pioHint?.setVisible(!this.decorating&&!exploration(this.state).pioSeedsFound);
+    if(!this.indoor&&!this.locked&&!this.decorating&&!this.seated&&!store.restoring&&this.time.now>=this.nextSeedAttempt){
+      const at={x:this.player.x,y:this.player.y,indoor:this.indoor};
+      if(canFindPioSeeds(this.state,at)){
+        let seeds:import('../core/types').SeedItem[]=[];
+        const saved=store.tryUpdate(s=>{seeds=findPioSeeds(s,at);});
+        if(saved&&seeds.length){this.pioHint?.destroy();this.pioHint=undefined;events.emit('pio-seeds-found',{seeds});}
+        else if(!saved){this.nextSeedAttempt=this.time.now+5000;events.emit('pio-seeds-save-error',{});}
+      }
     }
     this.positionTick += delta;
     if (this.positionTick > 180) {
