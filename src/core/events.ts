@@ -1,12 +1,19 @@
 // core·scene·ui가 서로를 직접 참조하지 않고 대화하는 얇은 이벤트 버스.
 
-export type HudAction = 'records' | 'decorate' | 'settings' | 'talk' | 'plan-check' | 'other-activity' | 'done' | 'packet' | 'shop' | 'bag' | 'book' | 'gift';
+export type HudAction = 'map' | 'story' | 'records' | 'decorate' | 'settings' | 'talk' | 'plan-check' | 'other-activity' | 'done' | 'packet' | 'shop' | 'bag' | 'book' | 'gift';
 
 export type NpcId = 'nuri' | 'moru' | 'pio';
 
 import type { DecorItem, PlantedItem, StoredThing } from './types';
 
 export interface AppEvents {
+  'world-position': { x: number; y: number; indoor: boolean };
+  'world-interact': { id: 'board' | 'cafe' | 'school' | 'work' };
+  'layout-refresh': Record<string, never>;
+  'seat-change': { id: string | null };
+  'location-changed': { indoor: boolean };
+  'house-entry': Record<string, never>;
+  'house-travel': { indoor: boolean };
   /** 계정/서버 저장본 복원. 게임 규칙 재실행 없이 장면만 다시 그린다. */
   'state-restored': Record<string, never>;
   'garden-ready': Record<string, never>;
@@ -14,6 +21,9 @@ export interface AppEvents {
   'player-screen': { x: number; y: number; zoom: number };
   'hud-action': { id: HudAction };
   'ui-lock': { locked: boolean };
+  /** React owns this gesture; cancel a canvas drag without committing it. */
+  'ui-pointer-cancel': Record<string,never>;
+  'interaction-too-far': Record<string,never>;
   /** 정원을 보는 배율(시야) 바꾸기 */
   'view-zoom': { zoom: number };
   'sprout-pose': { pose: 'rest' | 'idle' };

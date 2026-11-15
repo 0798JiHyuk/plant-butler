@@ -1,3 +1,4 @@
+import type { Exploration, NarrativeProgress } from './exploration';
 import type { MissionProgress, MissionVariant } from './missionTypes';
 export type Energy = 'heavy' | 'normal' | 'good';
 export type ActivityKind = 'selfcare' | 'outing' | 'joy' | 'connect' | 'plant';
@@ -86,7 +87,8 @@ export interface AppState {
   missions?: MissionProgress;
   version: 1;
   logs: LogEntry[];
-  garden: { items: DecorItem[]; plants: PlantedItem[]; storage: StoredThing[]; /** 옮긴 텃밭 자리. 없으면 처음 자리. */ bed?: { x: number; y: number } };
+  garden: { layoutVersion?:2; items: DecorItem[]; plants: PlantedItem[]; storage: StoredThing[]; name?: string; namePromptSeen?: boolean;
+    exploration?: Exploration; narrative?: NarrativeProgress; interior?: { items: DecorItem[] }; /** 옮긴 텃밭 자리. 없으면 처음 자리. */ bed?: { x: number; y: number } };
   /** 씨앗함: 열어 본 뒤 심지 않은 씨앗 */
   seeds: SeedItem[];
   /** 정원열매: 꾸미기 전용 재화. 줄어드는 건 상점에서 쓸 때뿐이다. */
@@ -103,5 +105,5 @@ export interface AppState {
   purchases: number;
   days: Record<string, DayInfo>;
   /** viewZoom: 정원을 보는 배율(없으면 화면 크기에 맞는 기본값) */
-  settings: { sound: boolean; demo: boolean; dayOffset: number; viewZoom?: number };
+  settings: { sound: boolean; demo: boolean; dayOffset: number; viewZoom?: number; reducedMotion?: boolean; folded?: boolean };
 }

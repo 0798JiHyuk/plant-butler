@@ -1,3 +1,5 @@
+import { zoneAt } from '../core/exploration';
+import { auth } from '../lib/auth';
 // 효과음. 파일 없이 브라우저에서 짧은 음을 합성한다. 진짜 소리가 오면 play()만 바꾸면 된다.
 import { events } from '../core/events';
 import { store } from '../core/store';
@@ -14,9 +16,26 @@ const SOUNDS: Record<string, Note[]> = {
 };
 
 let ctx: AudioContext | null = null;
+let ambient: AudioBufferSourceNode | null = null;
+let ambientGain: GainNode | null = null;
+let location = 'garden';
+function updateAmbient():void {
+  if(!ctx)return;
+  const on=auth.getSnapshot().status==='connected' && store.state.settings.sound && location==='cafe' && document.visibilityState==='visible';
+  if(!on){ambient?.stop();ambient=null;ambientGain=null;return;}
+  if(ambient)return;
+  const buffer=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),data=buffer.getChannelData(0);
+  let previous=0;
+  for(let i=0;i<data.length;i++){previous=(previous+Math.random()*.04-.02)/1.02;data[i]=previous;}
+  ambient=ctx.createBufferSource();ambient.buffer=buffer;ambient.loop=true;
+  const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=900;
+  ambientGain=ctx.createGain();ambientGain.gain.value=.12;
+  ambient.connect(filter).connect(ambientGain).connect(ctx.destination);ambient.start();
+}
+
 
 function play(name: string): void {
-  if (!store.state.settings.sound || !ctx) return;
+  if (auth.getSnapshot().status!=='connected' || !store.state.settings.sound || !ctx) return;
   const now = ctx.currentTime;
   for (const [freq, at, length] of SOUNDS[name]) {
     const osc = ctx.createOscillator();
@@ -38,7 +57,12 @@ export function startSound(): void {
     ctx ??= new AudioContext();
     if (ctx.state === 'suspended') void ctx.resume();
     if ((e.target as HTMLElement).closest?.('button')) play('tap');
+    updateAmbient();
   });
+  store.subscribe(updateAmbient);
+  auth.subscribe(updateAmbient);
+  document.addEventListener('visibilitychange',updateAmbient);
+  events.on('world-position',p=>{const next=zoneAt(p.x,p.y,p.indoor)==='cafe'?'cafe':'garden';if(next!==location){location=next;updateAmbient();}});
   events.on('sfx', ({ name }) => play(name));
   events.on('harvested', () => play('harvest'));
   events.on('plant-grown', () => play('plant'));

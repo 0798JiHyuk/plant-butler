@@ -6,6 +6,10 @@ let timer: number | undefined;
 const subs = new Set<() => void>();
 const notify = () => subs.forEach((fn) => fn());
 
+export function clearToast():void {
+  window.clearTimeout(timer);lines=null;notify();
+}
+
 export function showToast(next: string[], ms = 5000): void {
   window.clearTimeout(timer);
   lines = next;

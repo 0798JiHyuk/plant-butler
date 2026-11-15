@@ -337,3 +337,14 @@ print('garden icons done')
 
 # Orchard sprites use their preserved transparent sources and shared ground baseline.
 export_trees()
+
+# Additional outdoor clearing and empty cottage interior.
+from slice_world_art import export_world_art
+export_world_art()
+
+# Newly planted mound: keep the supplied transparent source and ground alignment.
+from slice_planted_art import main as export_planted
+export_planted()
+
+from slice_neighborhood_art import export as export_neighborhood
+export_neighborhood()

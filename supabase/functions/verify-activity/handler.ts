@@ -1,3 +1,4 @@
+import { isGoogleIdentity } from '../_shared/authPolicy.ts';
 import { PHOTO_MAX_BYTES, parsePhotoVerdict, photoPolicy } from '../_shared/photoPolicy.ts';
 
 interface Config {
@@ -65,7 +66,7 @@ export function createPhotoHandler(config: Config, request: typeof fetch = fetch
       });
       if (!auth.ok) return reply({ error: 'auth' }, 401);
       const user: unknown = await auth.json();
-      if (!object(user) || typeof user.id !== 'string') return reply({ error: 'auth' }, 401);
+      if (!object(user) || typeof user.id !== 'string' || !isGoogleIdentity(user)) return reply({ error: 'auth' }, 401);
       const now = Date.now();
       for (const [id, entry] of attempts) if (entry.until <= now) attempts.delete(id);
       if (inFlight >= 4 || attempts.size > 2000) return reply({ error: 'busy' }, 429);

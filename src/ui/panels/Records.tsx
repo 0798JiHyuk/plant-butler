@@ -1,3 +1,9 @@
+import { exploration, ensureExploration } from '../../core/exploration';
+import { saveProgress } from '../saveProgress';
+import { openDecorationPreview } from './DecorationPreview';
+import { openShop } from './Shop';
+import { SHOP } from '../../core/economy';
+import { NarrativeNotebook } from './Narrative';
 // 수첩: 내가 쌓아 온 것을 모은다. 기록은 해낸 활동만, 도감은 만난 식물만, 출석은 찾아온 횟수만. 빈 날은 보이지 않는다.
 import { useState } from 'react';
 import { activityById } from '../../core/activities';
@@ -12,7 +18,7 @@ import { useAppState } from '../useAppState';
 import { GiftBody } from './Gift';
 import { PanelHead } from './PanelHead';
 
-type RecordsTab = 'log' | 'book' | 'stamps';
+type RecordsTab = 'log' | 'book' | 'stamps' | 'story';
 
 function formatDate(date: string): string {
   const [, m, d] = date.split('-').map(Number);
@@ -83,10 +89,12 @@ function BookBody() {
 }
 
 function Records({ initial }: { initial: RecordsTab }) {
+  const goal=exploration(useAppState()).goal;
+  const goalItem=SHOP.find(x=>x.kind===goal?.kind);
   const [tab, setTab] = useState<RecordsTab>(initial);
   const tabs = (
     <div className="tabs" role="tablist">
-      {([['log', copy.book.logTab], ['book', copy.book.tab], ['stamps', copy.records.stampsTab]] as const).map(([id, label]) => (
+      {([['log', copy.book.logTab], ['book', copy.book.tab], ['stamps', copy.records.stampsTab], ['story', copy.map.story]] as const).map(([id, label]) => (
         <button key={id} type="button" className="tab" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
           {label}
         </button>
@@ -96,7 +104,8 @@ function Records({ initial }: { initial: RecordsTab }) {
   return (
     <section className="panel records" role="dialog" aria-label={copy.records.title}>
       <PanelHead center={tabs} />
-      {tab === 'log' ? <LogBody /> : tab === 'book' ? <BookBody /> : <GiftBody />}
+      {tab === 'story' && <><NarrativeNotebook />{goalItem&&<div><button className="btn-chip" onClick={()=>openDecorationPreview(goalItem.kind,()=>openRecords('story'),openShop)}>{copy.map.goalTitle} · {copy.decorate.kind[goalItem.kind]}</button><button className="btn-chip" onClick={()=>saveProgress(s=>{delete ensureExploration(s).goal;})}>{copy.map.goalClear}</button></div>}</>}
+      {tab === 'log' ? <LogBody /> : tab === 'book' ? <BookBody /> : tab === 'stamps' ? <GiftBody /> : null}
     </section>
   );
 }

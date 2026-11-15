@@ -9,8 +9,10 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 }
 #game canvas { touch-action: none; }
 #game, #game canvas { position: absolute; inset: 0; display: block; width: 844px !important; height: var(--stage-h, 390px) !important; }
-#ui { position: absolute; inset: 0; pointer-events: none; }
+#game { z-index:0; }
+#ui { position: absolute; inset: 0; z-index:10; pointer-events: none; }
 #ui .interactive { pointer-events: auto; }
+#ui :is(button,input,select,textarea,a,[role="button"],[contenteditable="true"]) { pointer-events:auto; }
 #ui button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
 /* 키보드로 눌러도 파란 테두리가 생기지 않게 한다 */
 #ui button, #ui input, #ui select, #ui [tabindex] { -webkit-tap-highlight-color: transparent; }

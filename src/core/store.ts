@@ -1,4 +1,4 @@
-import { loadJson, saveJson } from './storage';
+import { loadJson, saveJson, persistJson } from './storage';
 import type { AppState } from './types';
 import { events } from './events';
 import { createState, decodeState, hasProgress, stateKey } from './state';
@@ -71,6 +71,14 @@ export const store = {
   },
   get state(): AppState {
     return state;
+  },
+  tryUpdate(mutate: (draft: AppState) => void): boolean {
+    const draft = structuredClone(state);
+    mutate(draft);
+    if (!persistJson(key, draft)) return false;
+    state = draft;
+    subscribers.forEach(fn => fn());
+    return true;
   },
   /** 복사본(draft)을 고쳐서 한 번에 반영·저장한다. */
   update(mutate: (draft: AppState) => void): void {

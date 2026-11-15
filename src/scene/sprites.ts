@@ -2,10 +2,10 @@
 // 원본 시트는 art/source/sprout2-*.webp, 자르는 방법은 tools/slice_art.py.
 // 걷기는 앞·뒤·옆(오른쪽) 4프레임씩이고, 왼쪽은 옆모습을 좌우로 뒤집어 쓴다.
 
-export type StaticPose = 'idle' | 'joy' | 'rest' | 'back';
+export type StaticPose = 'idle' | 'joy' | 'rest' | 'back' | 'sit' | 'lie';
 export type WalkDir = 'front' | 'back' | 'side';
 
-export const STATIC_POSES: StaticPose[] = ['idle', 'joy', 'rest', 'back'];
+export const STATIC_POSES: StaticPose[] = ['idle', 'joy', 'rest', 'back', 'sit', 'lie'];
 export const JUMP_FRAMES = ['jump1', 'jump2', 'jump3', 'jump4'] as const;
 export const WALK_FRAMES = [1, 2, 3, 4] as const;
 export type SproutPose = StaticPose | (typeof JUMP_FRAMES)[number];

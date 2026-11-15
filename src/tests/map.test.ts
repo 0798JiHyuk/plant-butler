@@ -52,7 +52,8 @@ describe('map', () => {
     const slot = nextDecorSlot([])!;
     expect(inBed(slot.col * TILE + 16, slot.row * TILE + 16, 40)).toBe(false);
     expect(isDecorTile(Math.floor((BED.x + 100) / TILE), Math.floor((BED.y + 60) / TILE))).toBe(false);
-    expect(isDecorTile(10, 9)).toBe(true);
+    expect(isDecorTile(17, 76)).toBe(true);
+    expect(isDecorTile(18, 57)).toBe(false);
     expect(isDecorTile(0, 0)).toBe(false);
   });
 

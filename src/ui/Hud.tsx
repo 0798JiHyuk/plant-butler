@@ -1,3 +1,5 @@
+import { MiniMap } from './panels/WorldMap';
+import { StoryHint } from './panels/Narrative';
 // 정원 위에 겹쳐 보이는 화면: 이름판, 위쪽 버튼, 왼쪽 위 묶음(열매·주머니·선물), 말풍선, 오늘의 활동 카드, 대화 버튼.
 // #ui 바로 아래에 이 요소들이 나란히 놓여야 CSS(위치)가 맞아서 Fragment로 내보낸다.
 import { useEffect, useRef } from 'react';
@@ -9,6 +11,7 @@ import { events, type HudAction } from '../core/events';
 import { isResting, limitReached, pendingPacketCount } from '../core/rules';
 import { ActivityImg, UiIconImg, type UiIcon } from './icons';
 import { useAppState } from './useAppState';
+import { useIndoors } from './worldLocation';
 import { activeMissionSession, missionPlan, missionProgress } from '../core/missions';
 
 const emit = (id: HudAction) => () => events.emit('hud-action', { id });
@@ -102,14 +105,16 @@ function ActivityCard() {
 }
 
 export function Hud() {
+  const indoor = useIndoors();
   const s = useAppState();
   const date = todayKey();
   const packets = pendingPacketCount(s);
   const bubble = isResting(s, date) ? copy.bubble.rest : limitReached(s, date) ? copy.bubble.enough : missionPlan(s) || s.days[date]?.plan ? copy.bubble.planned : copy.bubble.ask;
   return (
     <>
+      <MiniMap /><StoryHint />
       <div className="garden-name">
-        <strong>{copy.garden.name}</strong>
+        <strong>{s.garden.name ?? copy.garden.name}</strong>
         <span>{copy.garden.tagline}</span>
       </div>
       <div className="top-buttons">
@@ -119,8 +124,7 @@ export function Hud() {
       <nav className="bottom-menu">
         <HudButton className="hud-btn" id="bag" label={copy.hud.bag} icon="packet" />
         <HudButton className="hud-btn" id="records" label={copy.hud.records} icon="records" />
-        <HudButton className="hud-btn" id="decorate" label={copy.hud.decorate} icon="decorate" />
-        <HudButton className="hud-btn" id="shop" label={copy.hud.shop} icon="shop" />
+        <HudButton className="hud-btn" id="decorate" label={indoor ? copy.world.homeDecorate : copy.hud.decorate} icon="decorate" />
       </nav>
       {/* 왼쪽 위 묶음: 열매, 씨앗 주머니, 방문 선물(받을 게 있을 때만 보인다. 기한은 보여 주지 않는다) */}
       <div className="left-stack">
@@ -133,7 +137,7 @@ export function Hud() {
       </div>
       <Bubble text={bubble} />
       <ActivityCard />
-      <HudButton className="talk-btn" id="talk" label={copy.hud.talk} icon="talk" />
+      <HudButton className="talk-btn" id="talk" label={copy.hud.talk} icon="talk" hidden={indoor} />
     </>
   );
 }

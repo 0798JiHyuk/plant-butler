@@ -2,6 +2,7 @@
 begin;
 insert into auth.users(id) values ('90000000-0000-4000-8000-000000000008');
 set local role authenticated;
+select set_config('request.jwt.claims','{"is_anonymous":false,"app_metadata":{"provider":"google","providers":["google"]}}',true);
 select set_config('request.jwt.claim.sub','90000000-0000-4000-8000-000000000008',true);
 do $$
 declare result integer;

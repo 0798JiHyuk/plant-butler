@@ -1,9 +1,12 @@
+import { isGoogleIdentity } from '../../supabase/functions/_shared/authPolicy';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
 
+export const isGoogleUser=(user:User|null):boolean=>isGoogleIdentity(user);
+
 type AuthApi = Pick<SupabaseClient, 'auth'>;
 export interface AuthState {
-  status: 'checking' | 'local' | 'signed-out' | 'guest' | 'connected';
+  status: 'checking' | 'local' | 'signed-out' | 'connected';
   userId: string | null;
   busy: boolean;
   error: 'request' | 'google' | null;
@@ -19,7 +22,7 @@ export function createAuthService(provide: () => AuthApi | null | Promise<AuthAp
     listeners.forEach(listener => listener());
   };
   const userChanged = (user: User | null) => publish({
-    status: user ? (user.is_anonymous ? 'guest' : 'connected') : 'signed-out', userId: user?.id ?? null,
+    status: isGoogleUser(user)?'connected':'signed-out', userId: isGoogleUser(user)?user!.id:null,
   });
   function run(action: (api: AuthApi) => Promise<void>, error: AuthState['error'] = 'request'): Promise<void> {
     if (operation) return operation;
@@ -33,13 +36,10 @@ export function createAuthService(provide: () => AuthApi | null | Promise<AuthAp
     }).finally(() => { operation = null; publish({ busy: false }); });
     return operation;
   }
-  async function restoreOrStartGuest(api: AuthApi) {
-    const { data: saved, error: restoreError } = await api.auth.getSession();
-    if (restoreError) throw restoreError;
-    if (saved.session) { userChanged(saved.session.user); return; }
-    const { data, error } = await api.auth.signInAnonymously();
-    if (error || !data.user) throw new Error('Guest authentication unavailable');
-    userChanged(data.user);
+  async function restoreSession(api:AuthApi) {
+    const {data,error}=await api.auth.getSession();
+    if(error)throw error;
+    userChanged(data.session?.user??null);
   }
   return {
     getSnapshot: () => state,
@@ -53,7 +53,7 @@ export function createAuthService(provide: () => AuthApi | null | Promise<AuthAp
           // 이 콜백 안에서는 다른 Supabase API를 호출하지 않는다.
           userChanged(session?.user ?? null);
         });
-        await restoreOrStartGuest(api);
+        await restoreSession(api);
         if (typeof window !== 'undefined') {
           const callback = new URL(window.location.href);
           if (callback.searchParams.has('error') || new URLSearchParams(callback.hash.slice(1)).has('error')) {
@@ -63,16 +63,12 @@ export function createAuthService(provide: () => AuthApi | null | Promise<AuthAp
       });
       return initialization;
     },
-    startGuest: () => run(restoreOrStartGuest),
-    google: (mode: 'link' | 'existing' = 'link') => run(async api => {
-      const { data, error } = await api.auth.getSession();
-      if (error) throw error;
-      const options = { redirectTo: `${window.location.origin}${window.location.pathname}` };
-      const result = mode === 'link' && data.session?.user.is_anonymous
-        ? await api.auth.linkIdentity({ provider: 'google', options })
-        : await api.auth.signInWithOAuth({ provider: 'google', options });
-      if (result.error) throw result.error;
-    }, 'google'),
+    retry: () => run(restoreSession),
+    google: () => run(async api => {
+      const options={redirectTo:`${window.location.origin}${window.location.pathname}`};
+      const {error}=await api.auth.signInWithOAuth({provider:'google',options});
+      if(error)throw error;
+    },'google'),
     signOut: () => state.status !== 'connected' ? Promise.resolve() : run(async api => {
       const { error } = await api.auth.signOut({ scope: 'local' });
       if (error) throw error;
@@ -83,7 +79,7 @@ export function createAuthService(provide: () => AuthApi | null | Promise<AuthAp
 
 export const auth = createAuthService(getSupabaseClient);
 
-/** 인증 실패는 호출자가 처리할 수 있도록 null로 반환하며 게임 시작은 막지 않는다. */
+/** Google 세션만 반환한다. 로그인·서버 복원이 끝나기 전에는 진입 화면에서 대기한다. */
 export async function ensureSession(): Promise<string | null> {
   await auth.initialize();
   return auth.getSnapshot().userId;
