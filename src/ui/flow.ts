@@ -10,7 +10,7 @@ import { currentPosition } from './worldPosition';
 import { LANDMARKS } from '../core/worldGeometry';
 import { withinReach,INTERACTION_RANGE } from '../core/interaction';
 // 화면 사이의 흐름: 하루 첫 여력 체크 → 활동 고르기 → 했어요 → 회고 → 정원 변화.
-import { setDayOffset, todayKey } from '../core/clock';
+import { todayKey } from '../core/clock';
 import { copy } from '../core/copy';
 import { events } from '../core/events';
 import { harvest } from '../core/economy';
@@ -32,7 +32,6 @@ import { openPacketModal } from './panels/Packet';
 import { openRecords } from './panels/Records';
 import { openSettings } from './panels/Settings';
 import { openAccount } from './panels/Account';
-import { showCheckin } from './panels/Checkin';
 import { openReflect } from './panels/Reflect';
 import { openShop } from './panels/Shop';
 import { openTalk, talkActions } from './panels/Talk';
@@ -62,11 +61,6 @@ function complete(chips: ReflectChip[]): void {
   if (chips.length === 0) lines.push(copy.speak(copy.talk.npc.nuri.name, copy.lines.skipReflect));
   showToast(lines.filter(Boolean));
   events.emit('celebrate', { item: null });
-}
-
-/** 데모 모드에서 날짜를 넘긴 뒤: 새 하루의 첫 진입처럼 여력 체크부터 다시. */
-export function afterDayChange(): void {
-  if (!store.state.days[todayKey()]?.energy) showCheckin();
 }
 
 export function startFlow(): void {
@@ -186,7 +180,6 @@ export function startFlow(): void {
     window.clearTimeout(packetTimer);
     closeModal(false);
     exitDecorate();
-    setDayOffset(store.state.settings.demo ? store.state.settings.dayOffset : 0);
     begin();
   });
   events.on('garden-ready', () => events.emit('ui-lock', { locked: isModalOpen() }));

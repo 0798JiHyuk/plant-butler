@@ -1,20 +1,5 @@
-// 날짜는 항상 여기서만 얻는다. 데모 모드의 [다음 날로]는 오프셋만 올린다.
-
-let dayOffset = 0;
-
-export function setDayOffset(days: number): void {
-  dayOffset = days;
-}
-
-export function getDayOffset(): number {
-  return dayOffset;
-}
-
-export function now(): Date {
-  const d = new Date();
-  d.setDate(d.getDate() + dayOffset);
-  return d;
-}
+// 실제 날짜만 사용한다. 이전 데모 설정이 저장되어 있어도 날짜를 이동하지 않는다.
+export function now(): Date { return new Date(); }
 
 function format(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

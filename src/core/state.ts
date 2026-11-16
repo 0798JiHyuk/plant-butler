@@ -61,6 +61,9 @@ export function decodeState(raw: unknown): AppState {
   const restored = structuredClone({ version: 1, logs: v.logs, garden: v.garden, seeds: v.seeds, fruit: v.fruit,
     freePackets: v.freePackets, bonusPackets: v.bonusPackets, story: v.story, visits: v.visits,
     purchases: v.purchases, days: v.days, settings: v.settings, ...(missions ? { missions } : {}) }) as AppState;
+  // Keep legacy keys for snapshot compatibility; demo flags can no longer affect gameplay.
+  restored.settings.demo=false;
+  restored.settings.dayOffset=0;
   if(raw.garden.layoutVersion!==2){delete restored.garden.layoutVersion;upgradeGardenLayout(restored);}
   return restored;
 }
