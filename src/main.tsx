@@ -1,4 +1,5 @@
 import {SocialScene} from './scene/SocialScene';
+import {PlaceScene} from './scene/PlaceScene';
 import Phaser from 'phaser';
 import './styles/tokens.css';
 import './styles/overlay.css';
@@ -33,14 +34,14 @@ let flowStarted=false;
 function setGameAccess(allowed:boolean):void {
   if(!allowed){
     closeModal(false);exitDecorate();
-    if(game){game.canvas.style.visibility='hidden';game.input.enabled=false;game.scene.stop('social');game.scene.stop('garden');game.loop.sleep();}
+    if(game){game.canvas.style.visibility='hidden';game.input.enabled=false;game.scene.stop('social');game.scene.stop('place');game.scene.stop('garden');game.loop.sleep();}
     return;
   }
   if(!game){
-    game=new Phaser.Game({type:Phaser.AUTO,width:W,height:H,parent:'game',pixelArt:true,backgroundColor:'#4d6d3a',scale:{mode:Phaser.Scale.NONE},scene:[GardenScene,SocialScene]});
+    game=new Phaser.Game({type:Phaser.AUTO,width:W,height:H,parent:'game',pixelArt:true,backgroundColor:'#4d6d3a',scale:{mode:Phaser.Scale.NONE},scene:[GardenScene,SocialScene,PlaceScene]});
     if(import.meta.env.DEV&&new URLSearchParams(location.search).has('debug'))(window as unknown as {__game:Phaser.Game}).__game=game;
   }else{
-    game.loop.wake();game.input.enabled=true;game.scene.stop('social');game.scene.start('garden');game.canvas.style.visibility='visible';
+    game.loop.wake();game.input.enabled=true;game.scene.stop('social');game.scene.stop('place');game.scene.start('garden');game.canvas.style.visibility='visible';
   }
   if(!flowStarted){flowStarted=true;startFlow();}
 }

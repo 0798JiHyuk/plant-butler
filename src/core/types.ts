@@ -1,5 +1,6 @@
 import type { Exploration, NarrativeProgress } from './exploration';
 import type { MissionProgress, MissionVariant } from './missionTypes';
+import type { PlaceMemo } from './placeMemo';
 export type Energy = 'heavy' | 'normal' | 'good';
 export type ActivityKind = 'selfcare' | 'outing' | 'joy' | 'connect' | 'plant';
 export type LogSource = 'mission' | 'daily' | 'design';
@@ -88,7 +89,7 @@ export interface AppState {
   version: 1;
   logs: LogEntry[];
   garden: { layoutVersion?:2; items: DecorItem[]; plants: PlantedItem[]; storage: StoredThing[]; name?: string; namePromptSeen?: boolean;
-    exploration?: Exploration; narrative?: NarrativeProgress; interior?: { items: DecorItem[] }; /** 옮긴 텃밭 자리. 없으면 처음 자리. */ bed?: { x: number; y: number } };
+    exploration?: Exploration; narrative?: NarrativeProgress; /** 학교·직장에 직접 남긴 메모(장소:종류 키). 이야기 사실·책갈피와 다른 상태. */ placeMemos?: Record<string, PlaceMemo>; interior?: { items: DecorItem[] }; /** 옮긴 텃밭 자리. 없으면 처음 자리. */ bed?: { x: number; y: number } };
   /** 씨앗함: 열어 본 뒤 심지 않은 씨앗 */
   seeds: SeedItem[];
   /** 정원열매: 꾸미기 전용 재화. 줄어드는 건 상점에서 쓸 때뿐이다. */

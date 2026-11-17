@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'public/assets/garden'
 
 def export_world_art():
-    for name, size in [('home-interior', (1266, 712)), ('garden-meadow', (1266, 480)), ('garden-connected', (1266, 1474)), ('garden-world-v2', (1266, 1474)), ('resident-map-base', (1266, 712)), ('garden-world-wide', (4096, 3072))]:
+    for name, size in [('home-interior', (1266, 712)), ('school-interior', (1266, 712)), ('work-interior', (1266, 712)), ('garden-meadow', (1266, 480)), ('garden-connected', (1266, 1474)), ('garden-world-v2', (1266, 1474)), ('resident-map-base', (1266, 712)), ('garden-world-wide', (4096, 3072))]:
         source = ROOT / 'art/source' / f'{name}.png'
         if source.exists():
             with Image.open(source) as image:

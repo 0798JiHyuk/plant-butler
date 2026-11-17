@@ -10,7 +10,13 @@ export interface AppEvents {
   'pio-seeds-found': { seeds:import('./types').SeedItem[] };
   'pio-seeds-save-error': Record<string,never>;
   'social-travel': { destination:'cafe'|'garden'|'visit'; garden?:import('./sharedGarden').SharedGarden };
-  'social-location': { location:'garden'|'cafe'|'visit'; name?:string };
+  'social-location': { location:'garden'|'cafe'|'visit'|'school'|'work'; name?:string };
+  /** 학교·직장 실내로 들어가거나(place) 정원으로 나온다(null). */
+  'place-travel': { place:'school'|'work'|null };
+  /** 실내 메모 자리(책상)를 눌렀을 때. 그 장소의 안내 장면을 연다. */
+  'place-memo': { place:'school'|'work' };
+  /** 실내에서 "길 안내 보기"를 골랐을 때: 문 쪽을 잠깐 깜빡여 알려 준다. */
+  'place-exit-hint': Record<string,never>;
   'cafe-notice': { kind:'occupied'|'error' };
   'cafe-person': { member:import('./cafe').CafeMember };
   'cafe-stand': Record<string,never>;

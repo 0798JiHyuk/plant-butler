@@ -27,7 +27,9 @@ export function sceneAvailable(s: AppState, id: string): boolean {
   if (id.startsWith('ST-B')) return facts.includes('moruMapSeen');
   if (id.startsWith('ST-C')) return facts.includes('pioMapSeen');
   if (id === 'ST-V01') return exploration(s).discovered.includes('cafe');
-  if (id.startsWith('ST-V') || id === 'ST-X01') return false; // P1 locations not built.
+  if (id === 'ST-V02') return (exploration(s).entered ?? []).includes('school');
+  if (id === 'ST-V03') return (exploration(s).entered ?? []).includes('work');
+  if (id.startsWith('ST-V') || id === 'ST-X01') return false; // 카페 실내는 아직 만들지 않았다.
   if (id === 'ST-R05') return false; // No team-verified help resources supplied.
   if (id === 'ST-R09') return !!exploration(s).goal;
   if (id === 'ST-R02') return !!s.missions?.execution || !!s.days[todayKey()]?.plan;

@@ -50,7 +50,7 @@ export class SocialScene extends Phaser.Scene {
     const kb=this.input.keyboard!;this.keys=kb.createCursorKeys();this.wasd=kb.addKeys('W,A,S,D') as typeof this.wasd;
     const offs=[
       events.on('move-input',v=>{this.stick=v;}),
-      events.on('ui-lock',({locked})=>{this.locked=locked;this.stick={x:0,y:0};kb.enabled=!locked;}),
+      events.on('ui-lock',({locked})=>{this.locked=locked;this.stick={x:0,y:0};kb.enabled=!locked;kb.resetKeys();}),
       events.on('cafe-stand',()=>{void this.changeSeat(null);}),
       events.on('social-travel',({destination,garden})=>{
         if(destination==='garden')this.scene.start('garden',{fromCafe:true});
