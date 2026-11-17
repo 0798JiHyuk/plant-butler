@@ -1,7 +1,10 @@
 import {openPioSeeds} from './panels/PioSeeds';
 import '../styles/pioSeeds.css';
 import {openCafe,openCafePerson} from './panels/Cafe';
-import {socialLocation} from './socialLocation';
+import {socialLocation,isPlaceLocation} from './socialLocation';
+import {PLACE_IDS,placeSceneId} from '../core/places';
+import {clearMemoDraft} from '../core/placeMemo';
+import {openPlaceMemo} from './panels/PlaceMemo';
 import { atlasLinks, openResidentMaps, openGardenMapEditor } from './panels/ResidentMaps';
 import { openDecorationPreview } from './panels/DecorationPreview';
 import { SHOP } from '../core/economy';
@@ -68,11 +71,12 @@ export function startFlow(): void {
   events.on('pio-seeds-save-error',()=>showToast([copy.map.saveError]));
   events.on('social-travel',()=>clearToast());
   events.on('cafe-state',({seated})=>{if(seated)clearToast();});
+  events.on('place-memo',({place})=>{if(!isModalOpen())openNarrative(placeSceneId(place));});
   events.on('cafe-person',({member})=>{if(socialLocation()==='cafe'&&!isModalOpen())openCafePerson(member);});
   events.on('cafe-notice',({kind})=>showToast([copy.cafe[kind]]));
   events.on('interaction-too-far',()=>showToast([copy.world.comeCloser]));
   decorateLinks.shop = openShop;
-  narrativeLinks.showMap=openResidentMaps; narrativeLinks.editMap=openGardenMapEditor; atlasLinks.resume=openNarrative;
+  narrativeLinks.memo=openPlaceMemo; narrativeLinks.showMap=openResidentMaps; narrativeLinks.editMap=openGardenMapEditor; atlasLinks.resume=openNarrative;
   events.on('house-entry', () => { if (!isModalOpen()) openHouseEntry(); });
   narrativeLinks.action = action => {
     if (action === 'mission') openMissionPanel();
@@ -81,7 +85,10 @@ export function startFlow(): void {
     else if (action === 'shop') openShop();
     else if (action === 'decorate') enterDecorate();
     else if (action === 'book') openRecords('book');
-    else if (action === 'return') { saveProgress(s => { ensureExploration(s).destination = 'garden'; }); openWorldMap(); }
+    else if (action === 'return') {
+      if (isPlaceLocation(socialLocation())) { events.emit('place-exit-hint', {}); showToast([copy.places.exitHint]); }
+      else { saveProgress(s => { ensureExploration(s).destination = 'garden'; }); openWorldMap(); }
+    }
     else if (action === 'map') openWorldMap();
     else if (action === 'name') openGardenName();
     else if (action === 'gift') openRecords('stamps');
@@ -176,6 +183,7 @@ export function startFlow(): void {
     if (!store.state.story.seen.includes('intro') && store.state.logs.length === 0 && !narrative(store.state).completed.includes('ST-P01')) openNarrative('ST-P01');
   };
   events.on('state-restored', () => {
+    PLACE_IDS.forEach(clearMemoDraft); // 다른 계정·저장본으로 바뀌면 쓰던 초안을 넘기지 않는다.
     justCompleted = false;
     window.clearTimeout(packetTimer);
     closeModal(false);

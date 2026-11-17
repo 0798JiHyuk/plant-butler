@@ -139,3 +139,11 @@
 .shop-card { min-width:0;box-sizing:border-box;gap:2px; }
 .shop-card .btn-chip { min-width:0;width:100%;box-sizing:border-box;white-space:normal;flex:none; }
 .shop-say { overflow-wrap:anywhere; }
+/* 학교·직장 메모 패널: 372px 안에 들어가고 버튼 둘이 나란히 놓인다. */
+.place-memo-panel { width:500px;max-width:calc(100% - 20px);max-height:365px;overflow-x:hidden;overflow-y:auto;box-sizing:border-box; }
+.place-memo-panel .panel-head { flex-shrink:0; }
+.place-memo-panel .btn-pair { gap:6px; }
+.place-memo-panel .btn-pair .btn { min-width:0;flex:1;min-height:44px;box-sizing:border-box; }
+.place-memo-panel button { box-sizing:border-box;flex-shrink:0; }
+.place-memo-panel input { width:100%;min-height:44px;box-sizing:border-box; }
+.place-memo-panel .narrative-text { margin:6px 8px;min-height:40px;font-size:16px; }

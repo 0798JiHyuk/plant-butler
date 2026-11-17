@@ -19,7 +19,7 @@ import { useAppState } from '../useAppState';
 import { PanelHead } from './PanelHead';
 
 export type StoryAction = 'mission' | 'packet' | 'bag' | 'shop' | 'decorate' | 'map' | 'book' | 'sit' | 'return' | 'name' | 'preview' | 'gift' | 'harvest' | 'records';
-export const narrativeLinks: { action?: (action: StoryAction) => void; showMap?:(view:AtlasView,preview?:LayerId,resume?:string)=>void; editMap?:()=>void } = {};
+export const narrativeLinks: { memo?: (place: 'school' | 'work') => void; action?: (action: StoryAction) => void; showMap?:(view:AtlasView,preview?:LayerId,resume?:string)=>void; editMap?:()=>void } = {};
 function actionFor(id: string): StoryAction | undefined {
   if(id==='r2-P01-C2')return 'mission';
   if(id==='P03-C1'||id==='R07-C1')return 'packet';
@@ -32,7 +32,7 @@ function actionFor(id: string): StoryAction | undefined {
   if(id==='C03-C1'||id==='A03-C3'||id==='R08-C3'||id==='P03-C4')return 'book';
   if(id==='A02-C1')return 'packet';
   if(id==='A02-C2'||['R02-C1','R02-C2','R03-C1','R03-C2','R03-C3','R01-C3'].includes(id))return 'mission';
-  if(id==='r2-V01-C3')return 'return';
+  if(id==='r2-V01-C3'||id==='r2-V02-C3'||id==='r2-V03-C3')return 'return';
   if(id==='A03-C1'||id==='R08-C1')return 'bag';
   return undefined;
 }
@@ -70,6 +70,7 @@ function Narrative({id}:{id:string}) {
       setPending(null);setIndex(0);return;
     }
     closeModal();
+    if(choice.id==='r2-V02-C1'||choice.id==='r2-V03-C1'){narrativeLinks.memo?.(choice.id==='r2-V02-C1'?'school':'work');return;}
     if(choice.id==='r2-D01-C2'||choice.id==='r2-D01-C3'){narrativeLinks.showMap?.(choice.id==='r2-D01-C2'?'together':'blank');return;}
     const action=actionFor(choice.id);if(action)narrativeLinks.action?.(action);
   };
@@ -77,6 +78,7 @@ function Narrative({id}:{id:string}) {
   const reply=pending?choiceReply(s,scene,pending):undefined;
   return <section className="panel narrative-panel" role="dialog" aria-label={scene.title}>
     <PanelHead title={scene.title}/>
+    {index<lines.length&&(id==='ST-V02'||id==='ST-V03')&&<p className="panel-note">{id==='ST-V02'?copy.places.setup.school:copy.places.setup.work}</p>}
     {id==='ST-E01'&&<p className="panel-note">{copy.map.currentChoice} · {p.decision==='own'?(p.mapName===undefined?s.garden.name:p.mapName)||copy.map.ownMap:p.decision==='together'?copy.map.togetherMaps:copy.map.blankMap}</p>}
     {mapView&&index<lines.length&&<button className="resident-map-peek" aria-label={copy.atlas.open} onClick={()=>narrativeLinks.showMap?.(mapView,mapView,id)}><ResidentDrawing view={mapView}/><span>{copy.atlas.open}</span></button>}
     {index<lines.length?<><SpeakerPortrait name={lines[index].speaker}/><p className="narrative-text">{lines[index].text}</p><button className="btn btn-primary" onClick={()=>{if(saveProgress(s=>confirmLine(s,id,index)))setIndex(index+1);}}>{copy.map.next}</button></>

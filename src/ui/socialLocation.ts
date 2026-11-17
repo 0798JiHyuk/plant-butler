@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { events } from '../core/events';
-type Location='garden'|'cafe'|'visit';
+type Location='garden'|'cafe'|'visit'|'school'|'work';
+export const isPlaceLocation=(value:Location):value is 'school'|'work'=>value==='school'||value==='work';
 let location:Location='garden';
 let name='';
 export const socialGardenName=()=>name;

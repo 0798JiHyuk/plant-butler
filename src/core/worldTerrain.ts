@@ -1,4 +1,4 @@
-import { GARDEN_LAWN,WORLD_SIZE,AREA_YARDS,BUILDING_AREAS,roadDistance } from './worldGeometry';
+import { GARDEN_LAWN,WORLD_SIZE,AREA_YARDS,BUILDING_AREAS,BUILDING_EXTRAS,roadDistance } from './worldGeometry';
 import { OPEN_LAWN,GATE_APRON,TREE_TRUNKS,wallBlocked } from './terrainBoundaries';
 function inPolygon(x: number, y: number, poly: readonly (readonly [number,number])[]): boolean {
   let inside = false;
@@ -21,7 +21,7 @@ export function isWalkable(x:number,y:number):boolean {
 }
 
 export function buildingBlocked(x:number,y:number):boolean {
-  return Object.values(BUILDING_AREAS).some(r=>x>r.left&&x<r.right&&y>r.top&&y<r.bottom);
+  return [...Object.values(BUILDING_AREAS),...BUILDING_EXTRAS].some(r=>x>r.left&&x<r.right&&y>r.top&&y<r.bottom);
 }
 /** Fixed terrain only; furniture and movable fields are intentionally excluded. */
 export function terrainBlocked(x:number,y:number):boolean {return !isWalkable(x,y)||buildingBlocked(x,y);}

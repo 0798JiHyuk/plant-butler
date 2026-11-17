@@ -1,4 +1,5 @@
 import {canFindPioSeeds,findPioSeeds} from '../core/pioSeeds';
+import {placeExitPoint,type PlaceId} from '../core/places';
 import {pioSeedMarker} from './pioSeedMarker';
 import { withinReach,INTERACTION_RANGE,SHOP_RANGE,seatPlacement } from '../core/interaction';
 import { GARDEN_DECOR_BOUNDS, LANDMARKS, CAFE_BENCH, WORLD_SIZE } from '../core/worldGeometry';
@@ -16,6 +17,7 @@ import { canHarvest, growthStage, placeZone } from '../core/economy';
 import { isTree } from '../core/plants';
 import { preloadAssets } from './assets';
 import { Npc } from './Npc';
+import { doorAt } from '../core/doorEntry';
 import { DEFAULT_BED, BED, bedFits, COLS, defaultViewZoom, inBed, isDecorTile, isFieldTile, isWalkable, MAP_H, MAP_W, NPC_HOMES, nearestSlot, plantSlots, setBedPos, slotWorld, SPAWN, TILE, treeRoomAt } from './map';
 import { Player } from './Player';
 import { HOME, furnitureOf, homeCellAllowed, moveHomeFurniture, placeHomeFurniture, storeHomeFurniture } from '../core/world';
@@ -48,13 +50,16 @@ export class GardenScene extends Phaser.Scene {
   private returnOutside = false;
   private fromCafe=false;
   private doorArmed = true;
+  private entryArmed = true;
   private get mapWidth():number {return this.indoor?WORLD_SIZE.interiorWidth:MAP_W;}
   private get mapHeight(): number { return this.indoor ? 712 : MAP_H; }
   private get items(): DecorItem[] { return furnitureOf(this.state, this.indoor); }
   private walkable(x: number, y: number): boolean {
     return this.indoor ? x > HOME.left + 16 && x < HOME.right - 16 && y > 258 && y < HOME.bottom : isWalkable(x, y);
   }
-  init(data: { indoor?: boolean; returning?: boolean; fromCafe?:boolean } = {}): void {
+  private fromPlace?: PlaceId;
+  init(data: { indoor?: boolean; returning?: boolean; fromCafe?:boolean; fromPlace?:PlaceId } = {}): void {
+    this.fromPlace = data.fromPlace;
     this.indoor = data.indoor ?? (exploration(store.state).seat?.zone === 'home');
     this.returnOutside = data.returning ?? false;
     this.fromCafe=data.fromCafe??false;
@@ -124,8 +129,10 @@ export class GardenScene extends Phaser.Scene {
     // 걸을 수 있는 곳: 마당 다각형 안이면서, 놓인 큰 소품의 발밑이 아닌 곳
     const isBlocked = (px: number, py: number) => !this.walkable(px, py) || (!this.indoor && districtBlocked(px, py)) || (!this.indoor && inBed(px, py - 6)) || this.blockedByDecor(px, py);
     this.player = new Player(this, this.indoor ? 640 : this.returnOutside ? LANDMARKS.home.x : SPAWN.x, this.indoor ? 540 : this.returnOutside ? LANDMARKS.home.y+55 : SPAWN.y, isBlocked);
+    this.entryArmed = false; // 건물에서 나와 문 앞에 서 있을 때는 다시 묻지 않는다. 문 앞을 벗어나면 update가 다시 켠다.
 
     if(this.fromCafe&&!this.indoor)this.player.sprite.setPosition(LANDMARKS.cafe.x,LANDMARKS.cafe.y+80);
+    if(this.fromPlace&&!this.indoor){const out=placeExitPoint(this.fromPlace);this.player.sprite.setPosition(out.x,out.y);}
     this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight).startFollow(this.player.sprite, true, 0.12, 0.12).setRoundPixels(true);
     this.applyZoom(this.indoor ? Math.min(this.cameras.main.width / this.mapWidth, this.cameras.main.height / this.mapHeight) : this.state.settings.viewZoom ?? defaultViewZoom(this.cameras.main.height));
     const resize = () => this.applyZoom(this.viewZoom);
@@ -153,6 +160,7 @@ export class GardenScene extends Phaser.Scene {
 
     const offs = [
       events.on('social-travel',({destination,garden})=>{if(destination!=='garden'&&!this.decorating)this.scene.start('social',destination==='visit'?{garden}:{});}),
+      events.on('place-travel',({place})=>{if(place&&!this.decorating&&!this.indoor)this.scene.start('place',{place});}),
       events.on('move-input', (v) => (this.stick = v)),
       events.on('ui-lock', ({ locked }) => this.setLocked(locked)),
       events.on('ui-pointer-cancel',()=>this.cancelUiPointer()),
@@ -192,7 +200,7 @@ export class GardenScene extends Phaser.Scene {
       (d) =>
         new Npc(this, d.id, d.name, NPC_HOMES[d.id], canStand, () => {
           const npc=this.npcs.find(n=>n.id===d.id);if(this.canInteractAt(npc??NPC_HOMES[d.id]))events.emit('npc-talk',{id:d.id});
-        }),
+        }, () => ({ resting: isResting(this.state, todayKey()), reducedMotion: !!this.state.settings.reducedMotion })),
     );
     events.emit('garden-ready', {});
   }
@@ -217,6 +225,12 @@ export class GardenScene extends Phaser.Scene {
         : Math.abs(this.player.x-LANDMARKS.home.x)<58 && Math.abs(this.player.y-LANDMARKS.home.y)<35;
       if (!near) this.doorArmed = true;
       if (near && this.doorArmed) { this.doorArmed = false; if (this.indoor) this.scene.restart({ indoor: false, returning: true }); else events.emit('house-entry', {}); }
+    }
+    // 학교·직장·카페 문 앞에 닿으면 건물을 클릭한 것과 같이 "들어갈래요?"가 뜬다. 한 번 뜨면 문 앞을 벗어날 때까지 다시 안 뜬다.
+    if (!this.indoor) {
+      const door = doorAt(this.player.x, this.player.y);
+      if (!door) this.entryArmed = true;
+      else if (this.entryArmed && !this.locked && !this.decorating && !this.seated) { this.entryArmed = false; events.emit('world-interact', { id: door }); }
     }
     this.pioHint?.setVisible(!this.decorating&&!exploration(this.state).pioSeedsFound);
     if(!this.indoor&&!this.locked&&!this.decorating&&!this.seated&&!store.restoring&&this.time.now>=this.nextSeedAttempt){
@@ -298,6 +312,9 @@ export class GardenScene extends Phaser.Scene {
     this.locked = locked;
     const kb = this.input.keyboard!;
     kb.enabled = !locked;
+    // 잠긴 동안은 키를 뗀 신호를 못 받아 눌린 채로 남는다. 창이 닫힌 뒤 그 방향으로 계속 가지 않게 상태를 비운다.
+    kb.resetKeys();
+    this.stick = { x: 0, y: 0 };
     if (locked) kb.disableGlobalCapture();
     else kb.enableGlobalCapture();
   }

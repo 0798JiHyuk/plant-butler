@@ -1,4 +1,5 @@
-import {useSocialLocation,socialLocation} from './socialLocation';
+import {useSocialLocation,socialLocation,isPlaceLocation} from './socialLocation';
+import {PlaceControls} from './PlaceControls';
 import {CafeControls} from './panels/Cafe';
 import { openWorldMap } from './panels/WorldMap';
 import { isModalOpen } from './modal';
@@ -23,7 +24,7 @@ export function App({ stage }: { stage: HTMLElement }) {
   useEffect(()=>{const ui=document.getElementById('ui');ui?.classList.toggle('ambient-folded',!!settings.folded);ui?.classList.toggle('reduced-motion',!!settings.reducedMotion);return()=>{ui?.classList.remove('ambient-folded','reduced-motion');};},[settings.folded,settings.reducedMotion]);
   return (
     <>
-      {location==='garden'?<><Hud /><Ambient /><SaveStatus /><Zoom stage={stage} /><DecorateBar /></>:<CafeControls/>}
+      {location==='garden'?<><Hud /><Ambient /><SaveStatus /><Zoom stage={stage} /><DecorateBar /></>:isPlaceLocation(location)?<PlaceControls place={location}/>:<CafeControls/>}
       <Joystick />
       <ModalHost />
       <ToastHost />

@@ -2,6 +2,23 @@
 
 export const copy = {
   pioSeeds:{title:'피오가 숨겨놓은 씨앗',found:'꽃나무 옆에서 씨앗 3개를 찾았어요. 가방의 씨앗함에 담았어요.',note:'산책 중 찾은 선물이에요. 활동 완료 횟수에는 포함되지 않아요.',bag:'씨앗함 보기',close:'계속 둘러보기'},
+  placeMemo: {
+    title: { school: '준비할 일 남기기', work: '이어갈 일 남기기' },
+    ask: { school: '먼저 펼칠 자료나 준비할 일 하나를 적어볼까요?', work: '이어갈 일이 있으면 한 줄 남겨 보세요.' },
+    leave: { school: '준비할 일 남기기', work: '이어갈 일 남기기' },
+    look: '자리만 보기', field: '메모', hint: '한 줄로, 60자까지 적을 수 있어요.', invalid: '한 줄로 적어 주세요. 60자까지 괜찮아요.',
+    save: '남기기', cancel: '취소', edit: '고치기', existing: '남겨 둔 메모', close: '닫기',
+    saved: { school: '준비할 일을 남겼어요.', work: '다음에 할 일을 남겼어요.' },
+    reaction: { school: '어디서 시작할지 다음에도 찾을 수 있겠네.', work: '다음엔 이 줄부터 보면 되겠다.' },
+    work: { chosen: '정원 표시는 네가 고른 대로 있어. 돌아가서 볼래?', entrance: '정원으로 돌아가는 표지는 입구에 있어. 돌아가서 볼래?' },
+    back: '돌아가서 보기', stay: '더 둘러보기',
+  },
+  places: {
+    enter: '들어가기', stay: '들어가서 둘러볼 수 있어요.', leave: '밖으로 나가기', guide: '이 자리 이야기', replay: '이야기 다시 보기',
+    exitHint: '아래쪽 문으로 나가면 정원으로 이어지는 길이 보여요.',
+    /** 첫 대사 앞에 보이는, 말하는 사람이 없는 상황 안내(원고의 "작은 사건"을 줄인 것). */
+    setup: { school: '피오가 책상 위의 종이 두 장을 번갈아 보고 있어요.', work: '모루가 작업대에 표지 시안 두 장을 펼쳐 놓았어요.' },
+  },
   cafe: {
     title:'동네 카페', enter:'카페에 들어가기', intro:'카페에서는 다른 방문자의 새싹이를 만날 수 있어요. 정원 이름과 현재 위치가 함께 있는 사람들에게 보여요.',
     share:'내 정원 방문 허용', shareNote:'허용하면 서버에 저장된 정원 이름·텃밭·식물·가구 배치만 보여요. 회고·활동 기록·가방·열매는 공개되지 않아요.',
@@ -37,7 +54,7 @@ export const copy = {
     basicFurniture: '기본 의자', preview: '구매 전 미리보기', previewPosition: '미리보기 위치 고르기', goal: '장식 목표로 남기기', goalSaved: '장식 목표를 남겼어요. 구매나 배치는 하지 않았어요.',
     goalClear: '목표 지우기', goalTitle: '기억해 둔 장식', buy: '모루 상점에서 구매', owned: '가진 가구',
     nameDraft: '이야기에 남길 임시 이름', namePending: '이름 작성 보류', emptyName: '지금은 비워두기', nameConfirm: '이 이름 남기기',
-    currentChoice: '지도판에 남긴 선택', ownMap: '내 지도', togetherMaps: '세 지도를 함께', blankMap: '이름은 빈칸', outsideOnly:'앞마당을 둘러볼 수 있어요. 실내는 아직 준비 중이에요.',finish: '이야기 마치기', continue: '계속 보기',
+    currentChoice: '지도판에 남긴 선택', ownMap: '내 지도', togetherMaps: '세 지도를 함께', blankMap: '이름은 빈칸',finish: '이야기 마치기', continue: '계속 보기',
     purpose: { garden: '식물과 기록을 보고 쉬는 자리', home: '내 취향으로 꾸미는 자리', shop: '가구를 구경하고 고르는 자리', cafe: '다른 풍경을 보는 야외 벤치', school: '공부 준비에 어울리는 자리', work: '이어갈 일을 남기는 자리', junction: '머그 표지를 따라 이어지는 길' },
   },
   world: {

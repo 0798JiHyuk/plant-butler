@@ -1,5 +1,6 @@
 import { upgradeGardenLayout } from './worldMigration';
 import { validExploration, validNarrative } from './exploration';
+import { validPlaceMemos } from './placeMemo';
 import type { AppState } from './types';
 import { plantById } from './plants';
 import { decodeMissionProgress } from './missionState';
@@ -41,6 +42,7 @@ export function decodeState(raw: unknown): AppState {
     && optional(v.garden.bed, x => object(x) && finite(x.x) && finite(x.y))
     && optional(v.garden.exploration, validExploration)
     && optional(v.garden.narrative, validNarrative)
+    && optional(v.garden.placeMemos, validPlaceMemos)
     && optional(v.garden.name, validGardenName)
     && optional(v.garden.namePromptSeen, x => typeof x === 'boolean')
     && optional(v.garden.interior, x => object(x) && list(x.items, i => object(i) && text(i.id) && one(i.kind, kinds) && count(i.variant) && position(i) && homeCellAllowed(Number(i.col), Number(i.row))))
