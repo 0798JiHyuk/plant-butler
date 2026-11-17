@@ -39,6 +39,7 @@ import { openReflect } from './panels/Reflect';
 import { openShop } from './panels/Shop';
 import { openTalk, talkActions } from './panels/Talk';
 import { startSound } from './sound';
+import { startBgm } from './bgm';
 import { showToast, clearToast } from './toast';
 import { closeModal, isModalOpen } from './modal';
 import { photoPolicy } from '../core/photoCheck';
@@ -179,6 +180,7 @@ export function startFlow(): void {
     pending = n;
   });
   startSound();
+  startBgm();
   const begin = () => {
     if (!store.state.story.seen.includes('intro') && store.state.logs.length === 0 && !narrative(store.state).completed.includes('ST-P01')) openNarrative('ST-P01');
   };
