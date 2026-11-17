@@ -106,5 +106,5 @@ export interface AppState {
   purchases: number;
   days: Record<string, DayInfo>;
   /** viewZoom: 정원을 보는 배율(없으면 화면 크기에 맞는 기본값) */
-  settings: { sound: boolean; demo: boolean; dayOffset: number; viewZoom?: number; reducedMotion?: boolean; folded?: boolean };
+  settings: { sound: boolean; bgmVolume?: number; demo: boolean; dayOffset: number; viewZoom?: number; reducedMotion?: boolean; folded?: boolean };
 }

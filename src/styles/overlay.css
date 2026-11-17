@@ -241,6 +241,10 @@ body { font-family: var(--font); color: var(--ink); -webkit-user-select: none; u
 .mission-panel .btn[aria-pressed=true] { border-color: var(--green); filter: brightness(0.9); }
 .switch { display: flex; align-items: center; gap: 12px; min-height: var(--tap); padding: 0 6px; font-size: 15px; cursor: pointer; }
 .switch input { width: 24px; height: 24px; accent-color: var(--green); }
+.range-row { display: flex; align-items: center; gap: 12px; min-height: var(--tap); padding: 0 6px; font-size: 15px; }
+.range-row span { flex: none; }
+.range-row input[type="range"] { flex: 1; min-width: 0; height: var(--tap); accent-color: var(--green); }
+.range-row output { flex: none; min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
 .demo-box { padding: 8px 10px; background: #fff; border: 2px solid var(--sand); border-radius: 10px; display: flex; flex-direction: column; gap: 6px; }
 .demo-box .btn { font-size: 13px; }
 .debug-line { margin: 0; font-size: 11px; color: var(--ink-soft); text-align: center; }
