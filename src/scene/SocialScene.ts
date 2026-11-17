@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CAFE, CAFE_SEATS, CAFE_TABLES, cafeWalkable, type CafeMember } from '../core/cafe';
+import { CAFE, CAFE_SEATS, CAFE_TABLES, atCafeDoor, cafeWalkable, type CafeMember } from '../core/cafe';
 import { events } from '../core/events';
 import { withinReach } from '../core/interaction';
 import { isTree } from '../core/plants';
@@ -25,6 +25,7 @@ export class SocialScene extends Phaser.Scene {
   private locked=false;
   private seat:string|null=null;
   private seating=false;
+  private doorArmed=false;
   private connection?:CafeConnection;
   private peers=new Map<string,Peer>();
   private connectionStatus:'connecting'|'online'|'error'|'replaced'='connecting';
@@ -38,7 +39,7 @@ export class SocialScene extends Phaser.Scene {
   }
   create():void {
     this.epoch++;
-    this.locked=false;this.seat=null;this.seating=false;this.stick={x:0,y:0};this.peers.clear();this.count=0;this.connectionStatus='connecting';
+    this.locked=false;this.seat=null;this.seating=false;this.doorArmed=false;this.stick={x:0,y:0};this.peers.clear();this.count=0;this.connectionStatus='connecting';
     events.emit('social-location',{location:this.mode,name:this.garden?.name});
     if(this.mode==='cafe')this.drawCafe();else this.drawVisit(this.garden!);
     const spawn=this.mode==='cafe'?CAFE.spawn:{x:896,y:2700};
@@ -129,6 +130,11 @@ export class SocialScene extends Phaser.Scene {
     const length=Math.hypot(x,y);if(length>1){x/=length;y/=length;}
     this.player.move(x,y,Math.min(delta,50));
     if(!this.seat&&!this.seating)this.connection?.move(this.player.x,this.player.y);
+    // 아래 가운데 문 앞에 닿으면 "카페 밖으로" 버튼과 같이 정원으로 나간다. 들어온 자리나 앉아 있을 때는 나가지 않고, 문 앞을 벗어난 뒤 다시 닿을 때만 나간다.
+    if(this.mode==='cafe'){
+      if(!atCafeDoor(this.player.x,this.player.y))this.doorArmed=true;
+      else if(this.doorArmed&&!this.locked&&!this.seat&&!this.seating){this.doorArmed=false;events.emit('social-travel',{destination:'garden'});}
+    }
     for(const peer of this.peers.values()){
       const r=peer.row,s=peer.sprite,ty=r.y-(r.seat_id?42:0),dx=r.x-s.x,dy=ty-s.y,moving=Math.hypot(dx,dy)>2;
       s.x+=dx*Math.min(1,delta/150);s.y+=dy*Math.min(1,delta/150);
