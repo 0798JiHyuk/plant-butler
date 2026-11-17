@@ -1,16 +1,21 @@
 import Phaser from 'phaser';
 import type { NpcId } from '../core/events';
+import { movementFor, pickStop } from '../core/npcRoutes';
 
 const SIZE = 60; // 화면에서 보이는 크기(px)
-const SPEED = 20; // px/초
 const LABEL_DEPTH = 8000; // 이름표는 소품에 가려지지 않게 항상 위에
-const ROAM = 60; // 자기 자리에서 이만큼 안쪽만 서성인다
 
-/** 정원에 사는 주민. 자기 자리 근처를 천천히 서성이다가, 새싹이가 가까이 오거나 대화 중이면 멈춘다. */
+export interface NpcContext { resting: boolean; reducedMotion: boolean }
+
+/**
+ * 정원에 사는 주민. 주민마다 정해진 정류장(core/npcRoutes.ts)을 속도·멈춤 시간·몸짓이 다르게 오간다.
+ * 새싹이가 가까이 오거나 대화 중이면 멈추고, 쉬는 날에는 걷지 않는다.
+ */
 export class Npc {
   readonly sprite: Phaser.GameObjects.Image;
   private readonly label: Phaser.GameObjects.Text;
   private target: { x: number; y: number } | null = null;
+  private stop = 0; // 지금 서 있는(또는 향하는) 정류장 번호
   private pause = 800 + Math.random() * 2000;
   private clock = Math.random() * 1000;
 
@@ -21,6 +26,7 @@ export class Npc {
     private home: { x: number; y: number },
     private canStand: (x: number, y: number) => boolean,
     onTap: () => void,
+    private context: () => NpcContext = () => ({ resting: false, reducedMotion: false }),
   ) {
     this.sprite = scene.add.image(home.x, home.y, `npc_${id}_front`).setOrigin(0.5, 0.96).setDisplaySize(SIZE, SIZE);
     this.sprite.setInteractive({ useHandCursor: true }).on('pointerdown', onTap);
@@ -50,11 +56,25 @@ export class Npc {
     this.sprite.setTexture(`npc_${this.id}_${p}`);
   }
 
+  /** 몸짓: 멈춘 동안(느리·모루)이나 걷는 동안(피오)의 작은 흔들림. 위치는 건드리지 않는다. */
+  private gesture(kind: 'none' | 'tilt' | 'tap' | 'hop', active: boolean): void {
+    let angle = 0, scaleY = 1;
+    if (active) {
+      const t = this.clock / 1000;
+      if (kind === 'tilt') angle = Math.sin(t * 1.2) * 5;
+      else if (kind === 'tap') scaleY = 1 + Math.max(0, Math.sin(t * 7)) * 0.05;
+      else if (kind === 'hop') scaleY = 1 + Math.abs(Math.sin(t * 9)) * 0.08;
+    }
+    this.sprite.setAngle(angle).setDisplaySize(SIZE, SIZE * scaleY);
+  }
+
   /** frozen: 창이 열려 있거나 꾸미는 중이면 가만히 있는다. */
   update(dtMs: number, player: { x: number; y: number }, frozen: boolean): void {
     this.clock += dtMs;
     const near = Math.hypot(player.x - this.x, player.y - this.y) < 80;
-    if (frozen || near) {
+    const move = movementFor(this.id, this.context());
+    if (frozen || near || !move.walks) {
+      this.gesture('none', false);
       this.pose('front');
       this.sprite.setFlipX(false);
       return;
@@ -63,24 +83,22 @@ export class Npc {
       this.pause -= dtMs;
       this.pose('front');
       this.sprite.setFlipX(false);
+      this.gesture(move.idle === 'hop' ? 'none' : move.idle, true);
       if (this.pause > 0) return;
-      // 자기 자리 근처에서 설 수 있는 곳을 골라 천천히 걸어간다. 못 찾으면 잠시 더 쉰다.
-      for (let i = 0; i < 8; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 20 + Math.random() * (ROAM - 20);
-        const t = { x: this.home.x + Math.cos(a) * r, y: this.home.y + Math.sin(a) * r * 0.6 };
-        if (this.canStand(t.x, t.y)) {
-          this.target = t;
-          break;
-        }
+      // 정류장 가운데서 비중대로 하나를 골라 걸어간다. 갈 곳이 없으면 제자리에서 더 쉰다.
+      const next = pickStop(this.id, this.stop, Math.random, this.canStand);
+      if (next) {
+        this.target = { x: next.x, y: next.y };
+        this.stop = next.index;
       }
-      this.pause = 2000 + Math.random() * 3500;
+      this.pause = move.pauseMs[0] + Math.random() * (move.pauseMs[1] - move.pauseMs[0]);
       return;
     }
+    this.gesture(move.idle === 'hop' ? 'hop' : 'none', true);
     const dx = this.target.x - this.x;
     const dy = this.target.y - this.y;
     const dist = Math.hypot(dx, dy);
-    const step = (SPEED * dtMs) / 1000;
+    const step = (move.speed * dtMs) / 1000;
     if (dist <= step) {
       this.target = null;
     } else {
