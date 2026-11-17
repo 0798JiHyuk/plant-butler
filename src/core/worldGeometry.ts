@@ -18,6 +18,15 @@ export const BUILDING_AREAS={
   home:{left:875,right:1350,top:1190,bottom:1565},shop:{left:1520,right:2190,top:1320,bottom:1765},cafe:{left:2920,right:3630,top:1360,bottom:1820},
   school:{left:1980,right:2870,top:60,bottom:700},work:{left:3200,right:4020,top:230,bottom:700},
 } as const;
+/**
+ * 건물 그림의 벽 아랫단·화분·통은 본체 사각형(BUILDING_AREAS) 아래로 삐져나와 있다.
+ * 문 앞 계단은 막지 않도록 계단 자리를 비워 두고 따로 덮는다(world-boundaries-*.webp 위에 겹쳐 잰 값).
+ */
+export const BUILDING_EXTRAS=[
+  {left:1480,right:1650,top:1765,bottom:1815},{left:1870,right:2155,top:1765,bottom:1800},{left:2015,right:2155,top:1800,bottom:1850},{left:2160,right:2230,top:1720,bottom:1810}, // 상점
+  {left:2925,right:3025,top:1820,bottom:1850},{left:3238,right:3322,top:1825,bottom:1905},{left:3322,right:3500,top:1820,bottom:1852},{left:3520,right:3650,top:1820,bottom:1850}, // 카페
+  {left:945,right:1020,top:1565,bottom:1615},{left:1225,right:1290,top:1565,bottom:1615}, // 집 문 옆 화분
+] as const;
 export const AREA_YARDS=[
   {left:900,right:1400,top:1580,bottom:1900},{left:1450,right:2300,top:1770,bottom:2130},{left:2780,right:3770,top:1840,bottom:2270},
   {left:2000,right:2910,top:730,bottom:1050},{left:3150,right:4020,top:730,bottom:1050},
