@@ -42,3 +42,25 @@ export function loopGain(position: number, duration: number, fade: number = LOOP
 export function shouldPlay(s: { allowed: boolean; soundOn: boolean; visible: boolean }): boolean {
   return s.allowed && s.soundOn && s.visible;
 }
+
+/** 설정의 배경음악 음량(0~1). 설정이 없거나 숫자가 아니면 1, 범위를 벗어나면 잘라서 쓴다. */
+export function bgmGain(setting: number | undefined): number {
+  if (typeof setting !== 'number' || !Number.isFinite(setting)) return 1;
+  return Math.min(1, Math.max(0, setting));
+}
+
+/** 곡이 바뀔 때 앞 곡이 사라지고 새 곡이 들어오는 한 걸음. 목표를 넘지 않는다. */
+export function stepLevel(current: number, goal: number, step: number): number {
+  return current < goal ? Math.min(goal, current + step) : Math.max(goal, current - step);
+}
+
+export interface PlayerSlot { track: string | null; level: number }
+/**
+ * 재생 칸은 두 개다(아이폰·사파리는 처음 눌렀을 때 허락받은 칸만 나중에도 소리를 낼 수 있어서, 칸을 늘리지 않고 돌려 쓴다).
+ * 이미 그 곡이 든 칸이 있으면 그 칸을, 없으면 소리가 더 작은 칸을 쓴다.
+ */
+export function slotFor(slots: readonly [PlayerSlot, PlayerSlot], track: string): 0 | 1 {
+  const same = slots.findIndex(slot => slot.track === track);
+  if (same >= 0) return same as 0 | 1;
+  return slots[0].level <= slots[1].level ? 0 : 1;
+}

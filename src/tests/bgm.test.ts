@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BGM_TRACKS, BGM_VOLUME, bgmFile, loopGain, shouldPlay, trackFor } from '../core/bgm';
+import { BGM_TRACKS, BGM_VOLUME, bgmFile, bgmGain, loopGain, shouldPlay, slotFor, stepLevel, trackFor } from '../core/bgm';
+import { createState, decodeState, stateKey } from '../core/state';
 
 describe('장소별 BGM 고르기', () => {
   const at = (location: 'garden' | 'cafe' | 'visit' | 'school' | 'work', indoorHome = false, resting = false) => trackFor({ location, indoorHome, resting });
@@ -71,5 +72,49 @@ describe('언제 틀지', () => {
     expect(shouldPlay({ allowed: false, soundOn: true, visible: true })).toBe(false);
     expect(shouldPlay({ allowed: true, soundOn: false, visible: true })).toBe(false);
     expect(shouldPlay({ allowed: true, soundOn: true, visible: false })).toBe(false);
+  });
+});
+
+describe('설정의 배경음악 음량', () => {
+  it('설정이 없으면 기본(1)이고 0~1 밖의 값은 잘라서 쓴다', () => {
+    expect(bgmGain(undefined)).toBe(1);
+    expect(bgmGain(0)).toBe(0);
+    expect(bgmGain(0.5)).toBe(0.5);
+    expect(bgmGain(1.7)).toBe(1);
+    expect(bgmGain(-0.2)).toBe(0);
+    expect(bgmGain(Number.NaN)).toBe(1);
+  });
+  it('이전 저장본에는 음량 항목이 없어도 읽힌다', () => {
+    const s = createState();
+    expect(s.settings.bgmVolume).toBeUndefined();
+    expect(decodeState(JSON.parse(JSON.stringify(s))).settings.bgmVolume).toBeUndefined();
+  });
+  it('음량을 저장하면 껐다 켜도 남고, 올바르지 않은 값은 받아들이지 않는다', () => {
+    const s = createState();
+    s.settings.bgmVolume = 0.4;
+    expect(decodeState(JSON.parse(stateKey(s))).settings.bgmVolume).toBe(0.4);
+    for (const bad of [-0.1, 1.5, 'loud', null]) {
+      const broken = JSON.parse(JSON.stringify(createState()));
+      broken.settings.bgmVolume = bad;
+      expect(() => decodeState(broken), String(bad)).toThrow();
+    }
+  });
+});
+
+describe('곡 전환(두 개의 재생 칸)', () => {
+  const slots = (a: [string | null, number], b: [string | null, number]) => [{ track: a[0], level: a[1] }, { track: b[0], level: b[1] }] as const;
+  it('이미 그 곡이 든 칸이 있으면 그 칸을 쓴다', () => {
+    expect(slotFor(slots(['garden', 1], ['school', 0.3]), 'school')).toBe(1);
+    expect(slotFor(slots(['garden', 1], [null, 0]), 'garden')).toBe(0);
+  });
+  it('새 곡은 소리가 더 작은 칸에 넣어 지금 들리는 곡을 끊지 않는다', () => {
+    expect(slotFor(slots(['garden', 1], [null, 0]), 'school')).toBe(1);
+    expect(slotFor(slots(['garden', 0.2], ['school', 0.8]), 'work')).toBe(0);
+  });
+  it('전환 단계는 목표를 넘지 않고 한 걸음씩 다가간다', () => {
+    expect(stepLevel(0, 1, 0.1)).toBeCloseTo(0.1, 5);
+    expect(stepLevel(0.95, 1, 0.1)).toBe(1);
+    expect(stepLevel(1, 0, 0.25)).toBe(0.75);
+    expect(stepLevel(0.1, 0, 0.5)).toBe(0);
   });
 });

@@ -57,6 +57,7 @@ export function decodeState(raw: unknown): AppState {
       && optional(day.plan, x => object(x) && source(x.source) && optional(x.activityId, text) && optional(x.text, text) && info(x.info)))
     && optional(v.settings.reducedMotion, x => typeof x === 'boolean')
     && optional(v.settings.folded, x => typeof x === 'boolean')
+    && optional(v.settings.bgmVolume, x => finite(x) && (x as number) >= 0 && (x as number) <= 1)
     && typeof v.settings.sound === 'boolean' && typeof v.settings.demo === 'boolean'
     && Number.isInteger(v.settings.dayOffset) && optional(v.settings.viewZoom, x => finite(x) && (x as number) > 0);
   if (!valid) throw new Error('Invalid progress');

@@ -306,6 +306,7 @@ export const copy = {
     unknownCommit: '커밋 정보 없음',
     buildEnvironment: { development: '로컬 개발', production: '정식 배포', preview: '테스트 배포', build: '빌드' },
     sound: '소리 끄기',
+    bgmVolume: '배경음악 음량',
     demo: '데모 모드',
     today: (date: string) => `지금 날짜 ${date}`,
     nextDay: '다음 날로',
