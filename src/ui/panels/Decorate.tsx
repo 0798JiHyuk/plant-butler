@@ -130,9 +130,11 @@ export function DecorateBar() {
     },
     () => (on ? (picking ? 'pick' : 'decorate') : 'off'),
   );
+  const [flipping,setFlipping]=useState(false);
   const active = mode !== 'off';
   const { garden } = useLayoutState();
 
+  useEffect(()=>{setFlipping(false);events.emit('decor-flip-mode',{on:false});},[mode]);
   useEffect(() => {
     document.getElementById('ui')?.classList.toggle('decorating', active);
     if (!active) return;
@@ -171,12 +173,13 @@ export function DecorateBar() {
     <div className="decorate-bar interactive">
       <div className="decorate-text">
         <strong>{copy.map.draft}</strong>
-        <span>{isIndoors() ? count > 0 ? copy.world.homeDecorateHint : copy.world.homeEmpty : count + garden.plants.length > 0 ? copy.decorate.hint : copy.decorate.none}</span>
+        <span>{flipping ? copy.furniture.flipHint : isIndoors() ? count > 0 ? copy.world.homeDecorateHint : copy.world.homeEmpty : count + garden.plants.length > 0 ? copy.decorate.hint : copy.decorate.none}</span>
         {count > 0 && <small>{copy.decorate.count(count)}</small>}
       </div>
       <button type="button" className="btn btn-secondary" onClick={() => openModal(<Storage />)}>
         {isIndoors() ? copy.world.homeStorage(garden.storage.filter(i => i.type === 'decor').length) : copy.decorate.storage(garden.storage.length)}
       </button>
+      <button type="button" className="btn-chip" aria-pressed={flipping} onClick={()=>{setFlipping(!flipping);events.emit('decor-flip-mode',{on:!flipping});}}>{copy.furniture.flip}</button>
       <button type="button" className="btn-chip" onClick={() => { if(undoLayout()) events.emit('layout-refresh', {}); }}>{copy.map.undo}</button>
       <button type="button" className="btn-chip" onClick={exitDecorate}>{copy.map.cancelLayout}</button>
       <button type="button" className="btn btn-primary" onClick={() => { const result=saveLayout(); if(result==='ok'){exitDecorate();showToast([copy.map.layoutSaved]);}else showToast([result==='conflict'?copy.map.editConflict:copy.map.saveError]); }}>{copy.map.saveLayout}</button>

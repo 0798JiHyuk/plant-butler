@@ -3,6 +3,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      analytics_team:{Row:{user_id:string};Insert:{user_id:string};Update:never;Relationships:[]};
       garden_sharing: {
         Row:{user_id:string;enabled:boolean}; Insert:{user_id:string;enabled?:boolean}; Update:{enabled?:boolean}; Relationships:[];
       };
@@ -41,6 +42,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      team_analytics:{Args:{p_days:number};Returns:Json};
       cafe_step:{Args:{p_session:string;p_x:number;p_y:number;p_seat:string|null;p_join?:boolean};Returns:Json};
       cafe_leave:{Args:{p_session:string};Returns:undefined};
       get_shared_garden:{Args:{p_user_id:string};Returns:Json};

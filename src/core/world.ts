@@ -27,7 +27,7 @@ export function placeHomeFurniture(s: AppState, id: string, col: number, row: nu
   if (index < 0 || !free(s, col, row)) return null;
   const item = s.garden.storage[index];
   if (item.type !== 'decor') return null;
-  const placed = { id, kind: item.decorKind, variant: item.variant, col, row };
+  const placed = { id, kind: item.decorKind, variant: item.variant, ...(item.flipped===undefined?{}:{flipped:item.flipped}), col, row };
   (s.garden.interior ??= { items: [] }).items.push(placed);
   s.garden.storage.splice(index, 1);
   return placed;
@@ -43,6 +43,13 @@ export function storeHomeFurniture(s: AppState, id: string): boolean {
   const index = items?.findIndex(i => i.id === id) ?? -1;
   if (!items || index < 0) return false;
   const [item] = items.splice(index, 1);
-  s.garden.storage.push({ id, type: 'decor', decorKind: item.kind, variant: item.variant });
+  s.garden.storage.push({ id, type: 'decor', decorKind: item.kind, variant: item.variant, ...(item.flipped===undefined?{}:{flipped:item.flipped}) });
   return true;
+}
+
+/** Mirrors a placed prop without changing footprint, rewards or inventory. */
+export function flipFurniture(s:AppState,id:string,indoor:boolean):boolean {
+  const item=furnitureOf(s,indoor).find(i=>i.id===id);
+  if(!item)return false;
+  item.flipped=!item.flipped;return true;
 }

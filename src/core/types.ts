@@ -41,6 +41,7 @@ export interface LogEntry {
 }
 
 export interface DecorItem {
+  flipped?: boolean;
   id: string;
   /** 'flower'·'pot'·'lamp'는 이전 그림의 저장본용. 지금은 새 종류만 만든다. */
   kind: 'flowerpot' | 'table' | 'shelf' | 'bench' | 'birdbath' | 'hammock' | 'flower' | 'pot' | 'lamp';
@@ -70,7 +71,7 @@ export interface SeedItem {
 
 /** 창고에 넣어둔 것: 소품이거나 심은 식물이거나. 칸을 벗어나므로 위치가 없다. */
 export type StoredThing =
-  | { id: string; type: 'decor'; decorKind: DecorItem['kind']; variant: number }
+  | { id: string; type: 'decor'; flipped?: boolean; decorKind: DecorItem['kind']; variant: number }
   | { id: string; type: 'plant'; plantId: string; date: string; harvested?: boolean; harvestedOn?: string };
 
 export interface DayInfo {

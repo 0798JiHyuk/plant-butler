@@ -1,3 +1,4 @@
+import {startAnalytics} from '../lib/events';
 import {useSocialLocation,socialLocation,isPlaceLocation} from './socialLocation';
 import {PlaceControls} from './PlaceControls';
 import {CafeControls} from './panels/Cafe';
@@ -18,6 +19,7 @@ import { ToastHost } from './toast';
 import { Zoom } from './Zoom';
 
 export function App({ stage }: { stage: HTMLElement }) {
+  useEffect(startAnalytics,[]);
   useEffect(()=>{const key=(e:KeyboardEvent)=>{const target=e.target as HTMLElement;if(e.key.toLowerCase()==='m'&&socialLocation()==='garden'&&!e.isComposing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!isModalOpen()&&!target.closest('input,textarea,select,[contenteditable=true]')){e.preventDefault();openWorldMap();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
   const location=useSocialLocation();
   const settings=useAppState().settings;

@@ -11,7 +11,7 @@ export function readSharedGarden(value:unknown):SharedGarden|null {
   const {x,y}=value.bed;
   if(typeof x!=='number'||typeof y!=='number'||!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>4096||y<0||y>3072)return null;
   const items:DecorItem[]=[],plants:SharedPlant[]=[];
-  for(const r of value.items.slice(0,300))if(record(r)&&typeof r.kind==='string'&&kinds.has(r.kind)&&cell(r.col)&&cell(r.row))items.push({id:`visit-${items.length}`,kind:r.kind as DecorItem['kind'],variant:0,col:r.col as number,row:r.row as number});
+  for(const r of value.items.slice(0,300))if(record(r)&&typeof r.kind==='string'&&kinds.has(r.kind)&&cell(r.col)&&cell(r.row))items.push({id:`visit-${items.length}`,kind:r.kind as DecorItem['kind'],...(r.flipped===undefined?{}:{flipped:r.flipped===true}),variant:0,col:r.col as number,row:r.row as number});
   for(const r of value.plants.slice(0,300))if(record(r)&&typeof r.plantId==='string'&&plantById(r.plantId)&&cell(r.col)&&cell(r.row)&&['seed','sprout','young','bloom'].includes(String(r.stage)))plants.push({plantId:r.plantId,col:r.col as number,row:r.row as number,stage:r.stage as SharedPlant['stage'],harvested:r.harvested===true});
   return {name:value.name.slice(0,24),bed:{x,y},items,plants};
 }

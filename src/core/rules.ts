@@ -220,7 +220,7 @@ export function storeDecor(draft: AppState, id: string): void {
   const idx = draft.garden.items.findIndex((i) => i.id === id);
   if (idx === -1) return;
   const [item] = draft.garden.items.splice(idx, 1);
-  draft.garden.storage.push({ id: item.id, type: 'decor', decorKind: item.kind, variant: item.variant });
+  draft.garden.storage.push({ id: item.id, type: 'decor', decorKind: item.kind, variant: item.variant, ...(item.flipped===undefined?{}:{flipped:item.flipped}) });
 }
 
 /** 창고를 오가도 수확 기록은 그대로 들고 간다. */
@@ -242,7 +242,7 @@ export function takeFromStorage(draft: AppState, id: string, slot: { col: number
   if (idx === -1) return null;
   const [stored] = draft.garden.storage.splice(idx, 1);
   if (stored.type === 'decor') {
-    const item: DecorItem = { id: stored.id, kind: stored.decorKind, variant: stored.variant, ...slot };
+    const item: DecorItem = { id: stored.id, kind: stored.decorKind, variant: stored.variant, ...(stored.flipped===undefined?{}:{flipped:stored.flipped}), ...slot };
     draft.garden.items.push(item);
     return item;
   }

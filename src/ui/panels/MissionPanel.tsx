@@ -1,3 +1,6 @@
+import {useEffect} from 'react';
+import {logEvent} from '../../lib/events';
+import {MissionSpeaker} from '../MissionSpeaker';
 import { useState, type ReactNode } from 'react';
 import { copy } from '@/core/copy';
 import { todayKey } from '@/core/clock';
@@ -12,7 +15,7 @@ import type { ReflectChip } from '@/core/types';
 import { closeModal, openModal } from '@/ui/modal';
 import { IconBtn } from '@/ui/icons';
 import { useAppState } from '@/ui/useAppState';
-import { showToast } from '@/ui/toast';
+import { showToast,clearToast } from '@/ui/toast';
 import { PanelHead } from './PanelHead';
 
 type Screen = 'category' | 'context' | 'academic' | 'work' | 'menu' | 'card' | 'stage' | 'conditions' | 'alternatives' | 'catalog' | 'execution'
@@ -53,6 +56,7 @@ function MissionPanel({ after = false }: { after?: boolean; details?: boolean })
   const session = activeMissionSession(state);
   const last = session?.reportedActions[session.reportedActions.length - 1];
   const m = missionById(selectedId);
+  useEffect(()=>{if(screen==='card'&&m)logEvent('mission_viewed',{mission_id:m.id});},[screen,m?.id]);
   const edit = (fn: (progress: MissionProgress) => void) => store.update(s => { s.missions ??= createMissionProgress(); fn(s.missions); });
   const go = (next: Screen) => { setError(''); setPage(0); if (next !== screen) setHistory(old => [...old, { screen, selectedId, page }]); setScreen(next); };
   const back = () => { const previous = history[history.length - 1]; if (!previous) return; setError(''); setPage(previous.page); setSelectedId(previous.selectedId); setHistory(old => old.slice(0, -1)); setScreen(previous.screen); };
@@ -140,18 +144,18 @@ function MissionPanel({ after = false }: { after?: boolean; details?: boolean })
 
   if (screen === 'category') {
     title = text.categoryTitle;
-    content = <><p className="panel-note">{text.categoryNote}</p><div className="mission-grid">{categories.map(id => <Button key={id} onClick={() => selectCategory(id)}>{text.categories[id]}</Button>)}</div><Button onClick={() => { edit(x => { x.onboardingSeen = true; }); closeModal(); }}>{text.garden}</Button></>;
+    content = <><MissionSpeaker name="느리"><p>{text.categoryTitle}</p><p>{text.categoryNote}</p></MissionSpeaker><div className="mission-grid">{categories.map(id => <Button key={id} onClick={() => selectCategory(id)}>{text.categories[id]}</Button>)}</div><Button onClick={() => { edit(x => { x.onboardingSeen = true; }); closeModal(); }}>{text.garden}</Button></>;
   } else if (screen === 'context') {
     title = text.context;
-    content = category === 'work' ? <><div className="mission-grid">{(['pre_return', 'returned', 'unknown'] as const).map(status => <Button key={status} onClick={() => { edit(x => { x.workStatus = status; x.selectedIntent = 'work'; }); go('work'); }}>{text.workStatus[status]}</Button>)}</div><Button onClick={() => go('menu')}>{text.menu}</Button></>
-      : <><div className="mission-grid">{(category === 'academic' ? ['course', 'assignment', 'exam'] : (allScenes ? ['drink', 'meal', 'wash', 'clothes', 'space', 'observe', 'outing', 'rest', 'contact'] : ['drink', 'meal', 'wash'])).map(intent => <Button key={intent} onClick={() => chooseIntent(intent)}>{text.intents[intent as keyof typeof text.intents]}</Button>)}</div><div className="btn-pair">{category === 'daily' && <Button onClick={() => setAllScenes(x => !x)}>{allScenes ? text.fewerScenes : text.moreScenes}</Button>}<Button onClick={() => go('menu')}>{text.menu}</Button><Button onClick={rest}>{text.rest}</Button></div></>;
+    content = <><MissionSpeaker name={category==='work'?'모루':category==='academic'?'피오':'느리'}><p>{category==='work'?copy.missionVoice.work:copy.missionVoice.context}</p></MissionSpeaker>{category === 'work' ? <><div className="mission-grid">{(['pre_return', 'returned', 'unknown'] as const).map(status => <Button key={status} onClick={() => { edit(x => { x.workStatus = status; x.selectedIntent = 'work'; }); go('work'); }}>{text.workStatus[status]}</Button>)}</div><Button onClick={() => go('menu')}>{text.menu}</Button></>
+      : <><div className="mission-grid">{(category === 'academic' ? ['course', 'assignment', 'exam'] : (allScenes ? ['drink', 'meal', 'wash', 'clothes', 'space', 'observe', 'outing', 'rest', 'contact'] : ['drink', 'meal', 'wash'])).map(intent => <Button key={intent} onClick={() => chooseIntent(intent)}>{text.intents[intent as keyof typeof text.intents]}</Button>)}</div><div className="btn-pair">{category === 'daily' && <Button onClick={() => setAllScenes(x => !x)}>{allScenes ? text.fewerScenes : text.moreScenes}</Button>}<Button onClick={() => go('menu')}>{text.menu}</Button><Button onClick={rest}>{text.rest}</Button></div></>}</>;
   } else if (screen === 'academic') {
     title = text.situations;
     const choices = [[text.findMaterial, 'A01'], [text.openMaterial, 'A03'], [text.readyMaterial, p.selectedIntent === 'exam' ? 'A07' : p.selectedIntent === 'assignment' ? 'A09' : 'A06']];
-    content = <div className="mission-grid">{choices.map(([label, id]) => <Button key={id} onClick={() => openCard(missionById(id)!)}>{label}</Button>)}</div>;
+    content = <><MissionSpeaker name="피오"><p>{text.situations}</p></MissionSpeaker><div className="mission-grid">{choices.map(([label, id]) => <Button key={id} onClick={() => openCard(missionById(id)!)}>{label}</Button>)}</div></>;
   } else if (screen === 'work') {
     const choices = p.workStatus === 'returned' ? [[text.workMaterial, 'W06'], [text.workRequest, 'W07'], [text.personalPrep, 'W03']] : [[text.returnNotice, 'W01'], [text.personalPrep, 'W03']];
-    content = <><div className="mission-grid">{choices.map(([label, id]) => <Button key={id} onClick={() => openCard(missionById(id)!)}>{label}</Button>)}</div><Button onClick={() => go('menu')}>{text.menu}</Button></>;
+    content = <><MissionSpeaker name="모루"><p>{copy.missionVoice.context}</p></MissionSpeaker><div className="mission-grid">{choices.map(([label, id]) => <Button key={id} onClick={() => openCard(missionById(id)!)}>{label}</Button>)}</div><Button onClick={() => go('menu')}>{text.menu}</Button></>;
   } else if (screen === 'menu') {
     const next = suggested();
     content = <><p className="panel-note">{category ? text.categories[category] : text.categoryNote} · {text.stageNote}</p>
@@ -169,8 +173,8 @@ function MissionPanel({ after = false }: { after?: boolean; details?: boolean })
       </div></>;
   } else if ((screen === 'card' || screen === 'stage') && m) {
     title = m.name;
-    content = screen === 'stage' ? <><p className="panel-message">{text.stage(m.stage, m.stageName)}</p><p className="panel-note">{text.stageQuestion}</p><div className="btn-pair"><Button primary onClick={() => { store.update(s => chooseMissionStage(s, m)); go('card'); }}>{text.stageAccept}</Button><Button onClick={() => go('menu')}>{text.practice}</Button></div></>
-      : <><p className="panel-note">{m.npc}: {m.dialogue}</p><p className="mission-condition">{m.conditionSummary}</p>
+    content = screen === 'stage' ? <><p className="panel-message">{text.stage(m.stage, m.stageName)}</p><MissionSpeaker name={m.npc}><p>{text.stageQuestion}</p></MissionSpeaker><div className="btn-pair"><Button primary onClick={() => { store.update(s => chooseMissionStage(s, m)); go('card'); }}>{text.stageAccept}</Button><Button onClick={() => go('menu')}>{text.practice}</Button></div></>
+      : <><MissionSpeaker name={m.npc}><p>{m.dialogue}</p></MissionSpeaker><p className="mission-condition">{m.conditionSummary}</p>
         <div className="mission-variants">{(['basic', 'small'] as const).map(variant => <div className="mission-variant" key={variant}><strong>{text[variant]}</strong><p>{m[variant]}</p><Button primary disabled={missionEligibility(p, m, variant) === 'excluded' || limitReached(state, todayKey())} onClick={() => startVariant(variant)}>{m.buttons?.[variant].start ?? (variant === 'basic' ? text.startBasic : text.startSmall)}</Button></div>)}</div>
         <div className="btn-pair"><Button onClick={() => go('options')}>{text.otherChoices}</Button><Button onClick={rest}>{text.rest}</Button></div></>;
   } else if (screen === 'options') {
@@ -240,4 +244,4 @@ function MissionPanel({ after = false }: { after?: boolean; details?: boolean })
   </section>;
 }
 
-export const openMissionPanel = (after = false, details = false) => openModal(<MissionPanel after={after} details={details} />);
+export const openMissionPanel = (after = false, details = false) => {clearToast();openModal(<MissionPanel after={after} details={details} />);};

@@ -112,7 +112,7 @@ export class SocialScene extends Phaser.Scene {
     this.add.image(g.bed.x,g.bed.y,'garden_field').setOrigin(0).setDisplaySize(DEFAULT_BED.w,DEFAULT_BED.h).setDepth(g.bed.y);
     const legacy:Record<string,string>={flower:'flowerpot',pot:'flowerpot',lamp:'table'};
     for(const item of g.items){const x=item.col*32+16,y=(item.row+1)*32;
-      this.add.image(x,y,`decor_${legacy[item.kind]??item.kind}`).setOrigin(.5,1).setDepth(y);
+      this.add.image(x,y,`decor_${legacy[item.kind]??item.kind}`).setOrigin(.5,1).setDepth(y).setFlipX(!!item.flipped);
     }
     for(const p of g.plants){
       const slot=slotWorldAt(p.col,p.row,g.bed),at=slot??{x:p.col*32+16,y:(p.row+1)*32+28};
