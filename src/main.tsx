@@ -1,3 +1,4 @@
+import {captureAcquisition} from './lib/events';
 import {SocialScene} from './scene/SocialScene';
 import {PlaceScene} from './scene/PlaceScene';
 import Phaser from 'phaser';
@@ -14,6 +15,7 @@ import { installUiInputPriority } from './ui/inputPriority';
 
 // 화면은 가로 844 고정, 세로는 창 비율에 맞춰 390(폰 가로)~563 사이에서 늘어난다.
 // 그래서 컴퓨터 창에서도 위아래 검은 띠 없이 정원을 더 많이 보여준다. 너무 납작한 창은 양옆에 띠가 생긴다.
+captureAcquisition();
 const W = 844;
 const H_MIN = 390;
 const H_MAX = 563;

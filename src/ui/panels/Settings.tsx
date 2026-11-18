@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import {canViewAnalytics,openTeamAnalytics} from './TeamAnalytics';
+import { useState,useEffect } from 'react';
 import { bgmGain } from '../../core/bgm';
 import { copy } from '../../core/copy';
 import { store } from '../../core/store';
@@ -33,11 +34,15 @@ const reload = () => window.location.reload();
 
 function Settings({ onAccount, onGardenName }: { onAccount?: () => void; onGardenName?: () => void }) {
   const { settings } = useAppState();
+  const [team,setTeam]=useState(false);
+  useEffect(()=>{let alive=true;void canViewAnalytics().then(ok=>{if(alive)setTeam(ok);});return()=>{alive=false;};},[]);
   const [confirmReset, setConfirmReset] = useState(false);
   return (
     <section className="panel settings" role="dialog" aria-label={copy.settings.title}>
       <PanelHead title={copy.settings.title} />
       <div className="settings-body">
+        {team&&<button className="btn btn-secondary" onClick={openTeamAnalytics}>{copy.analytics.title}</button>}
+        <p className="panel-note">{copy.analytics.notice}</p>
         {onGardenName && <button type="button" className="btn btn-secondary" onClick={onGardenName}>{copy.world.nameEdit}</button>}
         {onAccount && <button type="button" className="btn btn-secondary" onClick={onAccount}>{copy.account.title}</button>}
         <button className="btn btn-secondary" onClick={()=>{store.update(s=>{s.settings.folded=true;});closeModal();}}>{copy.map.fold}</button>

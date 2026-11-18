@@ -1,3 +1,4 @@
+import {flipFurniture} from '../core/world';
 import {canFindPioSeeds,findPioSeeds} from '../core/pioSeeds';
 import {placeExitPoint,type PlaceId} from '../core/places';
 import {pioSeedMarker} from './pioSeedMarker';
@@ -76,6 +77,7 @@ export class GardenScene extends Phaser.Scene {
   private plantSprites = new Map<string, Phaser.GameObjects.Image>();
   private fruitMarks = new Map<string, Phaser.GameObjects.Image>();
   private npcs: Npc[] = [];
+  private flipping=false;
   private decorating = false;
   private dragId: string | null = null;
   private dragKind: 'decor' | 'plant' | 'bed' | null = null;
@@ -108,6 +110,7 @@ export class GardenScene extends Phaser.Scene {
     this.decorSprites.clear(); this.plantSprites.clear(); this.fruitMarks.clear();
     this.npcs = []; this.stick = { x: 0, y: 0 }; this.locked = false;
     this.seated = null; this.lastZone = '';
+    this.flipping=false;
     this.decorating = false; this.dragId = null; this.dragKind = null;
     this.placing = null; this.placingSprite = undefined; this.seedPick = null;
     this.grid = undefined; this.hint = undefined; this.moundHint = undefined;
@@ -159,6 +162,7 @@ export class GardenScene extends Phaser.Scene {
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onDragEnd(p));
 
     const offs = [
+      events.on('decor-flip-mode',({on})=>{this.flipping=on;}),
       events.on('social-travel',({destination,garden})=>{if(destination!=='garden'&&!this.decorating)this.scene.start('social',destination==='visit'?{garden}:{});}),
       events.on('place-travel',({place})=>{if(place&&!this.decorating&&!this.indoor)this.scene.start('place',{place});}),
       events.on('move-input', (v) => (this.stick = v)),
@@ -304,7 +308,7 @@ export class GardenScene extends Phaser.Scene {
     if(!withinReach(this.player,anchor)){events.emit('interaction-too-far',{});return;}
     if(!store.tryUpdate(s=>{ensureExploration(s).seat={zone:this.indoor?'home':zoneAt(anchor.x,anchor.y,false),id};}))return;
     const at=seatPlacement(anchor,kind,img?.displayHeight??125);
-    this.seated=id;this.player.sprite.setPosition(at.x,at.y);this.player.restOnFurniture(at.pose,at.depth);
+    this.seated=id;this.player.sprite.setPosition(at.x,at.y);this.player.restOnFurniture(at.pose,at.depth);if(at.pose==='lie')this.player.sprite.setFlipX(!!item?.flipped);
   }
 
   /** 글을 쓰는 동안에는 W·A·S·D가 글자로 입력되어야 하므로 키보드 가로채기를 끈다. */
@@ -335,7 +339,7 @@ export class GardenScene extends Phaser.Scene {
 
   private placeDecor(item: DecorItem, pop: boolean): void {
     const img = this.add
-      .image(item.col * TILE + TILE / 2, (item.row + 1) * TILE, decorTexture(item))
+      .image(item.col * TILE + TILE / 2, (item.row + 1) * TILE, decorTexture(item)).setFlipX(!!item.flipped)
       .setOrigin(0.5, 1)
       .setDepth((item.row + 1) * TILE);
     if(item.kind==='bench'||item.kind==='hammock') img.setInteractive({useHandCursor:true}).on('pointerdown',()=>{if(this.canInteractAt(img)) this.setSeat(this.seated===item.id?null:item.id);});
@@ -605,6 +609,7 @@ export class GardenScene extends Phaser.Scene {
       .setOrigin(0.5, 1)
       .setAlpha(0.85)
       .setDepth(DRAG_DEPTH);
+    if(item.type==='decor')this.placingSprite.setFlipX(!!item.flipped);
     if (item.type === 'plant') {
       const size = this.plantLook(item.plantId, item.date).size;
       this.placingSprite.setDisplaySize(size, size);
@@ -682,6 +687,11 @@ export class GardenScene extends Phaser.Scene {
 
   private onDragStart(p: Phaser.Input.Pointer): void {
     if (!this.decorating) return;
+    if(this.flipping&&!this.seedPick&&!this.placing){
+      const item=this.items.slice().sort((a,b)=>b.row-a.row).find(i=>this.decorSprites.get(i.id)?.getBounds().contains(p.worldX,p.worldY));
+      if(item){editLayout(s=>{flipFurniture(s,item.id,this.indoor);});this.decorSprites.get(item.id)?.setFlipX(!!this.items.find(i=>i.id===item.id)?.flipped);}
+      return;
+    }
     if (this.seedPick) {
       this.commitSeedPick(p);
       return;

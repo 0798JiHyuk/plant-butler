@@ -1,6 +1,9 @@
 // 화면에 보이는 모든 문구는 여기 모은다. 말투는 존댓말, 부드럽고 짧게.
 
 export const copy = {
+  missionVoice:{context:'지금은 어떤 작은 일을 해볼까요?',work:'지금은 어떤 상황에 가까운가요? 편한 쪽을 골라 주세요.'},
+  analytics:{title:'팀 통계',days:'일',refresh:'새로고침',scope:'로그인 후 이용 기준 · 팀 계정 제외 · 측정 시작 이후 기록만 집계해요.',timezone:'한국 시간 기준',loading:'통계를 불러오고 있어요.',error:'통계를 불러올 수 없어요. 팀 권한과 SQL 적용 상태를 확인해 주세요.',visitors:'기간 이용자',newUsers:'신규 이용자',activeToday:'오늘 이용자',completionUsers:'활동 완료 이용자',retention:'접속 리텐션',retentionNote:'기간 내 첫 이용자 중 D일째를 맞은 계정만 분모에 포함해요. 오늘 수치는 진행 중이에요.',day:'재방문 시점',eligible:'집계 대상',returned:'재방문',rate:'비율',waiting:'집계 대기',daily:'일별 이용',date:'날짜',active:'이용자',sources:'최초 유입 경로',users:'인원',notice:'접속·미션 조회·완료·쉬기와 공유 링크의 경로 태그를 이용 통계로 기록해요. 회고·직접 쓴 계획·사진·이메일은 통계에 포함하지 않아요.'},
+  furniture:{flip:'좌우 전환',flipHint:'방향을 바꿀 가구를 눌러 주세요. 다시 누르면 원래 방향으로 돌아와요.'},
   pioSeeds:{title:'피오가 숨겨놓은 씨앗',found:'꽃나무 옆에서 씨앗 3개를 찾았어요. 가방의 씨앗함에 담았어요.',note:'산책 중 찾은 선물이에요. 활동 완료 횟수에는 포함되지 않아요.',bag:'씨앗함 보기',close:'계속 둘러보기'},
   placeMemo: {
     title: { school: '준비할 일 남기기', work: '이어갈 일 남기기' },

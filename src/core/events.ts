@@ -7,6 +7,7 @@ export type NpcId = 'nuri' | 'moru' | 'pio';
 import type { DecorItem, PlantedItem, StoredThing } from './types';
 
 export interface AppEvents {
+  'decor-flip-mode':{on:boolean};
   'pio-seeds-found': { seeds:import('./types').SeedItem[] };
   'pio-seeds-save-error': Record<string,never>;
   'social-travel': { destination:'cafe'|'garden'|'visit'; garden?:import('./sharedGarden').SharedGarden };
