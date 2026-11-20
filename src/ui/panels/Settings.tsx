@@ -1,4 +1,5 @@
 import {canViewAnalytics,openTeamAnalytics} from './TeamAnalytics';
+import {openFeedback} from './Feedback';
 import { useState,useEffect } from 'react';
 import { bgmGain } from '../../core/bgm';
 import { copy } from '../../core/copy';
@@ -45,6 +46,7 @@ function Settings({ onAccount, onGardenName }: { onAccount?: () => void; onGarde
         <p className="panel-note">{copy.analytics.notice}</p>
         {onGardenName && <button type="button" className="btn btn-secondary" onClick={onGardenName}>{copy.world.nameEdit}</button>}
         {onAccount && <button type="button" className="btn btn-secondary" onClick={onAccount}>{copy.account.title}</button>}
+        <button type="button" className="btn btn-secondary" onClick={openFeedback}>{copy.feedback.title}</button>
         <button className="btn btn-secondary" onClick={()=>{store.update(s=>{s.settings.folded=true;});closeModal();}}>{copy.map.fold}</button>
         <Switch label={copy.settings.sound} checked={!settings.sound} onChange={(off) => store.update((d) => { d.settings.sound = !off; })} />
         <BgmVolume value={bgmGain(settings.bgmVolume)} onChange={(v) => store.update((d) => { d.settings.bgmVolume = v; })} />
