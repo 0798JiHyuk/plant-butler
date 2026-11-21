@@ -174,9 +174,9 @@ function MissionPanel({ after = false }: { after?: boolean; details?: boolean })
   } else if ((screen === 'card' || screen === 'stage') && m) {
     title = m.name;
     content = screen === 'stage' ? <><p className="panel-message">{text.stage(m.stage, m.stageName)}</p><MissionSpeaker name={m.npc}><p>{text.stageQuestion}</p></MissionSpeaker><div className="btn-pair"><Button primary onClick={() => { store.update(s => chooseMissionStage(s, m)); go('card'); }}>{text.stageAccept}</Button><Button onClick={() => go('menu')}>{text.practice}</Button></div></>
-      : <><MissionSpeaker name={m.npc}><p>{m.dialogue}</p></MissionSpeaker><p className="mission-condition">{m.conditionSummary}</p>
-        <div className="mission-variants">{(['basic', 'small'] as const).map(variant => <div className="mission-variant" key={variant}><strong>{text[variant]}</strong><p>{m[variant]}</p><Button primary disabled={missionEligibility(p, m, variant) === 'excluded' || limitReached(state, todayKey())} onClick={() => startVariant(variant)}>{m.buttons?.[variant].start ?? (variant === 'basic' ? text.startBasic : text.startSmall)}</Button></div>)}</div>
-        <div className="btn-pair"><Button onClick={() => go('options')}>{text.otherChoices}</Button><Button onClick={rest}>{text.rest}</Button></div></>;
+      : <div className="mission-card-content"><MissionSpeaker name={m.npc}><p>{m.dialogue}</p></MissionSpeaker>{m.situation && <p className="panel-note">{m.situation}</p>}<p className="mission-condition">{m.conditionSummary}</p>
+        <div className="mission-variants">{(['basic', 'small'] as const).map(variant => <div className="mission-variant" key={variant}><strong>{text[variant]}</strong><p>{m[variant]}</p>{m[`${variant}Hint`] && <p className="mission-variant-hint">{m[`${variant}Hint`]}</p>}<Button primary disabled={missionEligibility(p, m, variant) === 'excluded' || limitReached(state, todayKey())} onClick={() => startVariant(variant)}>{m.buttons?.[variant].start ?? (variant === 'basic' ? text.startBasic : text.startSmall)}</Button></div>)}</div>
+        <div className="btn-pair"><Button onClick={() => go('options')}>{text.otherChoices}</Button><Button onClick={rest}>{text.rest}</Button></div></div>;
   } else if (screen === 'options') {
     title = text.otherChoices;
     content = <div className="mission-grid two"><Button onClick={() => go('alternatives')}>{text.other}</Button>
