@@ -6,6 +6,7 @@ export interface Mission {
   id: string; categoryId: CategoryId; category: string; stage: number; stageName: string;
   after?: string; buttons?: Record<MissionVariant, {start:string;done:string}>;
   name: string; npc: string; dialogue: string; basic: string; small: string; done: string;
+  situation?: string; basicHint?: string; smallHint?: string;
   record: string; smallRecord: string; condition: string; conditionSummary: string; intentIds: string[];
   mode: 'activity' | 'create_and_execute' | 'plan_and_execute' | 'day_and_execute';
   next: string;
