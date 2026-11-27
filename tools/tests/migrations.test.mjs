@@ -16,7 +16,8 @@ test('historical SQL changes/deletion are rejected; new migrations and line endi
     const name='20261105010000_initial.sql',sql='begin;\nselect 1;\ncommit;';
     writeFileSync(join(dir,'supabase/migrations',name),sql);
     writeFileSync(join(dir,'supabase/migration-baseline.json'),JSON.stringify({[name]:createHash('sha256').update(sql).digest('hex')}));
-    const run=()=>spawnSync(process.execPath,[checker],{cwd:dir,encoding:'utf8',windowsHide:true}).status;
+    // Synthetic fixtures are not a Git checkout; don't inherit the real PR base SHA.
+    const run=()=>spawnSync(process.execPath,[checker],{cwd:dir,env:{...process.env,MIGRATION_BASE_SHA:''},encoding:'utf8',windowsHide:true}).status;
     assert.equal(run(),0);
     writeFileSync(join(dir,'supabase/migrations',name),sql.replaceAll('\n','\r\n\r\n'));
     writeFileSync(join(dir,'supabase/migrations/20261127010000_next.sql'),'begin;\nselect 2;\ncommit;');
