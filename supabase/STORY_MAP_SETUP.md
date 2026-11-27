@@ -1,5 +1,8 @@
 # Story/map v2 integration
 
+현재 DB 적용·백업·복구 절차는 [MIGRATIONS.md](MIGRATIONS.md)를 우선한다.
+아래 SQL 실행 안내는 해당 기능 최초 도입 기준이며, 적용한 과거 파일을 재실행하지 않는다.
+
 ## Sources and precedence
 
 - Latest `01_스토리_최종.md` and `02_개발자_구현안.md` (2026-11-14, story-map-v2) are retained in `src/core/data/story-map-source.md` and `story-map-contract.md`.

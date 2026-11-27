@@ -15,6 +15,36 @@ permissions:
   contents: read
 
 jobs:
+  database:
+    name: database
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v5.0.0
+        with:
+          node-version: "22"
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.0.0
+      - name: Verify immutable migration history
+        env:
+          MIGRATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: npm run db:check && npm run db:tools:test
+      - name: Rebuild isolated local Supabase
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector > "$RUNNER_TEMP/supabase-start.log" 2>&1
+      - name: Test RLS, RPC and snapshot compatibility
+        run: node tools/db-upgrade-check.mjs && npm run db:test
+      - name: Check generated public schema types
+        run: npm run db:types:check
+      - name: Backup and restore rehearsal
+        run: node tools/db-restore-check.mjs
+      - name: Stop isolated stack
+        if: always()
+        run: supabase stop
   secrets:
     name: secrets
     runs-on: ubuntu-24.04

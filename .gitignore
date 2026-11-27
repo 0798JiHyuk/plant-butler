@@ -10,6 +10,10 @@ android/
 .env.*
 !.env.example
 supabase/.temp/
+supabase/.branches/
+backups/
+*.dump
+*.backup
 .context/
 
 __pycache__/

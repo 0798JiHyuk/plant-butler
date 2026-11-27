@@ -86,6 +86,7 @@ export interface DayInfo {
 }
 
 export interface AppState {
+  saveSchemaVersion?: 1;
   missions?: MissionProgress;
   version: 1;
   logs: LogEntry[];

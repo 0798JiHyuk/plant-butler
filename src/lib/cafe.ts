@@ -60,7 +60,11 @@ export class CafeConnection {
     finally{this.finishRequest();}
   }
   private async write(p:{x:number;y:number;seat:string|null},join:boolean):Promise<string> {
-    const {data,error}=await this.api!.rpc('cafe_step',{p_session:this.session,p_x:p.x,p_y:p.y,p_seat:p.seat,p_join:join});
+    type Args=Database['public']['Functions']['cafe_step']['Args'];
+    const args={p_session:this.session,p_x:p.x,p_y:p.y,p_seat:p.seat,p_join:join} satisfies Omit<Args,'p_seat'>&{p_seat:string|null};
+    // PostgreSQL accepts NULL for an unseated player; generated RPC Args omit argument nullability.
+    // Keep the wire payload unchanged. supabase/tests/online_cafe.sql exercises this NULL contract.
+    const {data,error}=await this.api!.rpc('cafe_step',args as Args);
     if(error)throw new Error('request');
     if(this.stopped){void this.api!.rpc('cafe_leave',{p_session:this.session}).then(()=>undefined,()=>undefined);return 'error';}
     const status=data&&typeof data==='object'&&!Array.isArray(data)?data.status:null;

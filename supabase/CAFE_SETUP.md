@@ -1,5 +1,8 @@
 # 온라인 카페 적용 / 검증
 
+현재 DB 적용·백업·복구 절차는 [MIGRATIONS.md](MIGRATIONS.md)를 우선한다.
+아래 SQL 실행 안내는 해당 기능 최초 도입 기준이며, 적용한 과거 파일을 재실행하지 않는다.
+
 ## 적용 순서
 
 1. 기존 정원 저장 마이그레이션 3개가 적용되어 있는지 확인한다. 특히 `20261114010000_require_google_for_garden.sql`의 `has_google_session()`이 필요하다.
