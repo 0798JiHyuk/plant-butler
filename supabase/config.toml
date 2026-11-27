@@ -1,3 +1,26 @@
+project_id = "plant-butler"
+
+[api]
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[studio]
+port = 54323
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://127.0.0.1:5173"]
+enable_anonymous_sign_ins = false
+
 # JWT is validated via Auth /user in the handler before any OpenAI request.
 [functions.verify-activity]
 verify_jwt = false

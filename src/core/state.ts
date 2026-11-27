@@ -1,4 +1,5 @@
 import { upgradeGardenLayout } from './worldMigration';
+import { migrateSave, SAVE_SCHEMA_VERSION } from './saveMigrations';
 import { validExploration, validNarrative } from './exploration';
 import { validPlaceMemos } from './placeMemo';
 import type { AppState } from './types';
@@ -7,7 +8,7 @@ import { decodeMissionProgress } from './missionState';
 import { homeCellAllowed, validGardenName } from './world';
 
 export function createState(): AppState {
-  return { version: 1, logs: [], garden: { layoutVersion:2, items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
+  return { version: 1, saveSchemaVersion: SAVE_SCHEMA_VERSION, logs: [], garden: { layoutVersion:2, items: [], plants: [], storage: [] }, seeds: [], fruit: 0, freePackets: 0, story: { seen: [], choices: {} }, bonusPackets: 0, visits: { count: 0 }, purchases: 0, days: {}, settings: { sound: true, demo: false, dayOffset: 0 } };
 }
 
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -28,6 +29,7 @@ const position = (v: Record<string, unknown>) => Number.isInteger(v.col) && Numb
 
 /** 읽기만으로 기존 원본을 바꾸지 않는다. 알 수 없는 버전/깨진 저장본은 덮어쓰지 않는다. */
 export function decodeState(raw: unknown): AppState {
+  raw = migrateSave(raw);
   if (!object(raw) || raw.version !== 1 || !object(raw.garden) || !object(raw.settings)) throw new Error('Invalid progress');
   const base = createState();
   const missions = raw.missions === undefined ? undefined : decodeMissionProgress(raw.missions);
@@ -61,7 +63,7 @@ export function decodeState(raw: unknown): AppState {
     && typeof v.settings.sound === 'boolean' && typeof v.settings.demo === 'boolean'
     && Number.isInteger(v.settings.dayOffset) && optional(v.settings.viewZoom, x => finite(x) && (x as number) > 0);
   if (!valid) throw new Error('Invalid progress');
-  const restored = structuredClone({ version: 1, logs: v.logs, garden: v.garden, seeds: v.seeds, fruit: v.fruit,
+  const restored = structuredClone({ version: 1, saveSchemaVersion: SAVE_SCHEMA_VERSION, logs: v.logs, garden: v.garden, seeds: v.seeds, fruit: v.fruit,
     freePackets: v.freePackets, bonusPackets: v.bonusPackets, story: v.story, visits: v.visits,
     purchases: v.purchases, days: v.days, settings: v.settings, ...(missions ? { missions } : {}) }) as AppState;
   // Keep legacy keys for snapshot compatibility; demo flags can no longer affect gameplay.

@@ -9,7 +9,12 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src supabase/functions vite.config.ts --deny typescript/no-explicit-any --deny-warnings",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:test": "node tools/db-local.mjs test",
+    "db:types": "node tools/db-local.mjs types",
+    "db:types:check": "node tools/db-local.mjs types-check",
+    "db:check": "node tools/check-migrations.mjs",
+    "db:tools:test": "node --test tools/tests/migrations.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

@@ -1,5 +1,10 @@
 # 계정별 정원 저장
 
+현재 적용·복구 기준: [MIGRATIONS.md](MIGRATIONS.md), 현재 인증 정책: [AUTH_SETUP.md](AUTH_SETUP.md).
+이 문서의 익명/게스트·연결 기능·즉시 게임 진입 설명은 최초 도입 당시 기록이다.
+현재는 Google 로그인과 초기 저장 복원이 끝난 뒤 게임을 시작하며, 신규 게스트 시작/계정 연결은 제공하지 않는다.
+아래 과거 SQL을 기존 운영 DB에 재실행하지 않는다. 새 저장 계약은 `saveSchemaVersion`으로 구분한다.
+
 ## 문서와 적용 근거
 
 읽은 문서: AGENTS.md, README.md, CLAUDE.md, docs/PRD.md,
